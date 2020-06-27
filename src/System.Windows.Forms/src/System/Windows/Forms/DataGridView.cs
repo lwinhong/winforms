@@ -14,8 +14,6 @@ using static Interop;
 
 namespace System.Windows.Forms
 {
-    [ComVisible(true)]
-    [ClassInterface(ClassInterfaceType.AutoDispatch)]
     [Designer("System.Windows.Forms.Design.DataGridViewDesigner, " + AssemblyRef.SystemDesign)]
     [DefaultEvent(nameof(CellContentClick))]
     [ComplexBindingProperties(nameof(DataSource), nameof(DataMember))]
@@ -386,8 +384,6 @@ namespace System.Windows.Forms
         private static readonly int PropToolTip = PropertyStore.CreateKey();
         // the tool tip string we get from cells
         private string toolTipCaption = string.Empty;
-
-        private const int maxTTDISPINFOBufferLength = 80;
 
         // Last Mouse Click Info
         private MouseClickInfo lastMouseClickInfo;
@@ -1795,16 +1791,6 @@ namespace System.Windows.Forms
         }
 
         /// <summary>
-        ///  Indicates whether the ComboBox editing control was just detached. (focused out to another cell)
-        /// </summary>
-        internal bool ComboBoxControlWasDetached { get; set; }
-
-        /// <summary>
-        ///  Indicates whether the TextBox editing control was just detached. (focused out to another cell)
-        /// </summary>
-        internal bool TextBoxControlWasDetached { get; set; }
-
-        /// <summary>
         ///  Gets
         ///  or sets a value indicating if the dataGridView's column headers are visible.
         /// </summary>
@@ -2674,21 +2660,7 @@ namespace System.Windows.Forms
                         firstDisplayedRowIndex = displayedBandsInfo.FirstDisplayedScrollingRow;
                     }
                 }
-#if FALSE //DEBUG
-                int firstDisplayedRowIndexDbg1 = this.Rows.GetFirstRow(DataGridViewElementStates.Displayed);
 
-                int firstDisplayedRowIndexDbg2 = this.Rows.GetFirstRow(DataGridViewElementStates.Visible | DataGridViewElementStates.Frozen);
-                if (firstDisplayedRowIndexDbg2 == -1)
-                {
-                    if (this.displayedBandsInfo.FirstDisplayedScrollingRow >= 0)
-                    {
-                        firstDisplayedRowIndexDbg2 = this.displayedBandsInfo.FirstDisplayedScrollingRow;
-                    }
-                }
-
-                Debug.Assert(firstDisplayedRowIndex == firstDisplayedRowIndexDbg1 || !this.Visible || this.displayedBandsInfo.Dirty, "firstDisplayedRowIndex =" + firstDisplayedRowIndex.ToString() + ", firstDisplayedRowIndexDbg1=" + firstDisplayedRowIndexDbg1.ToString());
-                Debug.Assert(firstDisplayedRowIndex == firstDisplayedRowIndexDbg2 || this.displayedBandsInfo.Dirty, "firstDisplayedRowIndex =" + firstDisplayedRowIndex.ToString() + ", firstDisplayedRowIndexDbg2=" + firstDisplayedRowIndexDbg2.ToString());
-#endif
                 return firstDisplayedRowIndex;
             }
         }
@@ -3016,7 +2988,7 @@ namespace System.Windows.Forms
                 }
 
                 // The mouse probably is not over the same cell after the scroll.
-                UpdateMouseEnteredCell(null /*HitTestInfo*/, null /*MouseEventArgs*/);
+                UpdateMouseEnteredCell(hti: null, e: null);
 
                 if (oldFirstVisibleScrollingCol == displayedBandsInfo.FirstDisplayedScrollingCol)
                 {
@@ -5468,77 +5440,6 @@ namespace System.Windows.Forms
                                                                          (defaultSelectionMode).ToString()));
                     }
                 }
-            }
-        }
-
-        /* INTERNAL ENUMERATIONS */
-
-        internal enum DataGridViewHitTestTypeInternal
-        {
-            None,
-            Cell,
-            ColumnHeader,
-            RowHeader,
-            ColumnResizeLeft,
-            ColumnResizeRight,
-            RowResizeTop,
-            RowResizeBottom,
-            FirstColumnHeaderLeft,
-            TopLeftHeader,
-            TopLeftHeaderResizeLeft,
-            TopLeftHeaderResizeRight,
-            TopLeftHeaderResizeTop,
-            TopLeftHeaderResizeBottom,
-            ColumnHeadersResizeBottom,
-            ColumnHeadersResizeTop,
-            RowHeadersResizeRight,
-            RowHeadersResizeLeft,
-            ColumnHeaderLeft,
-            ColumnHeaderRight
-        }
-
-        internal enum DataGridViewValidateCellInternal
-        {
-            Never,
-            Always,
-            WhenChanged
-        }
-
-        private enum DataGridViewMouseEvent
-        {
-            Click,
-            DoubleClick,
-            MouseClick,
-            MouseDoubleClick,
-            MouseDown,
-            MouseUp,
-            MouseMove
-        }
-
-        private struct MouseClickInfo
-        {
-            public MouseButtons button;
-            public long timeStamp;
-            public int x;
-            public int y;
-            public int col;
-            public int row;
-        }
-
-        internal class DataGridViewEditingPanel : Panel
-        {
-            private readonly DataGridView owningDataGridView;
-
-            public DataGridViewEditingPanel(DataGridView owningDataGridView)
-            {
-                this.owningDataGridView = owningDataGridView;
-            }
-
-            internal override bool SupportsUiaProviders => true;
-
-            protected override AccessibleObject CreateAccessibilityInstance()
-            {
-                return new DataGridViewEditingPanelAccessibleObject(owningDataGridView, this);
             }
         }
     }

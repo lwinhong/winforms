@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-//#define GDI_FINALIZATION_WATCH
-
 // THIS PARTIAL CLASS CONTAINS THE BASE METHODS FOR CREATING AND DISPOSING A WINDOWSGRAPHICS AS WELL
 // GETTING, DISPOSING AND WORKING WITH A DC.
 
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using static Interop;
 
 namespace System.Windows.Forms.Internal
 {
@@ -31,20 +28,13 @@ namespace System.Windows.Forms.Internal
     internal sealed partial class WindowsGraphics : MarshalByRefObject, IDisposable, IDeviceContext
     {
         private bool _disposeDc;
-        private Graphics _graphics; // cached when initialized FromGraphics to be able to call g.ReleaseHdc from Dispose.
-
-#if GDI_FINALIZATION_WATCH
-        private string AllocationSite = DbgUtil.StackTrace;
-#endif
-
-        // Construction/destruction API
+        private Graphics? _graphics; // cached when initialized FromGraphics to be able to call g.ReleaseHdc from Dispose.
 
         public WindowsGraphics(DeviceContext dc)
         {
             Debug.Assert(dc != null, "null dc!");
             DeviceContext = dc;
             DeviceContext.SaveHdc();
-            //this.disposeDc = false; // the dc is not owned by this object.
         }
 
         /// <summary>
@@ -55,23 +45,25 @@ namespace System.Windows.Forms.Internal
         public static WindowsGraphics CreateMeasurementWindowsGraphics()
         {
             DeviceContext dc = DeviceContext.FromCompatibleDC(IntPtr.Zero);
-            WindowsGraphics wg = new WindowsGraphics(dc)
+            var wg = new WindowsGraphics(dc)
             {
                 _disposeDc = true // we create it, we dispose it.
             };
 
+            // This instance is stored in a thread static so it will *always* get put on the finalizer queue.
+            // As we can't do anything in the finalizer, suppress finalization for this instance (otherwise
+            // our Dispose validation will assert and take down debug test runs).
+            wg.SuppressFinalize();
             return wg;
         }
 
         public static WindowsGraphics FromHwnd(IntPtr hWnd)
         {
             DeviceContext dc = DeviceContext.FromHwnd(hWnd);
-            WindowsGraphics wg = new WindowsGraphics(dc)
+            return new WindowsGraphics(dc)
             {
                 _disposeDc = true // we create it, we dispose it.
             };
-
-            return wg;
         }
 
         public static WindowsGraphics FromHdc(IntPtr hDc)
@@ -106,127 +98,115 @@ namespace System.Windows.Forms.Internal
         ///  Please note that this only applies the HDC created graphics, for Bitmap derived graphics, GetHdc creates a new DIBSection and
         ///  things get a lot more complicated.
         /// </summary>
-        public static WindowsGraphics FromGraphics(Graphics g)
-            => FromGraphics(g, ApplyGraphicsProperties.All);
+        public static WindowsGraphics FromGraphics(Graphics g) => FromGraphics(g, ApplyGraphicsProperties.All);
 
-        public static WindowsGraphics FromGraphics(Graphics g, ApplyGraphicsProperties properties)
+        public static WindowsGraphics FromGraphics(Graphics graphics, ApplyGraphicsProperties properties)
         {
-            WindowsRegion wr = null;
-            float[] elements = null;
+            bool applyTransform = properties.HasFlag(ApplyGraphicsProperties.TranslateTransform);
+            bool applyClipping = properties.HasFlag(ApplyGraphicsProperties.Clipping);
+            object[]? data = applyTransform || applyClipping ? (object[])graphics.GetContextInfo() : null;
 
-            Region clipRgn = null;
-            Matrix worldTransf = null;
+            using Region? clipRegion = (Region?)data?[0];
+            using Matrix? worldTransform = (Matrix?)data?[1];
 
-            if ((properties & ApplyGraphicsProperties.TranslateTransform) != 0 || (properties & ApplyGraphicsProperties.Clipping) != 0)
-            {
-                if (g.GetContextInfo() is object[] data && data.Length == 2)
-                {
-                    clipRgn = data[0] as Region;
-                    worldTransf = data[1] as Matrix;
-                }
-
-                if (worldTransf != null)
-                {
-                    if ((properties & ApplyGraphicsProperties.TranslateTransform) != 0)
-                    {
-                        elements = worldTransf.Elements;
-                    }
-                    worldTransf.Dispose();
-                }
-
-                if (clipRgn != null)
-                {
-                    if ((properties & ApplyGraphicsProperties.Clipping) != 0)
-                    {
-                        // We have to create the WindowsRegion and dipose the Region object before locking the Graphics object,
-                        // in case of an unlikely exception before releasing the WindowsRegion, the finalizer will do it for us.
-                        // (no try-finally block since this method is used frequently - perf).
-                        // If the Graphics.Clip has not been set (Region.IsInfinite) we don't need to apply it to the DC.
-                        if (!clipRgn.IsInfinite(g))
-                        {
-                            wr = WindowsRegion.FromRegion(clipRgn, g); // WindowsRegion will take ownership of the hRegion.
-                        }
-                    }
-                    clipRgn.Dispose(); // Disposing the Region object doesn't destroy the hRegion.
-                }
-            }
-
-            WindowsGraphics wg = FromHdc(g.GetHdc()); // This locks the Graphics object.
-            wg._graphics = g;
+            float[]? elements = applyTransform ? worldTransform?.Elements : null;
 
             // Apply transform and clip
-            if (wr != null)
+
+            applyClipping = applyClipping && !clipRegion!.IsInfinite(graphics);
+            using var graphicsRegion = applyClipping ? new Gdi32.RegionScope(clipRegion!, graphics) : default;
+
+            // GetHdc() locks the Graphics object, it cannot be used until ReleaseHdc() is called
+            IntPtr hdc = graphics.GetHdc();
+            WindowsGraphics wg = FromHdc(hdc);
+            wg._graphics = graphics;
+
+            try
             {
-                using (wr)
+                if (applyClipping)
                 {
                     // If the Graphics object was created from a native DC the actual clipping region is the intersection
                     // beteween the original DC clip region and the GDI+ one - for display Graphics it is the same as
                     // Graphics.VisibleClipBounds.
-                    wg.DeviceContext.IntersectClip(wr);
+
+                    using var dcRegion = new Gdi32.RegionScope(hdc);
+                    Gdi32.CombineRgn(graphicsRegion, dcRegion, graphicsRegion, Gdi32.CombineMode.RGN_AND);
+                    Gdi32.SelectClipRgn(hdc, graphicsRegion);
+                }
+
+                if (elements != null)
+                {
+                    // elements (XFORM) = [eM11, eM12, eM21, eM22, eDx, eDy], eDx/eDy specify the translation offset.
+                    wg.DeviceContext.TranslateTransform((int)elements[4], (int)elements[5]);
                 }
             }
-
-            if (elements != null)
+            catch
             {
-                // elements (XFORM) = [eM11, eM12, eM21, eM22, eDx, eDy], eDx/eDy specify the translation offset.
-                wg.DeviceContext.TranslateTransform((int)elements[4], (int)elements[5]);
+                // We want a determinstic dispose when we fail.
+                wg.Dispose();
+                throw;
             }
 
             return wg;
         }
 
+#if DEBUG
+        // We only need the finalizer to track missed Dispose() calls.
+
+        private readonly string _callStack = new StackTrace().ToString();
+
         ~WindowsGraphics()
         {
-            Dispose(false);
+            Debug.Fail($"{nameof(WindowsGraphics)} was not disposed properly. Originating stack:\n{_callStack}");
+
+            // We can't do anything with the fields when we're on the finalizer as they're all classes. If any of
+            // them become structs they'll be a part of this instance and possible to clean up. Ideally we fix
+            // the leaks and never come in on the finalizer.
+            return;
         }
+#endif
+
+        [Conditional("DEBUG")]
+        private void SuppressFinalize() => GC.SuppressFinalize(this);
 
         public DeviceContext DeviceContext { get; private set; }
 
-        // Okay to suppress.
-        //"WindowsGraphics object does not own the Graphics object.  For instance in a control’s Paint event we pass the
-        //GraphicsContainer object to TextRenderer, which uses WindowsGraphics;
-        //if the Graphics object is disposed then further painting will be broken."
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+            // Disposing can throw. As such we'll suppress preemptively so we don't roll right back in on the finalizer.
+            SuppressFinalize();
 
-        internal void Dispose(bool disposing)
-        {
-            if (DeviceContext != null)
+            if (DeviceContext == null)
             {
-                DbgUtil.AssertFinalization(this, disposing);
-
-                try
-                {
-                    // Restore original dc.
-                    DeviceContext.RestoreHdc();
-
-                    if (_disposeDc)
-                    {
-                        DeviceContext.Dispose(disposing);
-                    }
-
-                    if (_graphics != null)    // if created from a Graphics object...
-                    {
-                        _graphics.ReleaseHdcInternal(DeviceContext.Hdc);
-                        _graphics = null;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (ClientUtils.IsSecurityOrCriticalException(ex))
-                    {
-                        throw; // rethrow the original exception.
-                    }
-                    Debug.Fail("Exception thrown during disposing: \r\n" + ex.ToString());
-                }
-                finally
-                {
-                    DeviceContext = null;
-                }
+                return;
             }
+
+            try
+            {
+                // Restore original dc.
+                DeviceContext.RestoreHdc();
+
+                if (_disposeDc)
+                {
+                    DeviceContext.Dispose();
+                }
+
+                // GDI+ can fail here.
+                _graphics?.ReleaseHdcInternal(DeviceContext.Hdc);
+            }
+            catch (Exception ex)
+            {
+                if (ClientUtils.IsCriticalException(ex))
+                {
+                    throw; // rethrow the original exception.
+                }
+
+                Debug.Fail($"Exception thrown during disposing: \n{ex}");
+            }
+
+            // Clear our fields that have finalizers
+            DeviceContext = null!;
+            _graphics = null;
         }
 
         public IntPtr GetHdc() => DeviceContext.Hdc;

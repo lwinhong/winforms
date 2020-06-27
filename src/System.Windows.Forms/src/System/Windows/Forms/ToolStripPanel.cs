@@ -4,8 +4,6 @@
 
 #nullable disable
 
-//#define DEBUG_PAINT
-
 using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -18,8 +16,6 @@ using static Interop;
 
 namespace System.Windows.Forms
 {
-    [ComVisible(true)]
-    [ClassInterface(ClassInterfaceType.AutoDispatch)]
     [Designer("System.Windows.Forms.Design.ToolStripPanelDesigner, " + AssemblyRef.SystemDesign)]
     [ToolboxBitmap(typeof(ToolStripPanel), "ToolStripPanel_standalone")]
     public class ToolStripPanel : ContainerControl, IArrangedElement
@@ -28,7 +24,6 @@ namespace System.Windows.Forms
         private static readonly Padding rowMargin = new Padding(3, 0, 0, 0);
         private Padding scaledRowMargin = rowMargin;
         private ToolStripRendererSwitcher rendererSwitcher = null;
-        private readonly Type currentRendererType = typeof(Type);
         private BitVector32 state = new BitVector32();
         private readonly ToolStripContainer owner;
 
@@ -41,9 +36,6 @@ namespace System.Windows.Forms
         internal static TraceSwitch ToolStripPanelFeedbackDebug;
         internal static TraceSwitch ToolStripPanelMissingRowDebug;
 #endif
-
-        [ThreadStatic]
-        private static Rectangle lastFeedbackRect = Rectangle.Empty;
 
         // properties
         private static readonly int PropToolStripPanelRowCollection = PropertyStore.CreateKey();
@@ -459,17 +451,6 @@ namespace System.Windows.Forms
         {
             OnRendererChanged(e);
         }
-
-#if DEBUG_PAINT
-                protected  override void OnPaint(PaintEventArgs e) {
-                    base.OnPaint(e);
-                    Graphics g = e.Graphics;
-                    foreach (ToolStripPanelRow row in this.RowsInternal) {
-                        g.DrawRectangle(SystemPens.Highlight, row.Bounds);
-                        row.PaintColumns(e);
-                    }
-                }
-#endif
 
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected override void OnPaintBackground(PaintEventArgs e)
@@ -1364,8 +1345,7 @@ namespace System.Windows.Forms
             }
         }
 
-        [ListBindable(false),
-        ComVisible(false)]
+        [ListBindable(false)]
         public class ToolStripPanelRowCollection : ArrangedElementCollection, IList
         {
             private readonly ToolStripPanel owner;

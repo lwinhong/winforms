@@ -32,8 +32,6 @@ namespace System.Windows.Forms
         private static readonly object EventDefaultItemChanged = new object();
         private static readonly object EventButtonClick = new object();
         private static readonly object EventButtonDoubleClick = new object();
-        private static readonly object EventDropDownOpened = new object();
-        private static readonly object EventDropDownClosed = new object();
 
         private static bool isScalingInitialized = false;
         private static int scaledDropDownButtonWidth = DEFAULT_DROPDOWN_WIDTH;
@@ -228,7 +226,7 @@ namespace System.Windows.Forms
                 {
                     dropDownButtonWidth = value;
                     InvalidateSplitButtonLayout();
-                    InvalidateItemLayout(PropertyNames.DropDownButtonWidth, true);
+                    InvalidateItemLayout(PropertyNames.DropDownButtonWidth);
                 }
             }
         }

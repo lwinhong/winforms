@@ -144,7 +144,15 @@ namespace System.Windows.Forms
 
             public override object GetEditor(Type editorBaseType)
             {
-                UpdateTypeConverterAndTypeEditorInternal(false, (Ole32.DispatchID)dispid.Value);
+                if (editorBaseType == null)
+                {
+                    throw new ArgumentNullException(nameof(editorBaseType));
+                }
+
+                if (dispid != null)
+                {
+                    UpdateTypeConverterAndTypeEditorInternal(false, (Ole32.DispatchID)dispid.Value);
+                }
 
                 if (editorBaseType.Equals(typeof(UITypeEditor)) && editor != null)
                 {
@@ -163,7 +171,7 @@ namespace System.Windows.Forms
             {
                 try
                 {
-                    Ole32.IPerPropertyBrowsing ippb = owner.GetPerPropertyBrowsing();
+                    Oleaut32.IPerPropertyBrowsing ippb = owner.GetPerPropertyBrowsing();
                     if (ippb == null)
                     {
                         return Guid.Empty;
@@ -210,7 +218,7 @@ namespace System.Windows.Forms
                         owner.RefreshAllProperties = true;
                         SetFlag(FlagGettterThrew, true);
                     }
-                    throw e;
+                    throw;
                 }
                 finally
                 {
@@ -252,7 +260,7 @@ namespace System.Windows.Forms
                 try
                 {
                     SetFlag(FlagSettingValue, true);
-                    if (PropertyType.IsEnum && (value.GetType() != PropertyType))
+                    if (PropertyType.IsEnum && value != null && value.GetType() != PropertyType)
                     {
                         baseProp.SetValue(component, Enum.ToObject(PropertyType, value));
                     }
@@ -335,15 +343,15 @@ namespace System.Windows.Forms
 
                 try
                 {
-                    Ole32.IPerPropertyBrowsing ppb = owner.GetPerPropertyBrowsing();
+                    Oleaut32.IPerPropertyBrowsing ppb = owner.GetPerPropertyBrowsing();
 
                     if (ppb != null)
                     {
                         bool hasStrings = false;
 
                         // check for enums
-                        var caStrings = new Ole32.CA_STRUCT();
-                        var caCookies = new Ole32.CA_STRUCT();
+                        var caStrings = new Ole32.CA();
+                        var caCookies = new Ole32.CA();
 
                         HRESULT hr = HRESULT.S_OK;
                         try

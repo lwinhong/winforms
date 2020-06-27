@@ -19,8 +19,6 @@ namespace System.Windows.Forms
     /// <summary>
     ///  This is a wrapper over the native WebBrowser control implemented in shdocvw.dll.
     /// </summary>
-    [ComVisible(true)]
-    [ClassInterface(ClassInterfaceType.AutoDispatch)]
     [DefaultProperty(nameof(Url))]
     [DefaultEvent(nameof(DocumentCompleted))]
     [Docking(DockingBehavior.AutoDock)]
@@ -28,8 +26,6 @@ namespace System.Windows.Forms
     [Designer("System.Windows.Forms.Design.WebBrowserDesigner, " + AssemblyRef.SystemDesign)]
     public class WebBrowser : WebBrowserBase
     {
-        private static bool createdInIE;
-
         // Reference to the native ActiveX control's IWebBrowser2
         // Do not reference this directly. Use the AxIWebBrowser2
         // property instead.
@@ -61,8 +57,6 @@ namespace System.Windows.Forms
         /// </summary>
         public WebBrowser() : base("8856f961-340a-11d0-a96b-00c04fd705a2")
         {
-            CheckIfCreatedInIE();
-
             webBrowserState = new Collections.Specialized.BitVector32(WEBBROWSERSTATE_isWebBrowserContextMenuEnabled |
                     WEBBROWSERSTATE_webBrowserShortcutsEnabled | WEBBROWSERSTATE_scrollbarsEnabled);
             AllowNavigation = true;
@@ -658,7 +652,7 @@ namespace System.Windows.Forms
             {
                 AxIWebBrowser2.GoBack();
             }
-            catch (Exception ex) when (!ClientUtils.IsSecurityOrCriticalException(ex))
+            catch (Exception ex) when (!ClientUtils.IsCriticalException(ex))
             {
                 retVal = false;
             }
@@ -678,7 +672,7 @@ namespace System.Windows.Forms
             {
                 AxIWebBrowser2.GoForward();
             }
-            catch (Exception ex) when (!ClientUtils.IsSecurityOrCriticalException(ex))
+            catch (Exception ex) when (!ClientUtils.IsCriticalException(ex))
             {
                 retVal = false;
             }
@@ -793,7 +787,7 @@ namespace System.Windows.Forms
             {
                 AxIWebBrowser2.ExecWB(Ole32.OLECMDID.PRINT, Ole32.OLECMDEXECOPT.DONTPROMPTUSER, IntPtr.Zero, IntPtr.Zero);
             }
-            catch (Exception ex) when (!ClientUtils.IsSecurityOrCriticalException(ex))
+            catch (Exception ex) when (!ClientUtils.IsCriticalException(ex))
             {
             }
         }
@@ -816,7 +810,7 @@ namespace System.Windows.Forms
                     AxIWebBrowser2.Refresh();
                 }
             }
-            catch (Exception ex) when (!ClientUtils.IsSecurityOrCriticalException(ex))
+            catch (Exception ex) when (!ClientUtils.IsCriticalException(ex))
             {
             }
         }
@@ -842,7 +836,7 @@ namespace System.Windows.Forms
                     AxIWebBrowser2.Refresh2(ref level);
                 }
             }
-            catch (Exception ex) when (!ClientUtils.IsSecurityOrCriticalException(ex))
+            catch (Exception ex) when (!ClientUtils.IsCriticalException(ex))
             {
             }
         }
@@ -879,7 +873,7 @@ namespace System.Windows.Forms
             {
                 AxIWebBrowser2.ExecWB(Ole32.OLECMDID.PAGESETUP, Ole32.OLECMDEXECOPT.PROMPTUSER, IntPtr.Zero, IntPtr.Zero);
             }
-            catch (Exception ex) when (!ClientUtils.IsSecurityOrCriticalException(ex))
+            catch (Exception ex) when (!ClientUtils.IsCriticalException(ex))
             {
             }
         }
@@ -894,7 +888,7 @@ namespace System.Windows.Forms
             {
                 AxIWebBrowser2.ExecWB(Ole32.OLECMDID.PRINT, Ole32.OLECMDEXECOPT.PROMPTUSER, IntPtr.Zero, IntPtr.Zero);
             }
-            catch (Exception ex) when (!ClientUtils.IsSecurityOrCriticalException(ex))
+            catch (Exception ex) when (!ClientUtils.IsCriticalException(ex))
             {
             }
         }
@@ -908,7 +902,7 @@ namespace System.Windows.Forms
             {
                 AxIWebBrowser2.ExecWB(Ole32.OLECMDID.PRINTPREVIEW, Ole32.OLECMDEXECOPT.PROMPTUSER, IntPtr.Zero, IntPtr.Zero);
             }
-            catch (Exception ex) when (!ClientUtils.IsSecurityOrCriticalException(ex))
+            catch (Exception ex) when (!ClientUtils.IsCriticalException(ex))
             {
             }
         }
@@ -923,7 +917,7 @@ namespace System.Windows.Forms
             {
                 AxIWebBrowser2.ExecWB(Ole32.OLECMDID.PROPERTIES, Ole32.OLECMDEXECOPT.PROMPTUSER, IntPtr.Zero, IntPtr.Zero);
             }
-            catch (Exception ex) when (!ClientUtils.IsSecurityOrCriticalException(ex))
+            catch (Exception ex) when (!ClientUtils.IsCriticalException(ex))
             {
             }
         }
@@ -938,7 +932,7 @@ namespace System.Windows.Forms
             {
                 AxIWebBrowser2.ExecWB(Ole32.OLECMDID.SAVEAS, Ole32.OLECMDEXECOPT.DODEFAULT, IntPtr.Zero, IntPtr.Zero);
             }
-            catch (Exception ex) when (!ClientUtils.IsSecurityOrCriticalException(ex))
+            catch (Exception ex) when (!ClientUtils.IsCriticalException(ex))
             {
             }
         }
@@ -952,7 +946,7 @@ namespace System.Windows.Forms
             {
                 AxIWebBrowser2.Stop();
             }
-            catch (Exception ex) when (!ClientUtils.IsSecurityOrCriticalException(ex))
+            catch (Exception ex) when (!ClientUtils.IsCriticalException(ex))
             {
             }
         }
@@ -1154,24 +1148,6 @@ namespace System.Windows.Forms
             }
         }
 
-        internal override void OnTopMostActiveXParentChanged(EventArgs e)
-        {
-            if (TopMostParent.IsIEParent)
-            {
-                WebBrowser.createdInIE = true;
-                CheckIfCreatedInIE();
-            }
-            else
-            {
-                WebBrowser.createdInIE = false;
-                base.OnTopMostActiveXParentChanged(e);
-            }
-        }
-
-        //
-        // protected virtuals:
-        //
-
         /// <summary>
         ///  Raises the <see cref='CanGoBackChanged'/> event.
         /// </summary>
@@ -1286,26 +1262,6 @@ namespace System.Windows.Forms
             }
         }
         #endregion
-
-        //
-        // Private methods:
-        //
-        private void CheckIfCreatedInIE()
-        {
-            if (WebBrowser.createdInIE)
-            {
-                if (ParentInternal != null)
-                {
-                    ParentInternal.Controls.Remove(this);
-                    Dispose();
-                }
-                else
-                {
-                    Dispose();
-                    throw new NotSupportedException(SR.WebBrowserInIENotSupported);
-                }
-            }
-        }
 
         private string ReadyNavigateToUrl(string urlString)
         {
@@ -1487,7 +1443,6 @@ namespace System.Windows.Forms
         ///  Provides a default WebBrowserSite implementation for use in the CreateWebBrowserSite
         ///  method in the WebBrowser class.
         /// </summary>
-        [ComVisible(false)]
         protected class WebBrowserSite : WebBrowserSiteBase, IDocHostUIHandler
         {
             /// <summary>

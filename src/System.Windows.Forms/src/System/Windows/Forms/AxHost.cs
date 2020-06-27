@@ -28,8 +28,6 @@ namespace System.Windows.Forms
     /// <summary>
     ///  Wraps ActiveX controls and exposes them as fully featured windows forms controls.
     /// </summary>
-    [ComVisible(true)]
-    [ClassInterface(ClassInterfaceType.AutoDispatch)]
     [ToolboxItem(false)]
     [DesignTimeVisible(false)]
     [DefaultEvent(nameof(Enter))]
@@ -39,8 +37,9 @@ namespace System.Windows.Forms
         private static readonly TraceSwitch AxHTraceSwitch = new TraceSwitch("AxHTrace", "ActiveX handle tracing");
         private static readonly TraceSwitch AxPropTraceSwitch = new TraceSwitch("AxPropTrace", "ActiveX property tracing");
         private static readonly TraceSwitch AxHostSwitch = new TraceSwitch("AxHost", "ActiveX host creation");
-        private static readonly BooleanSwitch AxIgnoreTMSwitch = new BooleanSwitch("AxIgnoreTM", "ActiveX switch to ignore thread models");
+#if DEBUG
         private static readonly BooleanSwitch AxAlwaysSaveSwitch = new BooleanSwitch("AxAlwaysSave", "ActiveX to save all controls regardless of their IsDirty function return value");
+#endif
 
         /// <summary>
         ///  Flags which may be passed to the AxHost constructor
@@ -71,7 +70,6 @@ namespace System.Windows.Forms
             internal const int IgnoreThreadModel = 0x10000000;
         }
 
-        private static readonly COMException E_NOTIMPL = new COMException(SR.AXNotImplemented, unchecked((int)0x80000001));
         private static readonly COMException E_INVALIDARG = new COMException(SR.AXInvalidArgument, unchecked((int)0x80070057));
         private static readonly COMException E_FAIL = new COMException(SR.AXUnknownError, unchecked((int)0x80004005));
 
@@ -186,9 +184,9 @@ namespace System.Windows.Forms
         private Ole32.IOleControl iOleControl;
         private Ole32.IOleInPlaceActiveObject iOleInPlaceActiveObject;
         private Ole32.IOleInPlaceActiveObject iOleInPlaceActiveObjectExternal;
-        private Ole32.IPerPropertyBrowsing iPerPropertyBrowsing;
+        private Oleaut32.IPerPropertyBrowsing iPerPropertyBrowsing;
         private VSSDK.ICategorizeProperties iCategorizeProperties;
-        private Ole32.IPersistPropertyBag iPersistPropBag;
+        private Oleaut32.IPersistPropertyBag iPersistPropBag;
         private Ole32.IPersistStream iPersistStream;
         private Ole32.IPersistStreamInit iPersistStreamInit;
         private Ole32.IPersistStorage iPersistStorage;
@@ -1212,7 +1210,7 @@ namespace System.Windows.Forms
         {
             if (logPixelsX == -1 || force)
             {
-                using ScreenDC dc = ScreenDC.Create();
+                using var dc = User32.GetDcScope.ScreenDC;
                 if (dc == IntPtr.Zero)
                 {
                     return HRESULT.E_FAIL;
@@ -2946,7 +2944,7 @@ namespace System.Windows.Forms
             SetOcState(OC_RUNNING);
         }
 
-        private void DepersistFromIPropertyBag(Ole32.IPropertyBag propBag)
+        private void DepersistFromIPropertyBag(Oleaut32.IPropertyBag propBag)
         {
             iPersistPropBag.Load(propBag, null);
         }
@@ -3025,10 +3023,10 @@ namespace System.Windows.Forms
                     }
                     return;
                 }
-                if (instance is Ole32.IPersistPropertyBag)
+                if (instance is Oleaut32.IPersistPropertyBag)
                 {
                     Debug.WriteLineIf(AxHTraceSwitch.TraceVerbose, this + " supports IPersistPropertyBag.");
-                    iPersistPropBag = (Ole32.IPersistPropertyBag)instance;
+                    iPersistPropBag = (Oleaut32.IPersistPropertyBag)instance;
                     try
                     {
                         iPersistPropBag.InitNew();
@@ -3098,7 +3096,7 @@ namespace System.Windows.Forms
             {
                 try
                 {
-                    iPersistPropBag = (Ole32.IPersistPropertyBag)instance;
+                    iPersistPropBag = (Oleaut32.IPersistPropertyBag)instance;
                     DepersistFromIPropertyBag(ocxState.GetPropBag());
                 }
                 catch (Exception e)
@@ -3381,7 +3379,7 @@ namespace System.Windows.Forms
                 // Things we explicitly ignore and pass to the ocx's windproc
                 case User32.WM.ERASEBKGND:
 
-                case User32.WM.REFLECT | User32.WM.NOTIFYFORMAT:
+                case User32.WM.REFLECT_NOTIFYFORMAT:
 
                 case User32.WM.SETCURSOR:
                 case User32.WM.SYSCOLORCHANGE:
@@ -3914,14 +3912,14 @@ namespace System.Windows.Forms
             return iCategorizeProperties;
         }
 
-        private Ole32.IPerPropertyBrowsing GetPerPropertyBrowsing()
+        private Oleaut32.IPerPropertyBrowsing GetPerPropertyBrowsing()
         {
             if (iPerPropertyBrowsing == null && !axState[checkedIppb] && instance != null)
             {
                 axState[checkedIppb] = true;
-                if (instance is Ole32.IPerPropertyBrowsing)
+                if (instance is Oleaut32.IPerPropertyBrowsing)
                 {
-                    iPerPropertyBrowsing = (Ole32.IPerPropertyBrowsing)instance;
+                    iPerPropertyBrowsing = (Oleaut32.IPerPropertyBrowsing)instance;
                 }
             }
             return iPerPropertyBrowsing;

@@ -108,7 +108,6 @@ namespace System.Windows.Forms
         private static readonly int s_accessibilityProperty = PropertyStore.CreateKey();
         private static readonly int s_accessibleNameProperty = PropertyStore.CreateKey();
         private static readonly int s_accessibleRoleProperty = PropertyStore.CreateKey();
-        private static readonly int s_accessibleHelpProviderProperty = PropertyStore.CreateKey();
 
         private static readonly int s_accessibleDefaultActionDescriptionProperty = PropertyStore.CreateKey();
         private static readonly int s_accessibleDescriptionProperty = PropertyStore.CreateKey();
@@ -1051,7 +1050,7 @@ namespace System.Windows.Forms
                     }
                     if (value != null)
                     {
-                        ImageIndex = -1;
+                        ImageIndex = ImageList.Indexer.DefaultIndex;
                     }
 
                     Properties.SetObject(s_imageProperty, value);
@@ -1102,7 +1101,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if ((Owner != null) && ImageIndexer.Index != -1 && Owner.ImageList != null && ImageIndexer.Index >= Owner.ImageList.Images.Count)
+                if ((Owner != null) && ImageIndexer.Index != ImageList.Indexer.DefaultIndex && Owner.ImageList != null && ImageIndexer.Index >= Owner.ImageList.Images.Count)
                 {
                     return Owner.ImageList.Images.Count - 1;
                 }
@@ -1111,9 +1110,9 @@ namespace System.Windows.Forms
             }
             set
             {
-                if (value < -1)
+                if (value < ImageList.Indexer.DefaultIndex)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), string.Format(SR.InvalidLowBoundArgumentEx, nameof(ImageIndex), value, -1));
+                    throw new ArgumentOutOfRangeException(nameof(value), string.Format(SR.InvalidLowBoundArgumentEx, nameof(ImageIndex), value, ImageList.Indexer.DefaultIndex));
                 }
 
                 ImageIndexer.Index = value;
@@ -2339,24 +2338,15 @@ namespace System.Windows.Forms
             ParentInternal?.Invalidate(new Rectangle(rectangleLocation, r.Size), true);
         }
 
-        internal void InvalidateItemLayout(string affectedProperty, bool invalidatePainting)
+        internal void InvalidateItemLayout(string affectedProperty)
         {
             _toolStripItemInternalLayout = null;
 
             if (Owner != null)
             {
                 LayoutTransaction.DoLayout(Owner, this, affectedProperty);
-            }
-
-            if (invalidatePainting && Owner != null)
-            {
                 Owner.Invalidate();
             }
-        }
-
-        internal void InvalidateItemLayout(string affectedProperty)
-        {
-            InvalidateItemLayout(affectedProperty, invalidatePainting: true);
         }
 
         internal void InvalidateImageListImage()
@@ -3264,7 +3254,7 @@ namespace System.Windows.Forms
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         private bool ShouldSerializeImageIndex()
-            => Image != null && ImageIndexer.ActualIndex >= 0 && ImageIndexer.Index != -1;
+            => Image != null && ImageIndexer.ActualIndex >= 0 && ImageIndexer.Index != ImageList.Indexer.DefaultIndex;
 
         /// <summary>
         ///  Determines if the <see cref='RightToLeft'/> property needs to be persisted.

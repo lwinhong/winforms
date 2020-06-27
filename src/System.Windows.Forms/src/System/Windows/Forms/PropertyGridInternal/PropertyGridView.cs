@@ -28,21 +28,17 @@ namespace System.Windows.Forms.PropertyGridInternal
     {
         protected static readonly Point InvalidPoint = new Point(int.MinValue, int.MinValue);
 
-#if true // RENDERMODE
         public const int RENDERMODE_LEFTDOT = 2;
         public const int RENDERMODE_BOLD = 3;
         public const int RENDERMODE_TRIANGLE = 4;
 
         public static int inheritRenderMode = RENDERMODE_BOLD;
-#endif
 
         public static TraceSwitch GridViewDebugPaint = new TraceSwitch("GridViewDebugPaint", "PropertyGridView: Debug property painting");
 
         private PropertyGrid ownerGrid;                      // the properties window host.
 
-#if true // RENDERMODE
         private const int LEFTDOT_SIZE = 4;
-#endif
         // constants
         private const int EDIT_INDENT = 0;
         private const int OUTLINE_INDENT = 10;
@@ -4992,7 +4988,6 @@ namespace System.Windows.Forms.PropertyGridInternal
             }
             Edit.AccessibleName = gridEntry.Label;
 
-#if true // RENDERMODE
             switch (inheritRenderMode)
             {
                 case RENDERMODE_BOLD:
@@ -5017,7 +5012,6 @@ namespace System.Windows.Forms.PropertyGridInternal
                     // nothing
                     break;
             }
-#endif
 
             if (GetFlag(FlagIsSplitterMove) || !gridEntry.HasValue || !FocusInside)
             {
@@ -6918,7 +6912,6 @@ namespace System.Windows.Forms.PropertyGridInternal
             }
         }
 
-        [ComVisible(true)]
         private class GridViewListBoxItemAccessibleObject : AccessibleObject
         {
             private readonly GridViewListBox _owningGridViewListBox;
@@ -7180,7 +7173,6 @@ namespace System.Windows.Forms.PropertyGridInternal
         /// <summary>
         ///  Represents the PropertyGridView ListBox accessibility object.
         /// </summary>
-        [ComVisible(true)]
         private class GridViewListBoxAccessibleObject : ControlAccessibleObject
         {
             private readonly GridViewListBox _owningGridViewListBox;
@@ -7730,7 +7722,6 @@ namespace System.Windows.Forms.PropertyGridInternal
                 return fInSetText;
             }
 
-            [ComVisible(true)]
             protected class GridViewEditAccessibleObject : ControlAccessibleObject
             {
                 private readonly PropertyGridView propertyGridView;
@@ -8165,7 +8156,6 @@ namespace System.Windows.Forms.PropertyGridInternal
         ///  The accessible object class for a PropertyGridView. The child accessible objects
         ///  are accessible objects corresponding to the property grid entries.
         /// </summary>
-        [ComVisible(true)]
         internal class PropertyGridViewAccessibleObject : ControlAccessibleObject
         {
             private readonly PropertyGridView _owningPropertyGridView;
@@ -8203,7 +8193,8 @@ namespace System.Windows.Forms.PropertyGridInternal
             /// <returns>Returns the element in the specified direction.</returns>
             internal override UiaCore.IRawElementProviderFragment FragmentNavigate(UiaCore.NavigateDirection direction)
             {
-                if (_parentPropertyGrid.AccessibilityObject is PropertyGridAccessibleObject propertyGridAccessibleObject)
+                if (_parentPropertyGrid.IsHandleCreated &&
+                    _parentPropertyGrid.AccessibilityObject is PropertyGridAccessibleObject propertyGridAccessibleObject)
                 {
                     UiaCore.IRawElementProviderFragment navigationTarget = propertyGridAccessibleObject.ChildFragmentNavigate(this, direction);
                     if (navigationTarget != null)

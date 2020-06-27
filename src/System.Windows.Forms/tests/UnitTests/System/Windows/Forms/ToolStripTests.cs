@@ -164,7 +164,7 @@ namespace System.Windows.Forms.Tests
 
         public static IEnumerable<object[]> Ctor_ToolStripItemArray_TestData()
         {
-            yield return new object[] { new ToolStripItem[0] };
+            yield return new object[] { Array.Empty<ToolStripItem>() };
             yield return new object[] { new ToolStripItem[] { new SubToolStripItem() } };
         }
 
@@ -502,7 +502,7 @@ namespace System.Windows.Forms.Tests
             }
         }
 
-        [Fact]
+        [Fact] // x-thread
         public void ToolStrip_AllowDrop_SetWithHandleNonSTAThread_ThrowsInvalidOperationException()
         {
             using var control = new ToolStrip();
@@ -614,7 +614,7 @@ namespace System.Windows.Forms.Tests
             Assert.False(control.IsHandleCreated);
         }
 
-        [Fact]
+        [Fact] // x-thread
         public void ToolStrip_AllowItemReorder_SetWithHandleNonSTAThread_ThrowsInvalidOperationException()
         {
             using var control = new ToolStrip();
@@ -4289,7 +4289,7 @@ namespace System.Windows.Forms.Tests
         [WinFormsFact]
         public void ToolStrip_CreateLayoutSettings_InvokeTable_ReturnsExpected()
         {
-            var toolStrip = new SubToolStrip();
+            using var toolStrip = new SubToolStrip();
             TableLayoutSettings settings = Assert.IsType<TableLayoutSettings>(toolStrip.CreateLayoutSettings(ToolStripLayoutStyle.Table));
             Assert.Equal(0, settings.ColumnCount);
             Assert.Empty(settings.ColumnStyles);
@@ -4307,7 +4307,7 @@ namespace System.Windows.Forms.Tests
         [InlineData(ToolStripLayoutStyle.VerticalStackWithOverflow)]
         public void ToolStrip_CreateLayoutSettings_InvalidLayoutStyle_ReturnsNull(ToolStripLayoutStyle layoutStyle)
         {
-            var toolStrip = new SubToolStrip();
+            using var toolStrip = new SubToolStrip();
             Assert.Null(toolStrip.CreateLayoutSettings(layoutStyle));
         }
 
@@ -4730,7 +4730,7 @@ namespace System.Windows.Forms.Tests
         [CommonMemberData(nameof(CommonTestHelper.GetEnumTypeTheoryData), typeof(ArrowDirection))]
         public void ToolStrip_GetNextItem_NoItems_ReturnsNull(ArrowDirection direction)
         {
-            var toolStrip = new ToolStrip();
+            using var toolStrip = new ToolStrip();
             Assert.Null(toolStrip.GetNextItem(new SubToolStripItem(), direction));
             Assert.Null(toolStrip.GetNextItem(null, direction));
         }
@@ -4739,7 +4739,7 @@ namespace System.Windows.Forms.Tests
         [CommonMemberData(nameof(CommonTestHelper.GetEnumTypeTheoryDataInvalid), typeof(ArrowDirection))]
         public void ToolStrip_GetNextItem_InvalidDirection_ThrowsInvalidEnumArgumentException(ArrowDirection direction)
         {
-            var toolStrip = new ToolStrip();
+            using var toolStrip = new ToolStrip();
             Assert.Throws<InvalidEnumArgumentException>("direction", () => toolStrip.GetNextItem(new SubToolStripItem(), direction));
             Assert.Throws<InvalidEnumArgumentException>("direction", () => toolStrip.GetNextItem(null, direction));
         }
@@ -4820,12 +4820,14 @@ namespace System.Windows.Forms.Tests
             control.BeginDrag += handler;
             control.OnBeginDrag(eventArgs);
             Assert.Equal(1, callCount);
+            Assert.True(control.IsCurrentlyDragging);
             Assert.False(control.IsHandleCreated);
 
             // Remove handler.
             control.BeginDrag -= handler;
             control.OnBeginDrag(eventArgs);
             Assert.Equal(1, callCount);
+            Assert.True(control.IsCurrentlyDragging);
             Assert.False(control.IsHandleCreated);
         }
 
@@ -4854,6 +4856,7 @@ namespace System.Windows.Forms.Tests
             control.BeginDrag += handler;
             control.OnBeginDrag(eventArgs);
             Assert.Equal(1, callCount);
+            Assert.True(control.IsCurrentlyDragging);
             Assert.True(control.IsHandleCreated);
             Assert.Equal(0, invalidatedCallCount);
             Assert.Equal(0, styleChangedCallCount);
@@ -4863,6 +4866,7 @@ namespace System.Windows.Forms.Tests
             control.BeginDrag -= handler;
             control.OnBeginDrag(eventArgs);
             Assert.Equal(1, callCount);
+            Assert.True(control.IsCurrentlyDragging);
             Assert.True(control.IsHandleCreated);
             Assert.Equal(0, invalidatedCallCount);
             Assert.Equal(0, styleChangedCallCount);
@@ -4965,12 +4969,43 @@ namespace System.Windows.Forms.Tests
             control.EndDrag += handler;
             control.OnEndDrag(eventArgs);
             Assert.Equal(1, callCount);
+            Assert.False(control.IsCurrentlyDragging);
             Assert.False(control.IsHandleCreated);
 
             // Remove handler.
             control.EndDrag -= handler;
             control.OnEndDrag(eventArgs);
             Assert.Equal(1, callCount);
+            Assert.False(control.IsCurrentlyDragging);
+            Assert.False(control.IsHandleCreated);
+        }
+
+        [WinFormsTheory]
+        [CommonMemberData(nameof(CommonTestHelper.GetEventArgsTheoryData))]
+        public void ToolStrip_OnEndDrag_InvokeCalledBeginDrag_CallsEndDrag(EventArgs eventArgs)
+        {
+            using var control = new SubToolStrip();
+            control.OnBeginDrag(EventArgs.Empty);
+            int callCount = 0;
+            EventHandler handler = (sender, e) =>
+            {
+                Assert.Same(control, sender);
+                Assert.Same(eventArgs, e);
+                callCount++;
+            };
+
+            // Call with handler.
+            control.EndDrag += handler;
+            control.OnEndDrag(eventArgs);
+            Assert.Equal(1, callCount);
+            Assert.False(control.IsCurrentlyDragging);
+            Assert.False(control.IsHandleCreated);
+
+            // Remove handler.
+            control.EndDrag -= handler;
+            control.OnEndDrag(eventArgs);
+            Assert.Equal(1, callCount);
+            Assert.False(control.IsCurrentlyDragging);
             Assert.False(control.IsHandleCreated);
         }
 
@@ -4999,6 +5034,7 @@ namespace System.Windows.Forms.Tests
             control.EndDrag += handler;
             control.OnEndDrag(eventArgs);
             Assert.Equal(1, callCount);
+            Assert.False(control.IsCurrentlyDragging);
             Assert.True(control.IsHandleCreated);
             Assert.Equal(0, invalidatedCallCount);
             Assert.Equal(0, styleChangedCallCount);
@@ -5008,6 +5044,50 @@ namespace System.Windows.Forms.Tests
             control.EndDrag -= handler;
             control.OnEndDrag(eventArgs);
             Assert.Equal(1, callCount);
+            Assert.False(control.IsCurrentlyDragging);
+            Assert.True(control.IsHandleCreated);
+            Assert.Equal(0, invalidatedCallCount);
+            Assert.Equal(0, styleChangedCallCount);
+            Assert.Equal(0, createdCallCount);
+        }
+
+        [WinFormsTheory]
+        [CommonMemberData(nameof(CommonTestHelper.GetEventArgsTheoryData))]
+        public void ToolStrip_OnEndDrag_InvokeCalledBeginDragWithHandle_CallsEndDrag(EventArgs eventArgs)
+        {
+            using var control = new SubToolStrip();
+            control.OnBeginDrag(EventArgs.Empty);
+            Assert.NotEqual(IntPtr.Zero, control.Handle);
+            int invalidatedCallCount = 0;
+            control.Invalidated += (sender, e) => invalidatedCallCount++;
+            int styleChangedCallCount = 0;
+            control.StyleChanged += (sender, e) => styleChangedCallCount++;
+            int createdCallCount = 0;
+            control.HandleCreated += (sender, e) => createdCallCount++;
+
+            int callCount = 0;
+            EventHandler handler = (sender, e) =>
+            {
+                Assert.Same(control, sender);
+                Assert.Same(eventArgs, e);
+                callCount++;
+            };
+
+            // Call with handler.
+            control.EndDrag += handler;
+            control.OnEndDrag(eventArgs);
+            Assert.Equal(1, callCount);
+            Assert.False(control.IsCurrentlyDragging);
+            Assert.True(control.IsHandleCreated);
+            Assert.Equal(0, invalidatedCallCount);
+            Assert.Equal(0, styleChangedCallCount);
+            Assert.Equal(0, createdCallCount);
+
+            // Remove handler.
+            control.EndDrag -= handler;
+            control.OnEndDrag(eventArgs);
+            Assert.Equal(1, callCount);
+            Assert.False(control.IsCurrentlyDragging);
             Assert.True(control.IsHandleCreated);
             Assert.Equal(0, invalidatedCallCount);
             Assert.Equal(0, styleChangedCallCount);

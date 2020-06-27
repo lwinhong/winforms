@@ -11,11 +11,11 @@ namespace System.Windows.Forms.Tests
 {
     public class TreeNodeCollectionTests : IClassFixture<ThreadExceptionFixture>
     {
-        [Theory]
+        [WinFormsTheory]
         [CommonMemberData(nameof(CommonTestHelper.GetStringNormalizedTheoryData))]
         public void TreeNodeCollection_Add_String_Success(string text, string expectedText)
         {
-            var treeView = new TreeView();
+            using var treeView = new TreeView();
             TreeNodeCollection collection = treeView.Nodes;
             TreeNode treeNode = collection.Add(text);
             Assert.Same(treeNode, collection[0]);
@@ -58,26 +58,117 @@ namespace System.Windows.Forms.Tests
             Assert.Same(treeView, treeNode.TreeView);
         }
 
-        [Theory]
+        [WinFormsTheory]
         [InlineData(-1)]
         [InlineData(1)]
         public void TreeNodeCollection_Item_GetInvalidIndex_ThrowsArgumentOutOfRangeException(int index)
         {
-            var treeView = new TreeView();
+            using var treeView = new TreeView();
             TreeNodeCollection collection = treeView.Nodes;
             collection.Add("text");
             Assert.Throws<ArgumentOutOfRangeException>("index", () => collection[index]);
         }
 
-        [Theory]
+        [WinFormsTheory]
         [InlineData(-1)]
         [InlineData(1)]
         public void TreeNodeCollection_Item_SetInvalidIndex_ThrowsArgumentOutOfRangeException(int index)
         {
-            var treeView = new TreeView();
+            using var treeView = new TreeView();
             TreeNodeCollection collection = treeView.Nodes;
             collection.Add("text");
             Assert.Throws<ArgumentOutOfRangeException>("index", () => collection[index] = new TreeNode());
+        }
+
+        [WinFormsTheory]
+        [InlineData("name2")]
+        [InlineData("NAME2")]
+        public void TreeNodeCollection_Find_InvokeKeyExists_ReturnsExpected(string key)
+        {
+            using var treeView = new TreeView();
+            var child1 = new TreeNode
+            {
+                Name = "name1"
+            };
+            var child2 = new TreeNode
+            {
+                Name = "name2"
+            };
+            var child3 = new TreeNode
+            {
+                Name = "name2"
+            };
+
+            var grandchild1 = new TreeNode
+            {
+                Name = "name1"
+            };
+            var grandchild2 = new TreeNode
+            {
+                Name = "name2"
+            };
+            var grandchild3 = new TreeNode
+            {
+                Name = "name2"
+            };
+            child3.Nodes.Add(grandchild1);
+            child3.Nodes.Add(grandchild2);
+            child3.Nodes.Add(grandchild3);
+            TreeNodeCollection collection = treeView.Nodes;
+            collection.Add(child1);
+            collection.Add(child2);
+            collection.Add(child3);
+
+            // Search all children.
+            Assert.Equal(new TreeNode[] { child2, child3, grandchild2, grandchild3 }, collection.Find(key, searchAllChildren: true));
+
+            // Call again.
+            Assert.Equal(new TreeNode[] { child2, child3, grandchild2, grandchild3 }, collection.Find(key, searchAllChildren: true));
+
+            // Don't search all children.
+            Assert.Equal(new TreeNode[] { child2, child3 }, collection.Find(key, searchAllChildren: false));
+
+            // Call again.
+            Assert.Equal(new TreeNode[] { child2, child3 }, collection.Find(key, searchAllChildren: false));
+        }
+
+        [WinFormsTheory]
+        [InlineData("NoSuchName")]
+        [InlineData("abcd")]
+        [InlineData("abcde")]
+        [InlineData("abcdef")]
+        public void TreeNodeCollection_Find_InvokeNoSuchKey_ReturnsEmpty(string key)
+        {
+            using var treeView = new TreeView();
+            var child1 = new TreeNode
+            {
+                Name = "name1"
+            };
+            var child2 = new TreeNode
+            {
+                Name = "name2"
+            };
+            var child3 = new TreeNode
+            {
+                Name = "name2"
+            };
+            TreeNodeCollection collection = treeView.Nodes;
+            collection.Add(child1);
+            collection.Add(child2);
+            collection.Add(child3);
+
+            Assert.Empty(collection.Find(key, searchAllChildren: true));
+            Assert.Empty(collection.Find(key, searchAllChildren: false));
+        }
+
+        [WinFormsTheory]
+        [CommonMemberData(nameof(CommonTestHelper.GetNullOrEmptyStringTheoryData))]
+        public void TreeNodeCollection_Find_NullOrEmptyKey_ThrowsArgumentNullException(string key)
+        {
+            using var treeView = new TreeView();
+            var collection = treeView.Nodes;
+            Assert.Throws<ArgumentNullException>("key", () => collection.Find(key, searchAllChildren: true));
+            Assert.Throws<ArgumentNullException>("key", () => collection.Find(key, searchAllChildren: false));
         }
     }
 }

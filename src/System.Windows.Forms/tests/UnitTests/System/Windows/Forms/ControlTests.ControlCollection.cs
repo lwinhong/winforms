@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -16,6 +16,7 @@ using static Interop;
 
 namespace System.Windows.Forms.Tests
 {
+    [Collection("Sequential")] // workaround for WebBrowser control corrupting memory when run on multiple UI threads (instantiated via GUID)
     public class ControlControlCollectionTests : IClassFixture<ThreadExceptionFixture>
     {
         [WinFormsFact]
@@ -569,7 +570,7 @@ namespace System.Windows.Forms.Tests
             Assert.Equal(0, enabledChangedCallCount);
             Assert.True(control.Visible);
             Assert.Equal(0, visibleChangedCallCount);
-            Assert.Same(Control.DefaultFont, control.Font);
+            Assert.Equal(Control.DefaultFont, control.Font);
             Assert.Equal(0, fontChangedCallCount);
             Assert.Equal(Control.DefaultForeColor, control.ForeColor);
             Assert.Equal(0, foreColorChangedCallCount);
@@ -613,7 +614,7 @@ namespace System.Windows.Forms.Tests
             Assert.Equal(0, enabledChangedCallCount);
             Assert.True(control.Visible);
             Assert.Equal(0, visibleChangedCallCount);
-            Assert.Same(Control.DefaultFont, control.Font);
+            Assert.Equal(Control.DefaultFont, control.Font);
             Assert.Equal(0, fontChangedCallCount);
             Assert.Equal(Control.DefaultForeColor, control.ForeColor);
             Assert.Equal(0, foreColorChangedCallCount);
@@ -649,7 +650,7 @@ namespace System.Windows.Forms.Tests
             Assert.True(control.Visible);
             var font = new Font("Arial", 8.25f);
             owner.Font = font;
-            Assert.Same(Control.DefaultFont, control.Font);
+            Assert.Equal(Control.DefaultFont, control.Font);
             owner.ForeColor = Color.Red;
             Assert.Equal(Control.DefaultForeColor, control.ForeColor);
             owner.BackColor = Color.Blue;
@@ -798,7 +799,7 @@ namespace System.Windows.Forms.Tests
             Assert.True(control.Visible);
             var font = new Font("Arial", 8.25f);
             owner.Font = font;
-            Assert.Same(Control.DefaultFont, control.Font);
+            Assert.Equal(Control.DefaultFont, control.Font);
             owner.ForeColor = Color.Red;
             Assert.Equal(Control.DefaultForeColor, control.ForeColor);
             owner.BackColor = Color.Blue;
@@ -950,7 +951,7 @@ namespace System.Windows.Forms.Tests
             Assert.True(control.Visible);
             var font = new Font("Arial", 8.25f);
             owner.Font = font;
-            Assert.Same(Control.DefaultFont, control.Font);
+            Assert.Equal(Control.DefaultFont, control.Font);
             owner.ForeColor = Color.Red;
             Assert.Equal(Control.DefaultForeColor, control.ForeColor);
             owner.BackColor = Color.Blue;
@@ -1022,7 +1023,7 @@ namespace System.Windows.Forms.Tests
             Assert.True(control.Visible);
             var font = new Font("Arial", 8.25f);
             owner.Font = font;
-            Assert.Same(Control.DefaultFont, control.Font);
+            Assert.Equal(Control.DefaultFont, control.Font);
             owner.ForeColor = Color.Red;
             Assert.Equal(Control.DefaultForeColor, control.ForeColor);
             owner.BackColor = Color.Blue;
@@ -1112,7 +1113,7 @@ namespace System.Windows.Forms.Tests
             Assert.Throws<ArgumentException>(null, () => collection.Add(control));
         }
 
-        [Fact]
+        [Fact] // cross-thread access
         public void ControlCollection_Add_DifferentThreadValueOwner_ThrowsArgumentException()
         {
             Control owner = null;
@@ -1124,12 +1125,12 @@ namespace System.Windows.Forms.Tests
             thread.Start();
             thread.Join();
 
-            var control = new Control();
+            using var control = new Control();
             var collection = new Control.ControlCollection(owner);
             Assert.Throws<ArgumentException>(null, () => collection.Add(control));
         }
 
-        [Fact]
+        [Fact] // cross-thread access
         public void ControlCollection_Add_DifferentThreadValueControl_ThrowsArgumentException()
         {
             Control control = null;
@@ -1141,7 +1142,7 @@ namespace System.Windows.Forms.Tests
             thread.Start();
             thread.Join();
 
-            var owner = new Control();
+            using var owner = new Control();
             var collection = new Control.ControlCollection(owner);
             Assert.Throws<ArgumentException>(null, () => collection.Add(control));
         }
@@ -1235,7 +1236,7 @@ namespace System.Windows.Forms.Tests
                 Assert.False(child3.IsHandleCreated);
 
                 // Add empty.
-                collection.AddRange(new Control[0]);
+                collection.AddRange(Array.Empty<Control>());
                 Assert.Equal(new Control[] { child1, child2, child3 }, collection.Cast<Control>());
                 Assert.Same(owner, child1.Parent);
                 Assert.Same(owner, child2.Parent);
@@ -1451,7 +1452,7 @@ namespace System.Windows.Forms.Tests
             // Don't search all children.
             Assert.Equal(new Control[] { child2, child3 }, collection.Find(key, searchAllChildren: false));
 
-            // Call again..
+            // Call again.
             Assert.Equal(new Control[] { child2, child3 }, collection.Find(key, searchAllChildren: false));
         }
 
@@ -2216,7 +2217,7 @@ namespace System.Windows.Forms.Tests
             Assert.Equal(0, enabledChangedCallCount);
             Assert.True(control.Visible);
             Assert.Equal(0, visibleChangedCallCount);
-            Assert.Same(Control.DefaultFont, control.Font);
+            Assert.Equal(Control.DefaultFont, control.Font);
             Assert.Equal(0, fontChangedCallCount);
             Assert.Equal(Control.DefaultForeColor, control.ForeColor);
             Assert.Equal(0, foreColorChangedCallCount);
@@ -2261,7 +2262,7 @@ namespace System.Windows.Forms.Tests
             Assert.Equal(0, enabledChangedCallCount);
             Assert.True(control.Visible);
             Assert.Equal(2, visibleChangedCallCount);
-            Assert.Same(Control.DefaultFont, control.Font);
+            Assert.Equal(Control.DefaultFont, control.Font);
             Assert.Equal(0, fontChangedCallCount);
             Assert.Equal(Control.DefaultForeColor, control.ForeColor);
             Assert.Equal(0, foreColorChangedCallCount);
@@ -2403,7 +2404,7 @@ namespace System.Windows.Forms.Tests
             Assert.Equal(1, enabledChangedCallCount);
             Assert.True(control.Visible);
             Assert.Equal(0, visibleChangedCallCount);
-            Assert.Same(Control.DefaultFont, control.Font);
+            Assert.Equal(Control.DefaultFont, control.Font);
             Assert.Equal(1, fontChangedCallCount);
             Assert.Equal(Control.DefaultForeColor, control.ForeColor);
             Assert.Equal(1, foreColorChangedCallCount);
@@ -2533,7 +2534,7 @@ namespace System.Windows.Forms.Tests
                 Assert.Equal(1, enabledChangedCallCount);
                 Assert.True(control.Visible);
                 Assert.Equal(2, visibleChangedCallCount);
-                Assert.Same(Control.DefaultFont, control.Font);
+                Assert.Equal(Control.DefaultFont, control.Font);
                 Assert.Equal(1, fontChangedCallCount);
                 Assert.Equal(Control.DefaultForeColor, control.ForeColor);
                 Assert.Equal(1, foreColorChangedCallCount);
@@ -2604,7 +2605,7 @@ namespace System.Windows.Forms.Tests
             Assert.Equal(0, enabledChangedCallCount);
             Assert.True(control.Visible);
             Assert.Equal(0, visibleChangedCallCount);
-            Assert.Same(Control.DefaultFont, control.Font);
+            Assert.Equal(Control.DefaultFont, control.Font);
             Assert.Equal(0, fontChangedCallCount);
             Assert.Equal(Control.DefaultForeColor, control.ForeColor);
             Assert.Equal(0, foreColorChangedCallCount);
@@ -2679,7 +2680,7 @@ namespace System.Windows.Forms.Tests
                 Assert.Equal(1, enabledChangedCallCount);
                 Assert.True(control.Visible);
                 Assert.Equal(2, visibleChangedCallCount);
-                Assert.Same(Control.DefaultFont, control.Font);
+                Assert.Equal(Control.DefaultFont, control.Font);
                 Assert.Equal(1, fontChangedCallCount);
                 Assert.Equal(Control.DefaultForeColor, control.ForeColor);
                 Assert.Equal(1, foreColorChangedCallCount);

@@ -17,7 +17,6 @@ internal static partial class Interop
         ///  ISelectionProvider public interface instead.
         /// </remarks>
         [ComImport]
-        [ComVisible(true)]
         [Guid("fb8b03af-3bdf-48d4-bd36-1a65793be168")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface ISelectionProvider
@@ -27,8 +26,7 @@ internal static partial class Interop
             /// </summary>
             /// <returns>An AutomationElement array containing the currently selected elements</returns>
             [return: MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_UNKNOWN)]
-            /* IRawElementProviderSimple */
-            object[] GetSelection();
+            object[]? /* IRawElementProviderSimple */ GetSelection();
 
             /// <summary>
             ///  Indicates whether the control allows more than one element to be selected

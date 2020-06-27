@@ -1182,7 +1182,6 @@ namespace System.Windows.Forms
                 }
 
                 Region windowRegion = new Region(new Rectangle(0, 0, 0, 0));
-                IntPtr windowRegionHandle = IntPtr.Zero;
                 try
                 {
                     for (int i = 0; i < _items.Count; i++)
@@ -1249,21 +1248,20 @@ namespace System.Windows.Forms
                         Graphics graphics = Graphics.FromHdcInternal(_mirrordc.Hdc);
                         try
                         {
-                            windowRegionHandle = windowRegion.GetHrgn(graphics);
+                            using var windowRegionHandle = new Gdi32.RegionScope(windowRegion, graphics);
+
+                            if (User32.SetWindowRgn(this, windowRegionHandle, BOOL.TRUE) != 0)
+                            {
+                                // The HWnd owns the region.
+                                windowRegionHandle.RelinquishOwnership();
+                            }
                         }
                         finally
                         {
                             graphics.Dispose();
                             RestoreMirrorDC();
                         }
-
-                        if (User32.SetWindowRgn(this, new HandleRef(windowRegion, windowRegionHandle), BOOL.TRUE) != 0)
-                        {
-                            // The HWnd owns the region.
-                            windowRegionHandle = IntPtr.Zero;
-                        }
                     }
-
                     finally
                     {
                         if (dc != null)
@@ -1275,10 +1273,6 @@ namespace System.Windows.Forms
                 finally
                 {
                     windowRegion.Dispose();
-                    if (windowRegionHandle != IntPtr.Zero)
-                    {
-                        Gdi32.DeleteObject(windowRegionHandle);
-                    }
                 }
 
                 User32.SetWindowPos(
@@ -1733,7 +1727,7 @@ namespace System.Windows.Forms
                             // If width is not multiple of 16, we need to allocate BitmapBitsAllocationSize for remaining bits.
                             int widthInBytes = 2 * ((size.Width + 15) / bitmapBitsAllocationSize); // its in bytes.
                             byte[] bits = new byte[widthInBytes * size.Height];
-                            SafeNativeMethods.GetBitmapBits(new HandleRef(null, mask), bits.Length, bits);
+                            Gdi32.GetBitmapBits(mask, bits.Length, bits);
 
                             for (int y = 0; y < size.Height; y++)
                             {

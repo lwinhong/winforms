@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -17,7 +17,6 @@ namespace System.Windows.Forms
         /// <summary>
         ///  An implementation of AccessibleChild for use with ToolStripItems
         /// </summary>
-        [ComVisible(true)]
         public class ToolStripItemAccessibleObject : AccessibleObject
         {
             private readonly ToolStripItem _ownerItem; // The associated ToolStripItem for this AccessibleChild (if any)
@@ -476,7 +475,7 @@ namespace System.Windows.Forms
             internal void RaiseFocusChanged()
             {
                 ToolStrip root = _ownerItem.RootToolStrip;
-                if (root != null && root.SupportsUiaProviders)
+                if (root != null && root.IsHandleCreated && root.SupportsUiaProviders)
                 {
                     RaiseAutomationEvent(UiaCore.UIA.AutomationFocusChangedEventId);
                 }

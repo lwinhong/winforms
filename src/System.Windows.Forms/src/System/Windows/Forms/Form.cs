@@ -22,8 +22,6 @@ namespace System.Windows.Forms
     /// <summary>
     ///  Represents a window or dialog box that makes up an application's user interface.
     /// </summary>
-    [ComVisible(true)]
-    [ClassInterface(ClassInterfaceType.AutoDispatch)]
     [ToolboxItemFilter("System.Windows.Forms.Control.TopLevel")]
     [ToolboxItem(false)]
     [DesignTimeVisible(false)]
@@ -33,9 +31,6 @@ namespace System.Windows.Forms
     [DesignerCategory("Form")]
     public partial class Form : ContainerControl
     {
-#if DEBUG
-        static readonly BooleanSwitch AlwaysRestrictWindows = new BooleanSwitch("AlwaysRestrictWindows", "Always make Form classes behave as though they are restricted");
-#endif
         private static readonly object EVENT_ACTIVATED = new object();
         private static readonly object EVENT_CLOSING = new object();
         private static readonly object EVENT_CLOSED = new object();
@@ -107,9 +102,6 @@ namespace System.Windows.Forms
         private const int SizeGripSize = 16;
 
         private static Icon defaultIcon = null;
-#if MAGIC_PADDING
-        private static Padding FormPadding = new Padding(9);  // UI guideline
-#endif
         private static readonly object internalSyncObject = new object();
 
         // Property store keys for properties.  The property store allocates most efficiently
@@ -3562,62 +3554,6 @@ namespace System.Windows.Forms
             return new SizeF(width, height);
         }
 
-        internal override Size GetPreferredSizeCore(Size proposedSize)
-        {
-            //
-
-            Size preferredSize = base.GetPreferredSizeCore(proposedSize);
-
-#if MAGIC_PADDING
-//We are removing the magic padding in runtime.
-
-            bool dialogFixRequired = false;
-
-            if (Padding == Padding.Empty) {
-                Padding paddingToAdd = Padding.Empty;
-                foreach (Control c in this.Controls) {
-                    if (c.Dock == DockStyle.None) {
-                        AnchorStyles anchor = c.Anchor;
-                        if (anchor == AnchorStyles.None) {
-                            break;
-                        }
-
-                        // TOP
-                        // if we are anchored to the top only add padding if the top edge is too far down
-                        if ((paddingToAdd.Bottom == 0) && DefaultLayout.IsAnchored(anchor, AnchorStyles.Top)) {
-                            if (c.Bottom > preferredSize.Height - FormPadding.Bottom) {
-                               paddingToAdd.Bottom = FormPadding.Bottom;
-
-                               dialogFixRequired = true;
-                            }
-                        }
-                        // BOTTOM
-                        // if we are anchored to the bottom
-                        // dont add any padding - it's way too confusing to be dragging a button up
-                        // and have the form grow to the bottom.
-
-                        // LEFT
-                        // if we are anchored to the left only add padding if the right edge is too far right
-                        if ((paddingToAdd.Left == 0) && DefaultLayout.IsAnchored(anchor, AnchorStyles.Left)) {
-                            if (c.Right > preferredSize.Width - FormPadding.Right) {
-                               paddingToAdd.Right = FormPadding.Right;
-                               dialogFixRequired = true;
-                            }
-                        }
-                        // RIGHT
-                        // if we are anchored to the bottom
-                        // dont add any padding - it's way too confusing to be dragging a button left
-                        // and have the form grow to the right
-
-                    }
-                }
-                Debug.Assert(!dialogFixRequired, "this dialog needs update: " + this.Name);
-                return preferredSize + paddingToAdd.Size;
-            }
-#endif
-            return preferredSize;
-        }
-
         private void CallShownEvent()
         {
             OnShown(EventArgs.Empty);
@@ -5237,15 +5173,8 @@ namespace System.Windows.Forms
             }
             IntPtr hWndActive = User32.GetActiveWindow();
             IntPtr hWndOwner = owner == null ? hWndActive : Control.GetSafeHandle(owner);
-            IntPtr hWndOldOwner = IntPtr.Zero;
-            Properties.SetObject(PropDialogOwner, owner);
 
             Form oldOwner = OwnerInternal;
-
-            if (owner is Form ownerForm && owner != oldOwner)
-            {
-                Owner = ownerForm;
-            }
 
             try
             {
@@ -5277,9 +5206,22 @@ namespace System.Windows.Forms
                                                           "showDialog"), "owner");
                     }
 
-                    // Set the new owner.
-                    hWndOldOwner = User32.GetWindowLong(new HandleRef(this, Handle), User32.GWL.HWNDPARENT);
-                    User32.SetWindowLong(this, User32.GWL.HWNDPARENT, new HandleRef(owner, hWndOwner));
+                    // In a multi DPI environment and applications in PMV2 mode, DPI changed events triggered
+                    // only when there is a DPI change happened for the Handle directly or via its parent.
+                    // So, it is necessary to not set the owner before creating the handle. Otherwise,
+                    // the window may never receive DPI changed event even if its parent has different DPI.
+                    // Users at runtime, has to move the window between the screens to get the DPI changed events triggered.
+
+                    Properties.SetObject(PropDialogOwner, owner);
+                    if (owner is Form form && owner != oldOwner)
+                    {
+                        Owner = form;
+                    }
+                    else
+                    {
+                        // Set the new parent.
+                        User32.SetWindowLong(this, User32.GWL.HWNDPARENT, new HandleRef(owner, hWndOwner));
+                    }
                 }
 
                 try
@@ -6601,7 +6543,6 @@ namespace System.Windows.Forms
         /// <summary>
         ///  Represents a collection of controls on the form.
         /// </summary>
-        [ComVisible(false)]
         public new class ControlCollection : Control.ControlCollection
         {
             private readonly Form owner;

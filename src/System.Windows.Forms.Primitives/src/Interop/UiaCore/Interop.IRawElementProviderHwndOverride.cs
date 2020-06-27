@@ -13,7 +13,7 @@ internal static partial class Interop
         ///  Implemented by providers which want to provide information about or want to
         ///  reposition contained HWND-based elements.
         /// </summary>
-        [ComVisible(true)]
+        [ComImport]
         [Guid("1d5df27c-8947-4425-b8d9-79787bb460b8")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IRawElementProviderHwndOverride : IRawElementProviderSimple
@@ -24,7 +24,7 @@ internal static partial class Interop
             /// </summary>
             /// <param name="hwnd">The window handle of the component.</param>
             /// <returns>Return the provider for the specified component, or null if the component is not being overridden.</returns>
-            IRawElementProviderSimple GetOverrideProviderForHwnd(IntPtr hwnd);
+            IRawElementProviderSimple? GetOverrideProviderForHwnd(IntPtr hwnd);
         }
     }
 }

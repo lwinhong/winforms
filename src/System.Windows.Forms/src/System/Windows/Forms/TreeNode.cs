@@ -180,30 +180,25 @@ namespace System.Windows.Forms
         /// <summary>
         ///  Creates a TreeNode object.
         /// </summary>
-        public TreeNode(string text, TreeNode[] children) : this()
+        public TreeNode(string text, TreeNode[] children) : this(text)
         {
-            this.text = text;
             Nodes.AddRange(children);
         }
 
         /// <summary>
         ///  Creates a TreeNode object.
         /// </summary>
-        public TreeNode(string text, int imageIndex, int selectedImageIndex) : this()
+        public TreeNode(string text, int imageIndex, int selectedImageIndex) : this(text)
         {
-            this.text = text;
-            ImageIndexer.Index = imageIndex;
-            SelectedImageIndexer.Index = selectedImageIndex;
+            ImageIndex = imageIndex;
+            SelectedImageIndex = selectedImageIndex;
         }
 
         /// <summary>
         ///  Creates a TreeNode object.
         /// </summary>
-        public TreeNode(string text, int imageIndex, int selectedImageIndex, TreeNode[] children) : this()
+        public TreeNode(string text, int imageIndex, int selectedImageIndex, TreeNode[] children) : this(text, imageIndex, selectedImageIndex)
         {
-            this.text = text;
-            ImageIndexer.Index = imageIndex;
-            SelectedImageIndexer.Index = selectedImageIndex;
             Nodes.AddRange(children);
         }
 
@@ -568,13 +563,32 @@ namespace System.Windows.Forms
         [TypeConverter(typeof(TreeViewImageIndexConverter))]
         [Editor("System.Windows.Forms.Design.ImageIndexEditor, " + AssemblyRef.SystemDesign, typeof(UITypeEditor))]
         [RefreshProperties(RefreshProperties.Repaint)]
-        [DefaultValue(-1)]
+        [DefaultValue(ImageList.Indexer.DefaultIndex)]
         [RelatedImageList("TreeView.ImageList")]
         public int ImageIndex
         {
-            get { return ImageIndexer.Index; }
+            get
+            {
+                TreeView tv = TreeView;
+                if (ImageIndexer.Index != ImageList.Indexer.DefaultIndex && tv != null && tv.ImageList != null && ImageIndexer.Index >= tv.ImageList.Images.Count)
+                {
+                    return tv.ImageList.Images.Count - 1;
+                }
+
+                return ImageIndexer.Index;
+            }
             set
             {
+                if (value < ImageList.Indexer.DefaultIndex)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), value, string.Format(SR.InvalidLowBoundArgumentEx, nameof(ImageIndex), value, ImageList.Indexer.DefaultIndex));
+                }
+
+                if (ImageIndexer.Index == value && value != ImageList.Indexer.DefaultIndex)
+                {
+                    return;
+                }
+
                 ImageIndexer.Index = value;
                 UpdateNode(TVIF.IMAGE);
             }
@@ -588,15 +602,20 @@ namespace System.Windows.Forms
         [SRCategory(nameof(SR.CatBehavior))]
         [SRDescription(nameof(SR.TreeNodeImageKeyDescr))]
         [TypeConverter(typeof(TreeViewImageKeyConverter))]
-        [DefaultValue("")]
+        [DefaultValue(ImageList.Indexer.DefaultKey)]
         [Editor("System.Windows.Forms.Design.ImageIndexEditor, " + AssemblyRef.SystemDesign, typeof(UITypeEditor))]
         [RefreshProperties(RefreshProperties.Repaint)]
         [RelatedImageList("TreeView.ImageList")]
         public string ImageKey
         {
-            get { return ImageIndexer.Key; }
+            get => ImageIndexer.Key;
             set
             {
+                if (value == ImageIndexer.Key && !string.Equals(value, ImageList.Indexer.DefaultKey))
+                {
+                    return;
+                }
+
                 ImageIndexer.Key = value;
                 UpdateNode(TVIF.IMAGE);
             }
@@ -607,10 +626,7 @@ namespace System.Windows.Forms
         /// </summary>
         [SRCategory(nameof(SR.CatBehavior))]
         [SRDescription(nameof(SR.TreeNodeIndexDescr))]
-        public int Index
-        {
-            get { return index; }
-        }
+        public int Index => index;
 
         /// <summary>
         ///  Specifies whether this node is being edited by the user.
@@ -949,7 +965,7 @@ namespace System.Windows.Forms
         [SRCategory(nameof(SR.CatBehavior))]
         [SRDescription(nameof(SR.TreeNodeSelectedImageIndexDescr))]
         [TypeConverter(typeof(TreeViewImageIndexConverter))]
-        [DefaultValue(-1)]
+        [DefaultValue(ImageList.Indexer.DefaultIndex)]
         [RefreshProperties(RefreshProperties.Repaint)]
         [Editor("System.Windows.Forms.Design.ImageIndexEditor, " + AssemblyRef.SystemDesign, typeof(UITypeEditor))]
         [RelatedImageList("TreeView.ImageList")]
@@ -957,10 +973,26 @@ namespace System.Windows.Forms
         {
             get
             {
+                TreeView tv = TreeView;
+                if (SelectedImageIndexer.Index != ImageList.Indexer.DefaultIndex && tv != null && tv.ImageList != null && SelectedImageIndexer.Index >= tv.ImageList.Images.Count)
+                {
+                    return tv.ImageList.Images.Count - 1;
+                }
+
                 return SelectedImageIndexer.Index;
             }
             set
             {
+                if (value < ImageList.Indexer.DefaultIndex)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), value, string.Format(SR.InvalidLowBoundArgumentEx, nameof(SelectedImageIndex), value, ImageList.Indexer.DefaultIndex));
+                }
+
+                if (SelectedImageIndexer.Index == value && value != ImageList.Indexer.DefaultIndex)
+                {
+                    return;
+                }
+
                 SelectedImageIndexer.Index = value;
                 UpdateNode(TVIF.SELECTEDIMAGE);
             }
@@ -974,18 +1006,20 @@ namespace System.Windows.Forms
         [SRCategory(nameof(SR.CatBehavior))]
         [SRDescription(nameof(SR.TreeNodeSelectedImageKeyDescr))]
         [TypeConverter(typeof(TreeViewImageKeyConverter))]
-        [DefaultValue("")]
+        [DefaultValue(ImageList.Indexer.DefaultKey)]
         [RefreshProperties(RefreshProperties.Repaint)]
         [Editor("System.Windows.Forms.Design.ImageIndexEditor, " + AssemblyRef.SystemDesign, typeof(UITypeEditor))]
         [RelatedImageList("TreeView.ImageList")]
         public string SelectedImageKey
         {
-            get
-            {
-                return SelectedImageIndexer.Key;
-            }
+            get => SelectedImageIndexer.Key;
             set
             {
+                if (SelectedImageIndexer.Key == value && !string.Equals(value, ImageList.Indexer.DefaultKey))
+                {
+                    return;
+                }
+
                 SelectedImageIndexer.Key = value;
                 UpdateNode(TVIF.SELECTEDIMAGE);
             }
@@ -1027,7 +1061,7 @@ namespace System.Windows.Forms
         [SRCategory(nameof(SR.CatBehavior))]
         [SRDescription(nameof(SR.TreeNodeStateImageKeyDescr))]
         [TypeConverter(typeof(ImageKeyConverter))]
-        [DefaultValue("")]
+        [DefaultValue(ImageList.Indexer.DefaultKey)]
         [Editor("System.Windows.Forms.Design.ImageIndexEditor, " + AssemblyRef.SystemDesign, typeof(UITypeEditor))]
         [RefreshProperties(RefreshProperties.Repaint)]
         [RelatedImageList("TreeView.StateImageList")]
@@ -1039,20 +1073,22 @@ namespace System.Windows.Forms
             }
             set
             {
-                if (StateImageIndexer.Key != value)
+                if (StateImageIndexer.Key == value && !string.Equals(value, ImageList.Indexer.DefaultKey))
                 {
-                    StateImageIndexer.Key = value;
-                    if (treeView != null && !treeView.CheckBoxes)
-                    {
-                        UpdateNode(TVIF.STATE);
-                    }
+                    return;
+                }
+
+                StateImageIndexer.Key = value;
+                if (treeView != null && !treeView.CheckBoxes)
+                {
+                    UpdateNode(TVIF.STATE);
                 }
             }
         }
 
         [Localizable(true)]
         [TypeConverter(typeof(NoneExcludedImageIndexConverter))]
-        [DefaultValue(-1)]
+        [DefaultValue(ImageList.Indexer.DefaultIndex)]
         [SRCategory(nameof(SR.CatBehavior))]
         [SRDescription(nameof(SR.TreeNodeStateImageIndexDescr))]
         [Editor("System.Windows.Forms.Design.ImageIndexEditor, " + AssemblyRef.SystemDesign, typeof(UITypeEditor))]
@@ -1062,14 +1098,26 @@ namespace System.Windows.Forms
         {
             get
             {
-                return (treeView == null || treeView.StateImageList == null) ? -1 : StateImageIndexer.Index;
+                TreeView tv = TreeView;
+                if (StateImageIndexer.Index != ImageList.Indexer.DefaultIndex && tv != null && tv.StateImageList != null && StateImageIndexer.Index >= tv.StateImageList.Images.Count)
+                {
+                    return tv.StateImageList.Images.Count - 1;
+                }
+
+                return StateImageIndexer.Index;
             }
             set
             {
-                if (value < -1 || value > ALLOWEDIMAGES)
+                if (value < ImageList.Indexer.DefaultIndex || value > ALLOWEDIMAGES)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value), value, string.Format(SR.InvalidArgument, nameof(StateImageIndex), value));
                 }
+
+                if (StateImageIndexer.Index == value && value != ImageList.Indexer.DefaultIndex)
+                {
+                    return;
+                }
+
                 StateImageIndexer.Index = value;
                 if (treeView != null && !treeView.CheckBoxes)
                 {
@@ -1529,13 +1577,13 @@ namespace System.Windows.Forms
         protected virtual void Deserialize(SerializationInfo serializationInfo, StreamingContext context)
         {
             int childCount = 0;
-            int imageIndex = -1;
+            int imageIndex = ImageList.Indexer.DefaultIndex;
             string imageKey = null;
 
-            int selectedImageIndex = -1;
+            int selectedImageIndex = ImageList.Indexer.DefaultIndex;
             string selectedImageKey = null;
 
-            int stateImageIndex = -1;
+            int stateImageIndex = ImageList.Indexer.DefaultIndex;
             string stateImageKey = null;
 
             foreach (SerializationEntry entry in serializationInfo)
@@ -1590,7 +1638,7 @@ namespace System.Windows.Forms
             {
                 ImageKey = imageKey;
             }
-            else if (imageIndex != -1)
+            else if (imageIndex != ImageList.Indexer.DefaultIndex)
             {
                 ImageIndex = imageIndex;
             }
@@ -1600,7 +1648,7 @@ namespace System.Windows.Forms
             {
                 SelectedImageKey = selectedImageKey;
             }
-            else if (selectedImageIndex != -1)
+            else if (selectedImageIndex != ImageList.Indexer.DefaultIndex)
             {
                 SelectedImageIndex = selectedImageIndex;
             }
@@ -1610,7 +1658,7 @@ namespace System.Windows.Forms
             {
                 StateImageKey = stateImageKey;
             }
-            else if (stateImageIndex != -1)
+            else if (stateImageIndex != ImageList.Indexer.DefaultIndex)
             {
                 StateImageIndex = stateImageIndex;
             }
@@ -1870,8 +1918,8 @@ namespace System.Windows.Forms
                 }
 
                 tvis.item.pszText = Marshal.StringToHGlobalAuto(text);
-                tvis.item.iImage = (ImageIndexer.ActualIndex == -1) ? tv.ImageIndexer.ActualIndex : ImageIndexer.ActualIndex;
-                tvis.item.iSelectedImage = (SelectedImageIndexer.ActualIndex == -1) ? tv.SelectedImageIndexer.ActualIndex : SelectedImageIndexer.ActualIndex;
+                tvis.item.iImage = (ImageIndexer.ActualIndex == ImageList.Indexer.DefaultIndex) ? tv.ImageIndexer.ActualIndex : ImageIndexer.ActualIndex;
+                tvis.item.iSelectedImage = (SelectedImageIndexer.ActualIndex == ImageList.Indexer.DefaultIndex) ? tv.SelectedImageIndexer.ActualIndex : SelectedImageIndexer.ActualIndex;
                 tvis.item.mask = TVIF.TEXT;
 
                 tvis.item.stateMask = 0;
@@ -2146,6 +2194,10 @@ namespace System.Windows.Forms
 
             TreeView tv = TreeView;
             Debug.Assert(tv != null, "TreeNode has handle but no TreeView");
+            if (tv.IsDisposed)
+            {
+                return;
+            }
 
             var item = new TVITEMW
             {
@@ -2159,18 +2211,18 @@ namespace System.Windows.Forms
 
             if ((mask & TVIF.IMAGE) != 0)
             {
-                item.iImage = (ImageIndexer.ActualIndex == -1) ? tv.ImageIndexer.ActualIndex : ImageIndexer.ActualIndex;
+                item.iImage = (ImageIndexer.ActualIndex == ImageList.Indexer.DefaultIndex) ? tv.ImageIndexer.ActualIndex : ImageIndexer.ActualIndex;
             }
 
             if ((mask & TVIF.SELECTEDIMAGE) != 0)
             {
-                item.iSelectedImage = (SelectedImageIndexer.ActualIndex == -1) ? tv.SelectedImageIndexer.ActualIndex : SelectedImageIndexer.ActualIndex;
+                item.iSelectedImage = (SelectedImageIndexer.ActualIndex == ImageList.Indexer.DefaultIndex) ? tv.SelectedImageIndexer.ActualIndex : SelectedImageIndexer.ActualIndex;
             }
 
             if ((mask & TVIF.STATE) != 0)
             {
                 item.stateMask = TVIS.STATEIMAGEMASK;
-                if (StateImageIndexer.ActualIndex != -1)
+                if (StateImageIndexer.ActualIndex != ImageList.Indexer.DefaultIndex)
                 {
                     item.state = (TVIS)((StateImageIndexer.ActualIndex + 1) << SHIFTVAL);
                 }

@@ -8,7 +8,7 @@ internal partial class Interop
 {
     internal partial class Mshtml
     {
-        [ComVisible(true)]
+        [ComImport]
         [Guid("3050F69A-98B5-11CF-BB82-00AA00BDCE0B")]
         [InterfaceType(ComInterfaceType.InterfaceIsDual)]
         public interface IHTMLDocument4
@@ -22,7 +22,7 @@ internal partial class Interop
             void SetMedia(string bstrMedia);
             string GetMedia();
             object CreateEventObject([In, Optional] ref object eventObject);
-            bool FireEvent(string eventName);
+            bool FireEvent(string eventName, object pvarEventObject);
             object CreateRenderStyle(string bstr);
             void SetOncontrolselect(object p);
             object GetOncontrolselect();

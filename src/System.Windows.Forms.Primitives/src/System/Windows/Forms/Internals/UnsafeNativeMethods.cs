@@ -21,26 +21,8 @@ namespace System.Windows.Forms
         [DllImport(ExternDll.Comdlg32, SetLastError = true, CharSet = CharSet.Auto)]
         public static extern HRESULT PrintDlgEx([In, Out] NativeMethods.PRINTDLGEX lppdex);
 
-        [DllImport(ExternDll.Shell32, CharSet = CharSet.Auto)]
-        public static extern int Shell_NotifyIcon(NIM dwMessage, NativeMethods.NOTIFYICONDATA lpData);
-
         [DllImport(ExternDll.Comdlg32, SetLastError = true, CharSet = CharSet.Auto)]
         public static extern bool GetOpenFileName([In, Out] NativeMethods.OPENFILENAME_I ofn);
-
-        [DllImport(ExternDll.Kernel32, ExactSpelling = true, CharSet = CharSet.Unicode)]
-        public static extern int WideCharToMultiByte(int codePage, int flags, [MarshalAs(UnmanagedType.LPWStr)]string wideStr, int chars, [In, Out]byte[] pOutBytes, int bufferBytes, IntPtr defaultChar, IntPtr pDefaultUsed);
-
-        [DllImport(ExternDll.Kernel32, SetLastError = true, ExactSpelling = true, EntryPoint = "RtlMoveMemory", CharSet = CharSet.Auto)]
-        public static extern void CopyMemory(HandleRef destData, HandleRef srcData, int size);
-
-        [DllImport(ExternDll.Kernel32, ExactSpelling = true, EntryPoint = "RtlMoveMemory")]
-        public static extern void CopyMemory(IntPtr pdst, byte[] psrc, int cb);
-
-        [DllImport(ExternDll.Kernel32, ExactSpelling = true, EntryPoint = "RtlMoveMemory", CharSet = CharSet.Unicode)]
-        public static extern void CopyMemoryW(IntPtr pdst, string psrc, int cb);
-
-        [DllImport(ExternDll.Kernel32, ExactSpelling = true, EntryPoint = "RtlMoveMemory", CharSet = CharSet.Unicode)]
-        public static extern void CopyMemoryW(IntPtr pdst, char[] psrc, int cb);
 
         [DllImport(ExternDll.Kernel32, CharSet = CharSet.Auto, SetLastError = true)]
         public static extern int GetModuleFileName(HandleRef hModule, StringBuilder buffer, int length);
@@ -73,81 +55,7 @@ namespace System.Windows.Forms
         [DllImport(ExternDll.Kernel32, CharSet = CharSet.Auto)]
         public static extern void GetTempFileName(string tempDirName, string prefixName, int unique, StringBuilder sb);
 
-        [DllImport(ExternDll.User32, CharSet = CharSet.Auto)]
-        public static extern IntPtr SendMessage(HandleRef hWnd, int msg, int wParam, StringBuilder lParam);
-
-        // For RichTextBox
-        [DllImport(ExternDll.User32, CharSet = CharSet.Auto)]
-        public static extern IntPtr SendMessage(HandleRef hWnd, User32.WM msg, IntPtr wParam, [In, Out, MarshalAs(UnmanagedType.LPStruct)] NativeMethods.CHARFORMAT2A lParam);
-
-        [DllImport(ExternDll.User32, CharSet = CharSet.Auto)]
-        public static extern int SendMessage(HandleRef hWnd, int msg, int wParam, [Out, MarshalAs(UnmanagedType.IUnknown)]out object editOle);
-
-        [DllImport(ExternDll.User32, ExactSpelling = true, CharSet = CharSet.Auto)]
-        public static extern int GetDlgItemInt(IntPtr hWnd, int nIDDlgItem, bool[] err, bool signed);
-
         [DllImport(Libraries.Oleacc, ExactSpelling = true, CharSet = CharSet.Auto)]
-        public static extern int CreateStdAccessibleObject(HandleRef hWnd, int objID, ref Guid refiid, [In, Out, MarshalAs(UnmanagedType.Interface)] ref object pAcc);
-
-        //for RegionData
-        [DllImport(ExternDll.Gdi32, SetLastError = true, ExactSpelling = true, CharSet = CharSet.Auto)]
-        public static extern int GetRegionData(HandleRef hRgn, int size, IntPtr lpRgnData);
-
-        public unsafe static RECT[] GetRectsFromRegion(IntPtr hRgn)
-        {
-            RECT[] regionRects = null;
-            IntPtr pBytes = IntPtr.Zero;
-            try
-            {
-                // see how much memory we need to allocate
-                int regionDataSize = GetRegionData(new HandleRef(null, hRgn), 0, IntPtr.Zero);
-                if (regionDataSize != 0)
-                {
-                    pBytes = Marshal.AllocCoTaskMem(regionDataSize);
-                    // get the data
-                    int ret = GetRegionData(new HandleRef(null, hRgn), regionDataSize, pBytes);
-                    if (ret == regionDataSize)
-                    {
-                        // cast to the structure
-                        NativeMethods.RGNDATAHEADER* pRgnDataHeader = (NativeMethods.RGNDATAHEADER*)pBytes;
-                        if (pRgnDataHeader->iType == 1)
-                        {    // expecting RDH_RECTANGLES
-                            regionRects = new RECT[pRgnDataHeader->nCount];
-
-                            Debug.Assert(regionDataSize == pRgnDataHeader->cbSizeOfStruct + pRgnDataHeader->nCount * pRgnDataHeader->nRgnSize);
-                            Debug.Assert(Marshal.SizeOf<RECT>() == pRgnDataHeader->nRgnSize || pRgnDataHeader->nRgnSize == 0);
-
-                            // use the header size as the offset, and cast each rect in.
-                            int rectStart = pRgnDataHeader->cbSizeOfStruct;
-                            for (int i = 0; i < pRgnDataHeader->nCount; i++)
-                            {
-                                // use some fancy pointer math to just copy the rect bits directly into the array.
-                                regionRects[i] = *((RECT*)((byte*)pBytes + rectStart + (Marshal.SizeOf<RECT>() * i)));
-                            }
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                if (pBytes != IntPtr.Zero)
-                {
-                    Marshal.FreeCoTaskMem(pBytes);
-                }
-            }
-            return regionRects;
-        }
-
-        internal class Shell32
-        {
-            [DllImport(ExternDll.Shell32, PreserveSig = true)]
-            public static extern int SHCreateShellItem(IntPtr pidlParent, IntPtr psfParent, IntPtr pidl, out FileDialogNative.IShellItem ppsi);
-
-            [DllImport(ExternDll.Shell32, PreserveSig = true)]
-            public static extern int SHILCreateFromPath([MarshalAs(UnmanagedType.LPWStr)]string pszPath, out IntPtr ppIdl, ref uint rgflnOut);
-        }
-
-        [DllImport(ExternDll.User32, CharSet = CharSet.Auto, ExactSpelling = true, SetLastError = true)]
-        internal static extern bool GetPhysicalCursorPos([In, Out] ref Interop.POINT pt);
+        public static extern int CreateStdAccessibleObject(HandleRef hWnd, int objID, ref Guid refiid, [In, Out, MarshalAs(UnmanagedType.Interface)] ref object? pAcc);
     }
 }

@@ -18,8 +18,6 @@ namespace System.Windows.Forms.Design
     /// <summary>
     ///  Provides a user interface for <see cref='WindowsFormsComponentEditor'/>.
     /// </summary>
-    [ComVisible(true)]
-    [ClassInterface(ClassInterfaceType.AutoDispatch)]
     [ToolboxItem(false)]
     public class ComponentEditorForm : Form
     {
@@ -100,7 +98,7 @@ namespace System.Windows.Forms.Design
                             {
                                 return;
                             }
-                            throw e;
+                            throw;
                         }
                     }
                 }
@@ -651,16 +649,17 @@ namespace System.Windows.Forms.Design
                 }
             }
 
-            private void CreateDitherBrush()
+            private unsafe void CreateDitherBrush()
             {
                 Debug.Assert(_hbrushDither == IntPtr.Zero, "Brush should not be recreated.");
 
-                short[] patternBits = new short[] {
+                short* patternBits = stackalloc short[]
+                {
                     unchecked((short)0xAAAA), unchecked((short)0x5555), unchecked((short)0xAAAA), unchecked((short)0x5555),
                     unchecked((short)0xAAAA), unchecked((short)0x5555), unchecked((short)0xAAAA), unchecked((short)0x5555)
                 };
 
-                IntPtr hbitmapTemp = SafeNativeMethods.CreateBitmap(8, 8, 1, 1, patternBits);
+                IntPtr hbitmapTemp = Gdi32.CreateBitmap(8, 8, 1, 1, patternBits);
                 Debug.Assert(hbitmapTemp != IntPtr.Zero,
                              "could not create dither bitmap. Page selector UI will not be correct");
 
@@ -847,7 +846,7 @@ namespace System.Windows.Forms.Design
 
             protected unsafe override void WndProc(ref Message m)
             {
-                if (m.Msg == (int)(User32.WM.REFLECT | User32.WM.NOTIFY))
+                if (m.Msg == (int)(User32.WM.REFLECT_NOTIFY))
                 {
                     User32.NMHDR* nmhdr = (User32.NMHDR*)m.LParam;
                     if (nmhdr->code == (int)ComCtl32.NM.CUSTOMDRAW)

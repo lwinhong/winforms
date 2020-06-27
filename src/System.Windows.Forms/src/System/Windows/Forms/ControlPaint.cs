@@ -4,8 +4,6 @@
 
 #nullable disable
 
-#define GRAYSCALE_DISABLED
-
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -239,7 +237,7 @@ namespace System.Windows.Forms
         ///  From MSDN:
         ///    This member supports the framework infrastructure and is not intended to be used directly from your code.
         /// </summary>
-        public static IntPtr CreateHBitmapTransparencyMask(Bitmap bitmap)
+        public unsafe static IntPtr CreateHBitmapTransparencyMask(Bitmap bitmap)
         {
             if (bitmap == null)
             {
@@ -285,9 +283,11 @@ namespace System.Windows.Forms
 
             bitmap.UnlockBits(data);
 
-            IntPtr mask = SafeNativeMethods.CreateBitmap(size.Width, size.Height, 1, /* 1bpp */ 1, bits);
-
-            return mask;
+            // Create 1bpp.
+            fixed (byte* pBits = bits)
+            {
+                return Gdi32.CreateBitmap(size.Width, size.Height, 1, 1, pBits);
+            }
         }
 
         /// <summary>
@@ -302,12 +302,11 @@ namespace System.Windows.Forms
             Size size = bitmap.Size;
 
             IntPtr colorMask = bitmap.GetHbitmap();
-            IntPtr hdcS = User32.GetDC(IntPtr.Zero);
-            IntPtr source = Gdi32.CreateCompatibleDC(hdcS);
-            IntPtr target = Gdi32.CreateCompatibleDC(hdcS);
-            User32.ReleaseDC(IntPtr.Zero, hdcS);
-            IntPtr previousSourceBitmap = Gdi32.SelectObject(source, monochromeMask);
-            IntPtr previousTargetBitmap = Gdi32.SelectObject(target, colorMask);
+            using var screenDC = new User32.GetDcScope(IntPtr.Zero);
+            using var sourceDC = new Gdi32.CreateDcScope(screenDC);
+            using var targetDC = new Gdi32.CreateDcScope(screenDC);
+            using var sourceBitmapSelection = new Gdi32.SelectObjectScope(sourceDC, monochromeMask);
+            using var targetBitmapSelection = new Gdi32.SelectObjectScope(targetDC, colorMask);
 
             // Now the trick is to make colorBitmap black wherever the transparent
             // color is located, but keep the original color everywhere else.
@@ -315,37 +314,32 @@ namespace System.Windows.Forms
             // to and with the inverse of the mask (ROP DSna). When going from
             // monochrome to color, Windows sets all 1 bits to the background
             // color, and all 0 bits to the foreground color.
-            //
-            Gdi32.SetBkColor(target, 0x00ffffff); // white
-            Gdi32.SetTextColor(target, 0x00000000); // black
+
+            Gdi32.SetBkColor(targetDC, 0x00ffffff);    // white
+            Gdi32.SetTextColor(targetDC, 0x00000000);  // black
             Gdi32.BitBlt(
-                target,
+                targetDC,
                 0,
                 0,
                 size.Width,
                 size.Height,
-                source,
+                sourceDC,
                 0,
                 0,
                 (Gdi32.ROP)0x220326); // RasterOp.SOURCE.Invert().AndWith(RasterOp.TARGET).GetRop());
 
-            Gdi32.SelectObject(source, previousSourceBitmap);
-            Gdi32.SelectObject(target, previousTargetBitmap);
-            Gdi32.DeleteDC(source);
-            Gdi32.DeleteDC(target);
-
             return colorMask;
         }
 
-        internal static IntPtr CreateHalftoneHBRUSH()
+        internal unsafe static IntPtr CreateHalftoneHBRUSH()
         {
-            short[] grayPattern = new short[8];
+            short* grayPattern = stackalloc short[8];
             for (int i = 0; i < 8; i++)
             {
                 grayPattern[i] = (short)(0x5555 << (i & 1));
             }
 
-            IntPtr hBitmap = SafeNativeMethods.CreateBitmap(8, 8, 1, 1, grayPattern);
+            IntPtr hBitmap = Gdi32.CreateBitmap(8, 8, 1, 1, grayPattern);
             try
             {
                 var lb = new Gdi32.LOGBRUSH
@@ -1758,7 +1752,7 @@ namespace System.Windows.Forms
             {
                 throw new ArgumentNullException(nameof(image));
             }
-#if GRAYSCALE_DISABLED
+
             Size imageSize = image.Size;
 
             if (disabledImageAttr == null)
@@ -1816,48 +1810,6 @@ namespace System.Windows.Forms
                                    GraphicsUnit.Pixel,
                                    disabledImageAttr);
             }
-#else
-
-            // This is remarkably simple -- make a monochrome version of the image, draw once
-            // with the button highlight color, then a second time offset by one pixel
-            // and in the button shadow color.
-            // Technique borrowed from comctl Toolbar.
-
-            Bitmap bitmap;
-            bool disposeBitmap = false;
-            if (image is Bitmap)
-                bitmap = (Bitmap) image;
-            else {
-                // metafiles can have extremely high resolutions,
-                // so if we naively turn them into bitmaps, the performance will be very poor.
-                // bitmap = new Bitmap(image);
-
-                GraphicsUnit units = GraphicsUnit.Display;
-                RectangleF bounds = image.GetBounds(ref units);
-                bitmap = new Bitmap((int) (bounds.Width * graphics.DpiX / image.HorizontalResolution),
-                                    (int) (bounds.Height * graphics.DpiY / image.VerticalResolution));
-
-                Graphics bitmapGraphics = Graphics.FromImage(bitmap);
-                bitmapGraphics.Clear(Color.Transparent);
-                bitmapGraphics.DrawImage(image, 0, 0, image.Size.Width, image.Size.Height);
-                bitmapGraphics.Dispose();
-
-                disposeBitmap = true;
-            }
-
-            Color highlight = ControlPaint.LightLight(background);
-            Bitmap monochrome = MakeMonochrome(bitmap, highlight);
-            graphics.DrawImage(monochrome, new Rectangle(imageBounds.X + 1, imageBounds.Y + 1, imageBounds.Width, imageBounds.Height));
-            monochrome.Dispose();
-
-            Color shadow = ControlPaint.Dark(background);
-            monochrome = MakeMonochrome(bitmap, shadow);
-            graphics.DrawImage(monochrome, imageBounds);
-            monochrome.Dispose();
-
-            if (disposeBitmap)
-                bitmap.Dispose();
-#endif
         }
 
         /// <summary>
@@ -1982,37 +1934,24 @@ namespace System.Windows.Forms
                 graphicsColor = Color.Black;
             }
 
-            IntPtr dc = User32.GetDCEx(User32.GetDesktopWindow(), IntPtr.Zero, User32.DCX.WINDOW | User32.DCX.LOCKWINDOWUPDATE | User32.DCX.CACHE);
-            IntPtr pen;
+            using var desktopDC = new User32.GetDcScope(
+                User32.GetDesktopWindow(),
+                IntPtr.Zero,
+                User32.DCX.WINDOW | User32.DCX.LOCKWINDOWUPDATE | User32.DCX.CACHE);
 
-            switch (style)
+            using var pen = new Gdi32.ObjectScope(style switch
             {
-                case FrameStyle.Dashed:
-                    pen = Gdi32.CreatePen(Gdi32.PS.DOT, 1, ColorTranslator.ToWin32(backColor));
-                    break;
+                FrameStyle.Dashed => Gdi32.CreatePen(Gdi32.PS.DOT, 1, ColorTranslator.ToWin32(backColor)),
+                FrameStyle.Thick => Gdi32.CreatePen(Gdi32.PS.SOLID, 2, ColorTranslator.ToWin32(backColor)),
+                _ => IntPtr.Zero
+            });
 
-                case FrameStyle.Thick:
-                default:
-                    pen = Gdi32.CreatePen(Gdi32.PS.SOLID, 2, ColorTranslator.ToWin32(backColor));
-                    break;
-            }
+            using var rop2Scope = new Gdi32.Rop2Scope(desktopDC, rop2);
+            using var brushSelection = new Gdi32.SelectObjectScope(desktopDC, Gdi32.GetStockObject(Gdi32.StockObject.HOLLOW_BRUSH));
+            using var penSelection = new Gdi32.SelectObjectScope(desktopDC, pen);
 
-            Gdi32.R2 prevRop2 = Gdi32.SetROP2(dc, rop2);
-            IntPtr oldBrush = Gdi32.SelectObject(dc, Gdi32.GetStockObject(Gdi32.StockObject.HOLLOW_BRUSH));
-            IntPtr oldPen = Gdi32.SelectObject(dc, pen);
-            Gdi32.SetBkColor(dc, ColorTranslator.ToWin32(graphicsColor));
-            Gdi32.Rectangle(dc, rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom);
-
-            Gdi32.SetROP2(dc, prevRop2);
-            Gdi32.SelectObject(dc, oldBrush);
-            Gdi32.SelectObject(dc, oldPen);
-
-            if (pen != IntPtr.Zero)
-            {
-                Gdi32.DeleteObject(pen);
-            }
-
-            User32.ReleaseDC(IntPtr.Zero, dc);
+            Gdi32.SetBkColor(desktopDC, ColorTranslator.ToWin32(graphicsColor));
+            Gdi32.Rectangle(desktopDC, rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom);
         }
 
         /// <summary>
@@ -2023,21 +1962,20 @@ namespace System.Windows.Forms
         {
             Gdi32.R2 rop2 = (Gdi32.R2)GetColorRop(backColor, (int)Gdi32.R2.NOTXORPEN, (int)Gdi32.R2.XORPEN);
 
-            IntPtr dc = User32.GetDCEx(User32.GetDesktopWindow(), IntPtr.Zero, User32.DCX.WINDOW | User32.DCX.LOCKWINDOWUPDATE | User32.DCX.CACHE);
-            IntPtr pen = Gdi32.CreatePen(Gdi32.PS.SOLID, 1, ColorTranslator.ToWin32(backColor));
+            using var desktopDC = new User32.GetDcScope(
+                User32.GetDesktopWindow(),
+                IntPtr.Zero,
+                User32.DCX.WINDOW | User32.DCX.LOCKWINDOWUPDATE | User32.DCX.CACHE);
 
-            Gdi32.R2 prevRop2 = Gdi32.SetROP2(dc, rop2);
-            IntPtr oldBrush = Gdi32.SelectObject(dc, Gdi32.GetStockObject(Gdi32.StockObject.HOLLOW_BRUSH));
-            IntPtr oldPen = Gdi32.SelectObject(dc, pen);
+            using var pen = new Gdi32.ObjectScope(Gdi32.CreatePen(Gdi32.PS.SOLID, 1, ColorTranslator.ToWin32(backColor)));
+            using var ropScope = new Gdi32.Rop2Scope(desktopDC, rop2);
+            using var brushSelection = new Gdi32.SelectObjectScope(
+                desktopDC,
+                Gdi32.GetStockObject(Gdi32.StockObject.HOLLOW_BRUSH));
+            using var penSelection = new Gdi32.SelectObjectScope(desktopDC, pen);
 
-            Gdi32.MoveToEx(dc, start.X, start.Y, null);
-            Gdi32.LineTo(dc, end.X, end.Y);
-
-            Gdi32.SetROP2(dc, prevRop2);
-            Gdi32.SelectObject(dc, oldBrush);
-            Gdi32.SelectObject(dc, oldPen);
-            Gdi32.DeleteObject(pen);
-            User32.ReleaseDC(IntPtr.Zero, dc);
+            Gdi32.MoveToEx(desktopDC, start.X, start.Y, null);
+            Gdi32.LineTo(desktopDC, end.X, end.Y);
         }
 
         /// <summary>
@@ -2212,19 +2150,16 @@ namespace System.Windows.Forms
                                    0x5a0049); // RasterOp.BRUSH.XorWith(RasterOp.TARGET));
             Gdi32.R2 rop2 = Gdi32.R2.NOT;
 
-            IntPtr dc = User32.GetDCEx(User32.GetDesktopWindow(), IntPtr.Zero, User32.DCX.WINDOW | User32.DCX.LOCKWINDOWUPDATE | User32.DCX.CACHE);
-            IntPtr brush = Gdi32.CreateSolidBrush(ColorTranslator.ToWin32(backColor));
-
-            Gdi32.R2 prevRop2 = Gdi32.SetROP2(dc, rop2);
-            IntPtr oldBrush = Gdi32.SelectObject(dc, brush);
+            using var desktopDC = new User32.GetDcScope(
+                User32.GetDesktopWindow(),
+                IntPtr.Zero,
+                User32.DCX.WINDOW | User32.DCX.LOCKWINDOWUPDATE | User32.DCX.CACHE);
+            using var brush = new Gdi32.ObjectScope(Gdi32.CreateSolidBrush(ColorTranslator.ToWin32(backColor)));
+            using var ropScope = new Gdi32.Rop2Scope(desktopDC, rop2);
+            using var brushSelection = new Gdi32.SelectObjectScope(desktopDC, brush);
 
             // PatBlt must be the only Win32 function that wants height in width rather than x2,y2.
-            Gdi32.PatBlt(dc, rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, rop3);
-
-            Gdi32.SetROP2(dc, prevRop2);
-            Gdi32.SelectObject(dc, oldBrush);
-            Gdi32.DeleteObject(brush);
-            User32.ReleaseDC(IntPtr.Zero, dc);
+            Gdi32.PatBlt(desktopDC, rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, rop3);
         }
 
         // Converts the font into one where Font.Unit = Point.
@@ -2571,43 +2506,6 @@ namespace System.Windows.Forms
         {
             return new HLSColor(baseColor).Lighter(1.0f);
         }
-
-#if !GRAYSCALE_DISABLED
-        // Returns a monochrome bitmap based on the input.
-        private static Bitmap MakeMonochrome(Bitmap input, Color color) {
-            Bitmap output = new Bitmap(input.Width, input.Height);
-            output.SetResolution(input.HorizontalResolution, input.VerticalResolution);
-            Size size = input.Size;
-            int width = input.Width;
-            int height = input.Height;
-
-            BitmapData inputData = input.LockBits(new Rectangle(0,0, width, height),
-                                                  ImageLockMode.ReadOnly,
-                                                  PixelFormat.Format32bppArgb);
-            BitmapData outputData = output.LockBits(new Rectangle(0,0, width, height),
-                                                    ImageLockMode.WriteOnly,
-                                                    PixelFormat.Format32bppArgb);
-
-            Debug.Assert(inputData.Scan0 != IntPtr.Zero && outputData.Scan0 != IntPtr.Zero, "BitmapData.Scan0 is null; check marshalling");
-
-            int colorARGB = color.ToArgb();
-            for (int y = 0; y < height; y++) {
-                IntPtr inputScan = (IntPtr)((long)inputData.Scan0 + y * inputData.Stride);
-                IntPtr outputScan = (IntPtr)((long)outputData.Scan0 + y * outputData.Stride);
-                for (int x = 0; x < width; x++) {
-                    int pixel = Marshal.ReadInt32(inputScan,x*4);
-                    if (pixel >> 24 == 0)
-                        Marshal.WriteInt32(outputScan, x*4, 0); // transparent
-                    else
-                        Marshal.WriteInt32(outputScan, x*4, colorARGB);
-                }
-            }
-            input.UnlockBits(inputData);
-            output.UnlockBits(outputData);
-
-            return output;
-        }
-#endif
 
         internal static ColorMatrix MultiplyColorMatrix(float[][] matrix1, float[][] matrix2)
         {
@@ -2988,7 +2886,6 @@ namespace System.Windows.Forms
         {
             private const int ShadowAdj = -333;
             private const int HilightAdj = 500;
-            private const int WatermarkAdj = -50;
 
             private const int Range = 240;
             private const int HLSMax = Range;

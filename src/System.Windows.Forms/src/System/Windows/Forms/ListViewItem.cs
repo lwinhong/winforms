@@ -58,24 +58,6 @@ namespace System.Windows.Forms
         private string toolTipText = string.Empty;
         private object userData;
 
-        // We need a special way to defer to the ListView's image
-        // list for indexing purposes.
-        internal class ListViewItemImageIndexer : ImageList.Indexer
-        {
-            private readonly ListViewItem _owner;
-
-            public ListViewItemImageIndexer(ListViewItem item)
-            {
-                _owner = item;
-            }
-
-            public override ImageList ImageList
-            {
-                get => _owner?.ImageList;
-                set => Debug.Fail("We should never set the image list");
-            }
-        }
-
         public ListViewItem()
         {
             StateSelected = false;
@@ -91,7 +73,7 @@ namespace System.Windows.Forms
             Deserialize(info, context);
         }
 
-        public ListViewItem(string text) : this(text, -1)
+        public ListViewItem(string text) : this(text, ImageList.Indexer.DefaultIndex)
         {
         }
 
@@ -101,7 +83,7 @@ namespace System.Windows.Forms
             Text = text;
         }
 
-        public ListViewItem(string[] items) : this(items, -1)
+        public ListViewItem(string[] items) : this(items, ImageList.Indexer.DefaultIndex)
         {
         }
 
@@ -431,7 +413,7 @@ namespace System.Windows.Forms
         /// <summary>
         ///  Returns the ListViewItem's currently set image index
         /// </summary>
-        [DefaultValue(-1)]
+        [DefaultValue(ImageList.Indexer.DefaultIndex)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [Editor("System.Windows.Forms.Design.ImageIndexEditor, " + AssemblyRef.SystemDesign, typeof(UITypeEditor))]
         [Localizable(true)]
@@ -443,35 +425,33 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (ImageIndexer.Index != -1 && ImageList != null && ImageIndexer.Index >= ImageList.Images.Count)
-                {
-                    return ImageList.Images.Count - 1;
-                }
-
-                return ImageIndexer.Index;
+                return ImageList == null || ImageIndexer.Index < ImageList.Images.Count
+                    ? ImageIndexer.Index
+                    : ImageList.Images.Count - 1;
             }
             set
             {
-                if (value < -1)
+                if (value < ImageList.Indexer.DefaultIndex)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), value, string.Format(SR.InvalidLowBoundArgumentEx, nameof(ImageIndex), value, -1));
+                    throw new ArgumentOutOfRangeException(nameof(value), value,
+                        string.Format(SR.InvalidLowBoundArgumentEx, nameof(ImageIndex), value, ImageList.Indexer.DefaultIndex));
                 }
 
                 ImageIndexer.Index = value;
 
                 if (listView != null && listView.IsHandleCreated)
                 {
-                    listView.SetItemImage(Index, ImageIndexer.ActualIndex);
+                    listView.SetItemImage(itemIndex: Index, imageIndex: ImageIndexer.ActualIndex);
                 }
             }
         }
 
-        internal ListViewItemImageIndexer ImageIndexer => imageIndexer ?? (imageIndexer = new ListViewItemImageIndexer(this));
+        internal ListViewItemImageIndexer ImageIndexer => imageIndexer ??= new ListViewItemImageIndexer(this);
 
         /// <summary>
         ///  Returns the ListViewItem's currently set image index
         /// </summary>
-        [DefaultValue("")]
+        [DefaultValue(ImageList.Indexer.DefaultKey)]
         [TypeConverter(typeof(ImageKeyConverter))]
         [Editor("System.Windows.Forms.Design.ImageIndexEditor, " + AssemblyRef.SystemDesign, typeof(UITypeEditor))]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -639,7 +619,7 @@ namespace System.Windows.Forms
             set
             {
                 // flag whether we've set a value.
-                state[s_stateImageMaskSet] = (value == -1 ? 0 : 1);
+                state[s_stateImageMaskSet] = (value == ImageList.Indexer.DefaultIndex ? 0 : 1);
 
                 // push in the actual value
                 state[s_avedStateImageIndexSection] = value + 1;
@@ -685,7 +665,7 @@ namespace System.Windows.Forms
 
         [Localizable(true)]
         [TypeConverter(typeof(NoneExcludedImageIndexConverter))]
-        [DefaultValue(-1)]
+        [DefaultValue(ImageList.Indexer.DefaultIndex)]
         [SRDescription(nameof(SR.ListViewItemStateImageIndexDescr))]
         [SRCategory(nameof(SR.CatBehavior))]
         [RefreshProperties(RefreshProperties.Repaint)]
@@ -705,14 +685,14 @@ namespace System.Windows.Forms
             }
             set
             {
-                if (value < -1 || value > 14)
+                if (value < ImageList.Indexer.DefaultIndex || value > 14)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value), value, string.Format(SR.InvalidArgument, nameof(StateImageIndex), value));
                 }
 
                 if (listView != null && listView.IsHandleCreated)
                 {
-                    this.state[s_stateImageMaskSet] = (value == -1 ? 0 : 1);
+                    this.state[s_stateImageMaskSet] = (value == ImageList.Indexer.DefaultIndex ? 0 : 1);
                     LVIS state = (LVIS)((value + 1) << 12);  // index is 1-based
                     listView.SetItemState(Index, state, LVIS.STATEIMAGEMASK);
                 }
@@ -1038,7 +1018,7 @@ namespace System.Windows.Forms
                 stateMask |= LVIS.SELECTED;
             }
 
-            if (SavedStateImageIndex > -1)
+            if (SavedStateImageIndex > ImageList.Indexer.DefaultIndex)
             {
                 itemState |= (LVIS)((SavedStateImageIndex + 1) << 12);
                 stateMask |= LVIS.STATEIMAGEMASK;
@@ -1135,7 +1115,7 @@ namespace System.Windows.Forms
             bool foundSubItems = false;
 
             string imageKey = null;
-            int imageIndex = -1;
+            int imageIndex = ImageList.Indexer.DefaultIndex;
 
             foreach (SerializationEntry entry in info)
             {
@@ -1191,7 +1171,7 @@ namespace System.Windows.Forms
             {
                 ImageKey = imageKey;
             }
-            else if (imageIndex != -1)
+            else if (imageIndex != ImageList.Indexer.DefaultIndex)
             {
                 ImageIndex = imageIndex;
             }

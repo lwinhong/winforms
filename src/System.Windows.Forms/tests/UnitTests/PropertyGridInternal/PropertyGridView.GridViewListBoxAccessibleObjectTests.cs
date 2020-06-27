@@ -15,9 +15,9 @@ namespace System.Windows.Forms.Tests.PropertyGridInternal.Tests
         public void GridViewListBoxAccessibleObject_DoesNotThrowException_OnFocus()
         {
             Mock<IServiceProvider> mockServiceProvider = new Mock<IServiceProvider>(MockBehavior.Strict);
-            PropertyGrid propertyGrid = new PropertyGrid();
+            using PropertyGrid propertyGrid = new PropertyGrid();
 
-            PropertyGridView propertyGridView = new PropertyGridView(mockServiceProvider.Object, propertyGrid);
+            using PropertyGridView propertyGridView = new PropertyGridView(mockServiceProvider.Object, propertyGrid);
             var dropDownListBoxAccessibleObject = propertyGridView.DropDownListBoxAccessibleObject;
 
             Type type = dropDownListBoxAccessibleObject.GetType();
@@ -29,7 +29,7 @@ namespace System.Windows.Forms.Tests.PropertyGridInternal.Tests
             // Verify that invoking SetListBoxItemFocus does not lead to exception throwing even if SelectedItem = null.
             type.InvokeMember("SetListBoxItemFocus",
                 BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod,
-                null, dropDownListBoxAccessibleObject, new Object[] {});
+                null, dropDownListBoxAccessibleObject, Array.Empty<Object>());
         }
     }
 }

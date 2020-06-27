@@ -11,7 +11,6 @@ internal static partial class Interop
     internal static partial class UiaCore
     {
         [ComImport]
-        [ComVisible(true)]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         [Guid("F8B80ADA-2C44-48D0-89BE-5FF23C9CD875")]
         public unsafe interface IAccessibleEx
@@ -26,7 +25,7 @@ internal static partial class Interop
             ///  IAccessible. Only idChild values that do not have a corresponding
             ///  IAccessible can be used here.
             /// </summary>
-            IAccessibleEx GetObjectForChild(int idChild);
+            IAccessibleEx? GetObjectForChild(int idChild);
 
             /// <summary>
             ///  Returns an IAccessible and idChild pair for this IAccessibleEx.
@@ -38,11 +37,11 @@ internal static partial class Interop
             /// </summary>
             [PreserveSig]
             HRESULT GetIAccessiblePair(
-                [MarshalAs(UnmanagedType.Interface)] out object ppAcc,
+                [MarshalAs(UnmanagedType.Interface)] out object? ppAcc,
                 int* pidChild);
 
             [return: MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_I4)]
-            int[] GetRuntimeId();
+            int[]? GetRuntimeId();
 
             /// <summary>
             ///  Some wrapper-based implementations (notably UIABridge) can't reasonably wrap all
@@ -59,7 +58,7 @@ internal static partial class Interop
             [PreserveSig]
             HRESULT ConvertReturnedElement(
                 IRawElementProviderSimple pIn,
-                out IAccessibleEx ppRetValOut);
+                out IAccessibleEx? ppRetValOut);
         }
     }
 }

@@ -21,8 +21,6 @@ namespace System.Windows.Forms
     ///  With this control the user need be aware of docking, z-order of the controls. The controls get parented when thry are
     ///  dropped on the SpitContainer.
     /// </summary>
-    [ComVisible(true)]
-    [ClassInterface(ClassInterfaceType.AutoDispatch)]
     [DefaultEvent(nameof(SplitterMoved))]
     [Docking(DockingBehavior.AutoDock)]
     [Designer("System.Windows.Forms.Design.SplitContainerDesigner, " + AssemblyRef.SystemDesign)]
@@ -35,8 +33,6 @@ namespace System.Windows.Forms
         private const int DRAW_START = 1;
         private const int DRAW_MOVE = 2;
         private const int DRAW_END = 3;
-        private const int rightBorder = 5;
-        private const int leftBorder = 2;
 
         private int BORDERSIZE = 0;
 

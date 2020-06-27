@@ -737,7 +737,7 @@ namespace System.Windows.Forms.PropertyGridInternal
                         {
                             return oldValue;
                         }
-                        throw coEx;
+                        throw;
                     }
                 }
 
@@ -1122,7 +1122,6 @@ namespace System.Windows.Forms.PropertyGridInternal
             return new PropertyDescriptorGridEntryAccessibleObject(this);
         }
 
-        [ComVisible(true)]
         protected class PropertyDescriptorGridEntryAccessibleObject : GridEntryAccessibleObject
         {
             private readonly PropertyDescriptorGridEntry _owningPropertyDescriptorGridEntry;
@@ -1290,7 +1289,9 @@ namespace System.Windows.Forms.PropertyGridInternal
                         return UiaCore.ExpandCollapseState.Collapsed;
                     }
 
-                    if (_owningPropertyDescriptorGridEntry == propertyGridView.SelectedGridEntry && propertyGridView.DropDownVisible)
+                    if (_owningPropertyDescriptorGridEntry == propertyGridView.SelectedGridEntry &&
+                        ((_owningPropertyDescriptorGridEntry != null && _owningPropertyDescriptorGridEntry.InternalExpanded)
+                         || propertyGridView.DropDownVisible))
                     {
                         return UiaCore.ExpandCollapseState.Expanded;
                     }

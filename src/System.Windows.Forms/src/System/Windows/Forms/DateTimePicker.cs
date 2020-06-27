@@ -19,8 +19,6 @@ namespace System.Windows.Forms
     /// <summary>
     ///  Date/DateTime picker control
     /// </summary>
-    [ComVisible(true)]
-    [ClassInterface(ClassInterfaceType.AutoDispatch)]
     [DefaultProperty(nameof(Value))]
     [DefaultEvent(nameof(ValueChanged))]
     [DefaultBindingProperty(nameof(Value))]
@@ -1667,6 +1665,12 @@ namespace System.Windows.Forms
         /// </summary>
         internal static DateTime SysTimeToDateTime(Kernel32.SYSTEMTIME s)
         {
+            if (s.wYear <= 0 || s.wMonth <= 0 || s.wDay <= 0)
+            {
+                Debug.Fail("Incorrect SYSTEMTIME info!");
+                return DateTime.MinValue;
+            }
+
             return new DateTime(s.wYear, s.wMonth, s.wDay, s.wHour, s.wMinute, s.wSecond);
         }
 
@@ -1681,7 +1685,6 @@ namespace System.Windows.Forms
             }
         }
 
-        [ComVisible(true)]
         public class DateTimePickerAccessibleObject : ControlAccessibleObject
         {
             public DateTimePickerAccessibleObject(DateTimePicker owner) : base(owner)

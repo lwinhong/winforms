@@ -22,8 +22,6 @@ namespace System.Windows.Forms
     ///  Displays an image that can be a graphic from a bitmap, icon, or metafile, as well as from
     ///  an enhanced metafile, JPEG, or GIF files.
     /// </summary>
-    [ComVisible(true)]
-    [ClassInterface(ClassInterfaceType.AutoDispatch)]
     [DefaultProperty(nameof(Image))]
     [DefaultBindingProperty(nameof(Image))]
     [Docking(DockingBehavior.Ask)]
@@ -77,8 +75,6 @@ namespace System.Windows.Forms
         [ThreadStatic]
         private static Image t_defaultErrorImageForThread = null;
 
-        private static readonly object s_defaultInitialImageKey = new object();
-        private static readonly object s_defaultErrorImageKey = new object();
         private static readonly object s_loadCompletedKey = new object();
         private static readonly object s_loadProgressChangedKey = new object();
 

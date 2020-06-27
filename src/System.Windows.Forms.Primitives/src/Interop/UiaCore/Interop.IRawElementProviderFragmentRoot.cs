@@ -15,7 +15,6 @@ internal static partial class Interop
         ///  interface.
         /// </summary>
         [ComImport]
-        [ComVisible(true)]
         [Guid("620ce2a5-ab8f-40a9-86cb-de3c75599b58")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IRawElementProviderFragmentRoot : IRawElementProviderFragment
@@ -32,7 +31,7 @@ internal static partial class Interop
             ///  otherwise return null.
             /// </returns>
             [return: MarshalAs(UnmanagedType.IUnknown)]
-            object /*IRawElementProviderFragment*/ ElementProviderFromPoint(double x, double y);
+            object? /*IRawElementProviderFragment*/ ElementProviderFromPoint(double x, double y);
 
             /// <summary>
             ///  Return the element in this fragment which has the keyboard focus,
@@ -40,7 +39,7 @@ internal static partial class Interop
             /// <returns>Return the element in this fragment which has the keyboard focus,
             ///  if any; otherwise return null.</returns>
             [return: MarshalAs(UnmanagedType.IUnknown)]
-            object /*IRawElementProviderFragment*/ GetFocus();
+            object? /*IRawElementProviderFragment*/ GetFocus();
         }
     }
 }

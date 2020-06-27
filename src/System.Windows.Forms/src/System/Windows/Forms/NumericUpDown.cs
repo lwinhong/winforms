@@ -16,8 +16,6 @@ namespace System.Windows.Forms
     /// <summary>
     ///  Represents a Windows up-down control that displays numeric values.
     /// </summary>
-    [ComVisible(true)]
-    [ClassInterface(ClassInterfaceType.AutoDispatch)]
     [DefaultProperty(nameof(Value))]
     [DefaultEvent(nameof(ValueChanged))]
     [DefaultBindingProperty(nameof(Value))]
@@ -509,7 +507,7 @@ namespace System.Windows.Forms
             {
                 // Eat this invalid key and beep
                 e.Handled = true;
-                SafeNativeMethods.MessageBeep(0);
+                User32.MessageBeep(User32.MB.OK);
             }
         }
 
@@ -889,7 +887,6 @@ namespace System.Windows.Forms
             return largestDigit;
         }
 
-        [ComVisible(true)]
         internal class NumericUpDownAccessibleObject : ControlAccessibleObject
         {
             private readonly UpDownBase _owner;

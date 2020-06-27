@@ -4,34 +4,44 @@
     <VersionPrefix>5.0.0</VersionPrefix>
     <!-- version in our package name #.#.#-below.#####.## -->
     <PreReleaseVersionLabel>preview</PreReleaseVersionLabel>
-    <PreReleaseVersionIteration>5</PreReleaseVersionIteration>
+    <PreReleaseVersionIteration>8</PreReleaseVersionIteration>
     <!-- Use the compiler in the CLI instead of in the sdk, since the sdk one doesn't work with netcoreapp5.0 yet -->
     <UsingToolMicrosoftNetCompilers>false</UsingToolMicrosoftNetCompilers>
   </PropertyGroup>
   <!-- Below have corresponding entries in Versions.Details.XML because they are updated via Maestro -->
   <!-- Core Setup for coherency -->
   <PropertyGroup>
-    <MicrosoftNETCoreAppPackageVersion>5.0.0-preview.5.20223.1</MicrosoftNETCoreAppPackageVersion>
+    <MicrosoftNETCoreAppPackageVersion>5.0.0-preview.8.20325.1</MicrosoftNETCoreAppPackageVersion>
+    <SystemDiagnosticsEventLogPackageVersion>5.0.0-preview.8.20325.1</SystemDiagnosticsEventLogPackageVersion>
+    <SystemDirectoryServicesPackageVersion>5.0.0-preview.8.20325.1</SystemDirectoryServicesPackageVersion>
+    <SystemReflectionMetadataLoadContextPackageVersion>5.0.0-preview.8.20325.1</SystemReflectionMetadataLoadContextPackageVersion>
+    <SystemSecurityAccessControlPackageVersion>5.0.0-preview.8.20325.1</SystemSecurityAccessControlPackageVersion>
+    <SystemSecurityCryptographyXmlPackageVersion>5.0.0-preview.8.20325.1</SystemSecurityCryptographyXmlPackageVersion>
+    <SystemSecurityPrincipalWindowsPackageVersion>5.0.0-preview.8.20325.1</SystemSecurityPrincipalWindowsPackageVersion>
+    <SystemIOPackagingPackageVersion>5.0.0-preview.8.20325.1</SystemIOPackagingPackageVersion>
+    <MicrosoftNETCoreRuntimeCoreCLRPackageVersion>5.0.0-preview.7.20320.5</MicrosoftNETCoreRuntimeCoreCLRPackageVersion>
+    <MicrosoftNETCoreILDAsmPackageVersion>5.0.0-preview.8.20325.1</MicrosoftNETCoreILDAsmPackageVersion>
+    <MicrosoftNETCoreAppInternalPackageVersion>5.0.0-preview.8.20325.1</MicrosoftNETCoreAppInternalPackageVersion>
   </PropertyGroup>
   <!-- CoreFX via Core Setup -->
   <PropertyGroup>
-    <MicrosoftNETCorePlatformsPackageVersion>5.0.0-preview.5.20223.1</MicrosoftNETCorePlatformsPackageVersion>
-    <MicrosoftWin32RegistryPackageVersion>5.0.0-preview.5.20223.1</MicrosoftWin32RegistryPackageVersion>
-    <MicrosoftWin32SystemEventsPackageVersion>5.0.0-preview.5.20223.1</MicrosoftWin32SystemEventsPackageVersion>
-    <SystemCodeDomPackageVersion>5.0.0-preview.5.20223.1</SystemCodeDomPackageVersion>
-    <SystemConfigurationConfigurationManagerPackageVersion>5.0.0-preview.5.20223.1</SystemConfigurationConfigurationManagerPackageVersion>
-    <SystemDrawingCommonPackageVersion>5.0.0-preview.5.20223.1</SystemDrawingCommonPackageVersion>
-    <SystemResourcesExtensionsPackageVersion>5.0.0-preview.5.20223.1</SystemResourcesExtensionsPackageVersion>
-    <SystemSecurityCryptographyCngPackageVersion>5.0.0-preview.5.20223.1</SystemSecurityCryptographyCngPackageVersion>
-    <SystemSecurityPermissionsPackageVersion>5.0.0-preview.5.20223.1</SystemSecurityPermissionsPackageVersion>
-    <SystemWindowsExtensionsPackageVersion>5.0.0-preview.5.20223.1</SystemWindowsExtensionsPackageVersion>
+    <MicrosoftNETCorePlatformsPackageVersion>5.0.0-preview.8.20325.1</MicrosoftNETCorePlatformsPackageVersion>
+    <MicrosoftWin32RegistryPackageVersion>5.0.0-preview.8.20325.1</MicrosoftWin32RegistryPackageVersion>
+    <MicrosoftWin32SystemEventsPackageVersion>5.0.0-preview.8.20325.1</MicrosoftWin32SystemEventsPackageVersion>
+    <SystemCodeDomPackageVersion>5.0.0-preview.8.20325.1</SystemCodeDomPackageVersion>
+    <SystemConfigurationConfigurationManagerPackageVersion>5.0.0-preview.8.20325.1</SystemConfigurationConfigurationManagerPackageVersion>
+    <SystemDrawingCommonPackageVersion>5.0.0-preview.8.20325.1</SystemDrawingCommonPackageVersion>
+    <SystemResourcesExtensionsPackageVersion>5.0.0-preview.8.20325.1</SystemResourcesExtensionsPackageVersion>
+    <SystemSecurityCryptographyCngPackageVersion>5.0.0-preview.8.20325.1</SystemSecurityCryptographyCngPackageVersion>
+    <SystemSecurityPermissionsPackageVersion>5.0.0-preview.8.20325.1</SystemSecurityPermissionsPackageVersion>
+    <SystemWindowsExtensionsPackageVersion>5.0.0-preview.8.20325.1</SystemWindowsExtensionsPackageVersion>
   </PropertyGroup>
   <!-- CoreCLR via Core Setup -->
   <PropertyGroup>
     <MicrosoftNETCoreILPackageVersion>3.0.0-preview5-27616-73</MicrosoftNETCoreILPackageVersion>
-    <MicrosoftNETCoreILAsmPackageVersion>5.0.0-preview.5.20223.1</MicrosoftNETCoreILAsmPackageVersion>
-    <runtimewinx64MicrosoftNETCoreILAsmPackageVersion>5.0.0-preview.5.20223.1</runtimewinx64MicrosoftNETCoreILAsmPackageVersion>
-    <runtimewinx86MicrosoftNETCoreILAsmPackageVersion>5.0.0-preview.5.20223.1</runtimewinx86MicrosoftNETCoreILAsmPackageVersion>
+    <MicrosoftNETCoreILAsmPackageVersion>5.0.0-preview.8.20325.1</MicrosoftNETCoreILAsmPackageVersion>
+    <runtimewinx64MicrosoftNETCoreILAsmPackageVersion>5.0.0-preview.8.20325.1</runtimewinx64MicrosoftNETCoreILAsmPackageVersion>
+    <runtimewinx86MicrosoftNETCoreILAsmPackageVersion>5.0.0-preview.8.20325.1</runtimewinx86MicrosoftNETCoreILAsmPackageVersion>
     <!-- 
       Microsoft.NET.Sdk.IL.targets requires definition of MicrosoftNETCoreILAsmVersion
     -->
@@ -39,9 +49,9 @@
   </PropertyGroup>
   <!-- Arcade -->
   <PropertyGroup>
-    <MicrosoftDotNetGenFacadesPackageVersion>5.0.0-beta.20201.2</MicrosoftDotNetGenFacadesPackageVersion>
-    <MicrosoftDotNetRemoteExecutorVersion>5.0.0-beta.20201.2</MicrosoftDotNetRemoteExecutorVersion>
-    <MicrosoftDotNetXUnitExtensionsPackageVersion>5.0.0-beta.20201.2</MicrosoftDotNetXUnitExtensionsPackageVersion>
+    <MicrosoftDotNetGenFacadesPackageVersion>5.0.0-beta.20316.1</MicrosoftDotNetGenFacadesPackageVersion>
+    <MicrosoftDotNetRemoteExecutorVersion>5.0.0-beta.20316.1</MicrosoftDotNetRemoteExecutorVersion>
+    <MicrosoftDotNetXUnitExtensionsPackageVersion>5.0.0-beta.20316.1</MicrosoftDotNetXUnitExtensionsPackageVersion>
     <MicrosoftNETTestSdkVersion>16.5.0</MicrosoftNETTestSdkVersion>
   </PropertyGroup>
   <!-- Below have no corresponding entries in Versions.Details.XML because they are not updated via Maestro -->
@@ -52,7 +62,7 @@
     <XUnitRunnerConsoleVersion>$(XUnitVersion)</XUnitRunnerConsoleVersion>
     <XUnitRunnerVisualStudioVersion>$(XUnitVersion)</XUnitRunnerVisualStudioVersion>
     <XUnitExtensibilityExecutionVersion>$(XUnitVersion)</XUnitExtensibilityExecutionVersion>
-    <XUnitStaFactPackageVersion>0.3.18</XUnitStaFactPackageVersion>
+    <XUnitStaFactPackageVersion>1.0.33-beta</XUnitStaFactPackageVersion>
   </PropertyGroup>
   <!-- Code Coverage -->
   <PropertyGroup>
@@ -62,7 +72,7 @@
   </PropertyGroup>
   <!-- External Analyzers -->
   <PropertyGroup>
-    <MicrosoftCodeAnalysisPublicApiAnalyzers>2.9.8</MicrosoftCodeAnalysisPublicApiAnalyzers>
+    <MicrosoftCodeAnalysisPublicApiAnalyzers>3.3.0-beta1.final</MicrosoftCodeAnalysisPublicApiAnalyzers>
   </PropertyGroup>
   <!-- Additional unchanging dependencies -->
   <PropertyGroup>

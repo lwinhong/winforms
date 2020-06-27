@@ -4,12 +4,13 @@
 
 using System.Collections.ObjectModel;
 using System.IO;
+using static Interop.Shell32;
 
 namespace System.Windows.Forms
 {
     public class FileDialogCustomPlacesCollection : Collection<FileDialogCustomPlace>
     {
-        internal void Apply(FileDialogNative.IFileDialog dialog)
+        internal void Apply(IFileDialog dialog)
         {
             // Walk backwards
             for (int i = Items.Count - 1; i >= 0; --i)
@@ -18,8 +19,8 @@ namespace System.Windows.Forms
 
                 try
                 {
-                    FileDialogNative.IShellItem shellItem = customPlace.GetNativePath();
-                    if (null != shellItem)
+                    IShellItem? shellItem = customPlace.GetNativePath();
+                    if (shellItem != null)
                     {
                         dialog.AddPlace(shellItem, 0);
                     }
@@ -32,7 +33,7 @@ namespace System.Windows.Forms
             }
         }
 
-        public void Add(string path) => Add(new FileDialogCustomPlace(path));
+        public void Add(string? path) => Add(new FileDialogCustomPlace(path));
 
         public void Add(Guid knownFolderGuid) => Add(new FileDialogCustomPlace(knownFolderGuid));
     }
