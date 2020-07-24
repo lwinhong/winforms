@@ -47,7 +47,7 @@ namespace System.Windows.Forms
         private TextImageRelation _textImageRelation = TextImageRelation.ImageBeforeText;
         private ToolStripItemImageIndexer _imageIndexer;
         private ToolStripItemInternalLayout _toolStripItemInternalLayout;
-        private BitVector32 _state = new BitVector32();
+        private BitVector32 _state;
         private string _toolTipText;
         private Color _imageTransparentColor = Color.Empty;
         private ToolStripItemImageScaling _imageScaling = ToolStripItemImageScaling.SizeToFit;
@@ -1018,9 +1018,10 @@ namespace System.Windows.Forms
             get
             {
                 Image image = (Image)Properties.GetObject(s_imageProperty);
-                if (image == null && (Owner != null) && (Owner.ImageList != null) && ImageIndexer.ActualIndex >= 0)
+                if (image == null && Owner?.ImageList != null && ImageIndexer.ActualIndex >= 0)
                 {
-                    if (ImageIndexer.ActualIndex < Owner.ImageList.Images.Count)
+                    bool disposing = _state[s_stateDisposing];
+                    if (!disposing && ImageIndexer.ActualIndex < Owner.ImageList.Images.Count)
                     {
                         // CACHE (by design). If we fetched out of the image list every time it would dramatically hit perf.
                         image = Owner.ImageList.Images[ImageIndexer.ActualIndex];
@@ -1036,28 +1037,32 @@ namespace System.Windows.Forms
             }
             set
             {
-                if (Image != value)
+                if (Image == value)
                 {
-                    StopAnimate();
-                    if (value is Bitmap bmp && ImageTransparentColor != Color.Empty)
-                    {
-                        if (bmp.RawFormat.Guid != ImageFormat.Icon.Guid && !ImageAnimator.CanAnimate(bmp))
-                        {
-                            bmp.MakeTransparent(ImageTransparentColor);
-                        }
-
-                        value = bmp;
-                    }
-                    if (value != null)
-                    {
-                        ImageIndex = ImageList.Indexer.DefaultIndex;
-                    }
-
-                    Properties.SetObject(s_imageProperty, value);
-                    _state[s_stateInvalidMirroredImage] = true;
-                    Animate();
-                    InvalidateItemLayout(PropertyNames.Image);
+                    return;
                 }
+
+                StopAnimate();
+
+                if (value is Bitmap bmp && ImageTransparentColor != Color.Empty)
+                {
+                    if (bmp.RawFormat.Guid != ImageFormat.Icon.Guid && !ImageAnimator.CanAnimate(bmp))
+                    {
+                        bmp.MakeTransparent(ImageTransparentColor);
+                    }
+
+                    value = bmp;
+                }
+                if (value != null)
+                {
+                    ImageIndex = ImageList.Indexer.DefaultIndex;
+                }
+
+                Properties.SetObject(s_imageProperty, value);
+                _state[s_stateInvalidMirroredImage] = true;
+
+                Animate();
+                InvalidateItemLayout(PropertyNames.Image);
             }
         }
 
@@ -2056,25 +2061,27 @@ namespace System.Windows.Forms
 
         private void Animate(bool animate)
         {
-            if (animate != _state[s_stateCurrentlyAnimatingImage])
+            if (animate == _state[s_stateCurrentlyAnimatingImage])
             {
-                if (animate)
-                {
-                    if (Image != null)
-                    {
-                        ImageAnimator.Animate(Image, new EventHandler(OnAnimationFrameChanged));
-                        _state[s_stateCurrentlyAnimatingImage] = animate;
-                    }
-                }
-                else
-                {
-                    if (Image != null)
-                    {
-                        ImageAnimator.StopAnimate(Image, new EventHandler(OnAnimationFrameChanged));
-                        _state[s_stateCurrentlyAnimatingImage] = animate;
-                    }
-                }
+                return;
             }
+
+            Image image = Image;
+            if (image == null)
+            {
+                return;
+            }
+
+            if (animate)
+            {
+                ImageAnimator.Animate(image, new EventHandler(OnAnimationFrameChanged));
+            }
+            else
+            {
+                ImageAnimator.StopAnimate(image, new EventHandler(OnAnimationFrameChanged));
+            }
+
+            _state[s_stateCurrentlyAnimatingImage] = animate;
         }
 
         internal bool BeginDragForItemReorder()
@@ -3039,7 +3046,7 @@ namespace System.Windows.Forms
         {
 #if DEBUG
             // let's not snap the stack trace unless we're debugging selection.
-            if (ToolStrip.SelectionDebug.TraceVerbose)
+            if (ToolStrip.s_selectionDebug.TraceVerbose)
             {
                 Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "[Selection DBG] WBI.Select: {0} \r\n{1}\r\n", ToString(), new StackTrace().ToString().Substring(0, 200)));
             }
@@ -3056,7 +3063,7 @@ namespace System.Windows.Forms
             }
             if (ParentInternal != null && ParentInternal.IsSelectionSuspended)
             {
-                Debug.WriteLineIf(ToolStrip.SelectionDebug.TraceVerbose, "[Selection DBG] BAILING, selection is currently suspended");
+                Debug.WriteLineIf(ToolStrip.s_selectionDebug.TraceVerbose, "[Selection DBG] BAILING, selection is currently suspended");
                 return;
             }
 
@@ -3094,13 +3101,13 @@ namespace System.Windows.Forms
 
                 if (_owner != null)
                 {
-                    _owner.rescaleConstsCallbackDelegate -= ToolStrip_RescaleConstants;
+                    _owner._rescaleConstsCallbackDelegate -= ToolStrip_RescaleConstants;
                 }
                 _owner = newOwner;
 
                 if (_owner != null)
                 {
-                    _owner.rescaleConstsCallbackDelegate += ToolStrip_RescaleConstants;
+                    _owner._rescaleConstsCallbackDelegate += ToolStrip_RescaleConstants;
                 }
 
                 // clear the parent if the owner is null.
@@ -3439,7 +3446,7 @@ namespace System.Windows.Forms
         /// </summary>
         internal void Unselect()
         {
-            Debug.WriteLineIf(ToolStrip.SelectionDebug.TraceVerbose, string.Format(CultureInfo.CurrentCulture, "[Selection DBG] WBI.Unselect: {0}", ToString()));
+            Debug.WriteLineIf(ToolStrip.s_selectionDebug.TraceVerbose, string.Format(CultureInfo.CurrentCulture, "[Selection DBG] WBI.Unselect: {0}", ToString()));
             if (_state[s_stateSelected])
             {
                 _state[s_stateSelected] = false;

@@ -344,7 +344,7 @@ namespace System.Windows.Forms
             Debug.Assert((rowState & (DataGridViewElementStates.Selected | DataGridViewElementStates.Displayed)) == 0);
             rowStates.Add(rowState);
 #if DEBUG
-            DataGridView.dataStoreAccessAllowed = false;
+            DataGridView._dataStoreAccessAllowed = false;
             cachedRowHeightsAccessAllowed = false;
             cachedRowCountsAccessAllowed = false;
 #endif
@@ -486,7 +486,7 @@ namespace System.Windows.Forms
             }
             if (dataGridViewRow.Cells.Count > DataGridView.Columns.Count)
             {
-                throw new ArgumentException(SR.DataGridViewRowCollection_TooManyCells, "dataGridViewRow");
+                throw new ArgumentException(SR.DataGridViewRowCollection_TooManyCells, nameof(dataGridViewRow));
             }
 
             if (dataGridViewRow.Selected)
@@ -530,7 +530,7 @@ namespace System.Windows.Forms
             rowStates.Add(dataGridViewRow.State);
             Debug.Assert(rowStates.Count == SharedList.Count);
 #if DEBUG
-            DataGridView.dataStoreAccessAllowed = false;
+            DataGridView._dataStoreAccessAllowed = false;
             cachedRowHeightsAccessAllowed = false;
             cachedRowCountsAccessAllowed = false;
 #endif
@@ -591,7 +591,7 @@ namespace System.Windows.Forms
                 index = SharedList.Add(rowTemplate);
                 rowStates.Add(rowState);
 #if DEBUG
-                DataGridView.dataStoreAccessAllowed = false;
+                DataGridView._dataStoreAccessAllowed = false;
                 cachedRowHeightsAccessAllowed = false;
                 cachedRowCountsAccessAllowed = false;
 #endif
@@ -671,7 +671,7 @@ namespace System.Windows.Forms
                 index = SharedList.Add(rowTemplate);
                 rowStates.Add(rowTemplateState);
 #if DEBUG
-                DataGridView.dataStoreAccessAllowed = false;
+                DataGridView._dataStoreAccessAllowed = false;
                 cachedRowHeightsAccessAllowed = false;
                 cachedRowCountsAccessAllowed = false;
 #endif
@@ -701,7 +701,7 @@ namespace System.Windows.Forms
                         index = SharedList.Add(rowTemplate2);
                         rowStates.Add(rowTemplateState);
 #if DEBUG
-                        DataGridView.dataStoreAccessAllowed = false;
+                        DataGridView._dataStoreAccessAllowed = false;
                         cachedRowHeightsAccessAllowed = false;
                         cachedRowCountsAccessAllowed = false;
 #endif
@@ -765,7 +765,7 @@ namespace System.Windows.Forms
             DataGridView.OnAddingRow(dataGridViewRow, rowState, true /*checkFrozenState*/);   // will throw an exception if the addition is illegal
 
 #if DEBUG
-            DataGridView.dataStoreAccessAllowed = false;
+            DataGridView._dataStoreAccessAllowed = false;
             cachedRowHeightsAccessAllowed = false;
             cachedRowCountsAccessAllowed = false;
 #endif
@@ -834,7 +834,7 @@ namespace System.Windows.Forms
                 Debug.Assert((dataGridViewRow.State & (DataGridViewElementStates.Selected | DataGridViewElementStates.Displayed)) == 0);
                 rowStates.Add(dataGridViewRow.State);
 #if DEBUG
-                DataGridView.dataStoreAccessAllowed = false;
+                DataGridView._dataStoreAccessAllowed = false;
                 cachedRowHeightsAccessAllowed = false;
                 cachedRowCountsAccessAllowed = false;
 #endif
@@ -887,7 +887,7 @@ namespace System.Windows.Forms
                 SharedList.Clear();
                 rowStates.Clear();
 #if DEBUG
-                DataGridView.dataStoreAccessAllowed = false;
+                DataGridView._dataStoreAccessAllowed = false;
                 cachedRowHeightsAccessAllowed = false;
                 cachedRowCountsAccessAllowed = false;
 #endif
@@ -1506,7 +1506,7 @@ namespace System.Windows.Forms
 
             if (dataGridViewRow.Cells.Count > DataGridView.Columns.Count)
             {
-                throw new ArgumentException(SR.DataGridViewRowCollection_TooManyCells, "dataGridViewRow");
+                throw new ArgumentException(SR.DataGridViewRowCollection_TooManyCells, nameof(dataGridViewRow));
             }
 
             if (dataGridViewRow.Selected)
@@ -1537,7 +1537,7 @@ namespace System.Windows.Forms
                 }
                 if (dataGridViewRow.Cells.Count > DataGridView.Columns.Count)
                 {
-                    throw new ArgumentException(SR.DataGridViewRowCollection_TooManyCells, "dataGridViewRow");
+                    throw new ArgumentException(SR.DataGridViewRowCollection_TooManyCells, nameof(dataGridViewRow));
                 }
             }
             DataGridView.CompleteCellsCollection(dataGridViewRow);
@@ -1567,7 +1567,7 @@ namespace System.Windows.Forms
             rowStates.Insert(rowIndex, dataGridViewRow.State);
             Debug.Assert(rowStates.Count == SharedList.Count);
 #if DEBUG
-            DataGridView.dataStoreAccessAllowed = false;
+            DataGridView._dataStoreAccessAllowed = false;
             cachedRowHeightsAccessAllowed = false;
             cachedRowCountsAccessAllowed = false;
 #endif
@@ -1646,7 +1646,7 @@ namespace System.Windows.Forms
                         rowStates.Insert(indexDestination + i, rowTemplateState);
                     }
 #if DEBUG
-                    DataGridView.dataStoreAccessAllowed = false;
+                    DataGridView._dataStoreAccessAllowed = false;
                     cachedRowHeightsAccessAllowed = false;
                     cachedRowCountsAccessAllowed = false;
 #endif
@@ -1664,7 +1664,7 @@ namespace System.Windows.Forms
                     SharedList.Insert(indexDestination, rowTemplate);
                     rowStates.Insert(indexDestination, rowTemplateState);
 #if DEBUG
-                    DataGridView.dataStoreAccessAllowed = false;
+                    DataGridView._dataStoreAccessAllowed = false;
                     cachedRowHeightsAccessAllowed = false;
                     cachedRowCountsAccessAllowed = false;
 #endif
@@ -1690,7 +1690,7 @@ namespace System.Windows.Forms
                             rowStates.Insert(indexDestination + i, rowTemplateState);
                         }
 #if DEBUG
-                        DataGridView.dataStoreAccessAllowed = false;
+                        DataGridView._dataStoreAccessAllowed = false;
                         cachedRowHeightsAccessAllowed = false;
                         cachedRowCountsAccessAllowed = false;
 #endif
@@ -1755,7 +1755,7 @@ namespace System.Windows.Forms
             rowStates.Insert(indexDestination, rowState);
             Debug.Assert(rowStates.Count == SharedList.Count);
 #if DEBUG
-            DataGridView.dataStoreAccessAllowed = false;
+            DataGridView._dataStoreAccessAllowed = false;
             cachedRowHeightsAccessAllowed = false;
             cachedRowCountsAccessAllowed = false;
 #endif
@@ -1838,7 +1838,7 @@ namespace System.Windows.Forms
                 rowStates.Insert(rowIndexInserted, dataGridViewRow.State);
                 Debug.Assert(rowStates.Count == SharedList.Count);
 #if DEBUG
-                DataGridView.dataStoreAccessAllowed = false;
+                DataGridView._dataStoreAccessAllowed = false;
                 cachedRowHeightsAccessAllowed = false;
                 cachedRowCountsAccessAllowed = false;
 #endif
@@ -2044,7 +2044,7 @@ namespace System.Windows.Forms
                         this.rowStates.RemoveAt(rowIndex);
                         SharedList.RemoveAt(rowIndex);
 #if DEBUG
-                        DataGridView.dataStoreAccessAllowed = false;
+                        DataGridView._dataStoreAccessAllowed = false;
 #endif
                         DataGridView.OnRemovedRow_PreNotification(rowIndex);
                         if (deletedRowVisible)
@@ -2112,7 +2112,7 @@ namespace System.Windows.Forms
             }
 
 #if DEBUG
-            DataGridView.dataStoreAccessAllowed = true;
+            DataGridView._dataStoreAccessAllowed = true;
 #endif
             switch (cca)
             {
@@ -2157,12 +2157,12 @@ namespace System.Windows.Forms
 
             if (dataGridViewRow.DataGridView != DataGridView)
             {
-                throw new ArgumentException(SR.DataGridView_RowDoesNotBelongToDataGridView, "dataGridViewRow");
+                throw new ArgumentException(SR.DataGridView_RowDoesNotBelongToDataGridView, nameof(dataGridViewRow));
             }
 
             if (dataGridViewRow.Index == -1)
             {
-                throw new ArgumentException(SR.DataGridView_RowMustBeUnshared, "dataGridViewRow");
+                throw new ArgumentException(SR.DataGridView_RowMustBeUnshared, nameof(dataGridViewRow));
             }
             else
             {

@@ -170,7 +170,9 @@ namespace System.Windows.Forms.Tests
             Assert.Equal(97, createParams.Height);
             Assert.Equal(IntPtr.Zero, createParams.Parent);
             Assert.Null(createParams.Param);
-            Assert.Equal(0x56010148, createParams.Style);
+            // LVS.SHAREIMAGELISTS is temporarily removed from style until ownership management is fixed
+            // https://github.com/dotnet/winforms/issues/3531
+            Assert.Equal(0x56010108, createParams.Style);
             Assert.Equal(121, createParams.Width);
             Assert.Equal(0, createParams.X);
             Assert.Equal(0, createParams.Y);
@@ -801,14 +803,14 @@ namespace System.Windows.Forms.Tests
             {
                 foreach (ListViewAlignment alignment in Enum.GetValues(typeof(ListViewAlignment)))
                 {
-                    foreach (ImageList imageList in new ImageList[] { new ImageList(), null })
+                    foreach (Func<ImageList> imageListFactory in new Func<ImageList>[] { () => new ImageList(), () => null })
                     {
                         foreach (bool value in new bool[] { true, false })
                         {
-                            yield return new object[] { useCompatibleStateImageBehavior, View.Details, alignment, imageList, value };
-                            yield return new object[] { useCompatibleStateImageBehavior, View.LargeIcon, alignment, imageList, value };
-                            yield return new object[] { useCompatibleStateImageBehavior, View.List, alignment, imageList, value };
-                            yield return new object[] { useCompatibleStateImageBehavior, View.SmallIcon, alignment, imageList, value };
+                            yield return new object[] { useCompatibleStateImageBehavior, View.Details, alignment, imageListFactory(), value };
+                            yield return new object[] { useCompatibleStateImageBehavior, View.LargeIcon, alignment, imageListFactory(), value };
+                            yield return new object[] { useCompatibleStateImageBehavior, View.List, alignment, imageListFactory(), value };
+                            yield return new object[] { useCompatibleStateImageBehavior, View.SmallIcon, alignment, imageListFactory(), value };
                         }
                     }
                 }
@@ -907,16 +909,16 @@ namespace System.Windows.Forms.Tests
         {
             foreach (ListViewAlignment alignment in Enum.GetValues(typeof(ListViewAlignment)))
             {
-                foreach (ImageList imageList in new ImageList[] { new ImageList(), null })
+                foreach (Func<ImageList> imageListFactory in new Func<ImageList>[] { () => new ImageList(), () => null })
                 {
-                    yield return new object[] { true, View.Details, alignment, imageList, true, 1, 0, 2, 0 };
-                    yield return new object[] { true, View.LargeIcon, alignment, imageList, true, 1, 0, 2, 0 };
-                    yield return new object[] { true, View.List, alignment, imageList, true, 1, 0, 2, 0 };
-                    yield return new object[] { true, View.SmallIcon, alignment, imageList, true, 1, 0, 2, 0 };
-                    yield return new object[] { true, View.Details, alignment, imageList, false, 0, 0, 1, 0 };
-                    yield return new object[] { true, View.LargeIcon, alignment, imageList, false, 0, 0, 1, 0 };
-                    yield return new object[] { true, View.List, alignment, imageList, false, 0, 0, 1, 0 };
-                    yield return new object[] { true, View.SmallIcon, alignment, imageList, false, 0, 0, 1, 0 };
+                    yield return new object[] { true, View.Details, alignment, imageListFactory(), true, 1, 0, 2, 0 };
+                    yield return new object[] { true, View.LargeIcon, alignment, imageListFactory(), true, 1, 0, 2, 0 };
+                    yield return new object[] { true, View.List, alignment, imageListFactory(), true, 1, 0, 2, 0 };
+                    yield return new object[] { true, View.SmallIcon, alignment, imageListFactory(), true, 1, 0, 2, 0 };
+                    yield return new object[] { true, View.Details, alignment, imageListFactory(), false, 0, 0, 1, 0 };
+                    yield return new object[] { true, View.LargeIcon, alignment, imageListFactory(), false, 0, 0, 1, 0 };
+                    yield return new object[] { true, View.List, alignment, imageListFactory(), false, 0, 0, 1, 0 };
+                    yield return new object[] { true, View.SmallIcon, alignment, imageListFactory(), false, 0, 0, 1, 0 };
                 }
 
                 if (alignment != ListViewAlignment.Left)
@@ -941,16 +943,16 @@ namespace System.Windows.Forms.Tests
                 }
             }
 
-            foreach (ImageList imageList in new ImageList[] { new ImageList(), null })
+            foreach (Func<ImageList> imageListFactory in new Func<ImageList>[] { () => new ImageList(), () => null })
             {
-                yield return new object[] { false, View.Details, ListViewAlignment.Left, imageList, true, 1, 0, 2, 1 };
-                yield return new object[] { false, View.LargeIcon, ListViewAlignment.Left, imageList, true, 2, 1, 4, 2 };
-                yield return new object[] { false, View.List, ListViewAlignment.Left, imageList, true, 1, 1, 2, 2 };
-                yield return new object[] { false, View.SmallIcon, ListViewAlignment.Left, imageList, true, 2, 1, 4, 2 };
-                yield return new object[] { false, View.Details, ListViewAlignment.Left, imageList, false, 0, 0, 1, 0 };
-                yield return new object[] { false, View.LargeIcon, ListViewAlignment.Left, imageList, false, 0, 0, 2, 1 };
-                yield return new object[] { false, View.List, ListViewAlignment.Left, imageList, false, 0, 0, 1, 1 };
-                yield return new object[] { false, View.SmallIcon, ListViewAlignment.Left, imageList, false, 0, 0, 2, 1 };
+                yield return new object[] { false, View.Details, ListViewAlignment.Left, imageListFactory(), true, 1, 0, 2, 1 };
+                yield return new object[] { false, View.LargeIcon, ListViewAlignment.Left, imageListFactory(), true, 2, 1, 4, 2 };
+                yield return new object[] { false, View.List, ListViewAlignment.Left, imageListFactory(), true, 1, 1, 2, 2 };
+                yield return new object[] { false, View.SmallIcon, ListViewAlignment.Left, imageListFactory(), true, 2, 1, 4, 2 };
+                yield return new object[] { false, View.Details, ListViewAlignment.Left, imageListFactory(), false, 0, 0, 1, 0 };
+                yield return new object[] { false, View.LargeIcon, ListViewAlignment.Left, imageListFactory(), false, 0, 0, 2, 1 };
+                yield return new object[] { false, View.List, ListViewAlignment.Left, imageListFactory(), false, 0, 0, 1, 1 };
+                yield return new object[] { false, View.SmallIcon, ListViewAlignment.Left, imageListFactory(), false, 0, 0, 2, 1 };
             }
         }
 
@@ -1521,9 +1523,6 @@ namespace System.Windows.Forms.Tests
 
         public static IEnumerable<object[]> GroupImageList_Set_GetReturnsExpected()
         {
-            var nonEmptyImageList = new ImageList();
-            nonEmptyImageList.Images.Add(new Bitmap(10, 10));
-
             foreach (bool autoArrange in new bool[] { true, false })
             {
                 foreach (bool virtualMode in new bool[] { true, false })
@@ -1532,13 +1531,13 @@ namespace System.Windows.Forms.Tests
                     {
                         yield return new object[] { autoArrange, virtualMode, view, null };
                         yield return new object[] { autoArrange, virtualMode, view, new ImageList() };
-                        yield return new object[] { autoArrange, virtualMode, view, nonEmptyImageList };
+                        yield return new object[] { autoArrange, virtualMode, view, CreateNonEmpty() };
                     }
                 }
 
                 yield return new object[] { autoArrange, false, View.Tile, null };
                 yield return new object[] { autoArrange, false, View.Tile, new ImageList() };
-                yield return new object[] { autoArrange, false, View.Tile, nonEmptyImageList };
+                yield return new object[] { autoArrange, false, View.Tile, CreateNonEmpty() };
             }
         }
 
@@ -1588,56 +1587,53 @@ namespace System.Windows.Forms.Tests
 
         public static IEnumerable<object[]> GroupImageList_SetWithHandle_GetReturnsExpected()
         {
-            var nonEmptyImageList = new ImageList();
-            nonEmptyImageList.Images.Add(new Bitmap(10, 10));
-
             yield return new object[] { true, false, View.Details, null };
             yield return new object[] { true, false, View.Details, new ImageList() };
-            yield return new object[] { true, false, View.Details, nonEmptyImageList };
+            yield return new object[] { true, false, View.Details, CreateNonEmpty() };
             yield return new object[] { true, false, View.LargeIcon, null };
             yield return new object[] { true, false, View.LargeIcon, new ImageList() };
-            yield return new object[] { true, false, View.LargeIcon, nonEmptyImageList };
+            yield return new object[] { true, false, View.LargeIcon, CreateNonEmpty() };
             yield return new object[] { true, false, View.List, null };
             yield return new object[] { true, false, View.List, new ImageList() };
-            yield return new object[] { true, false, View.List, nonEmptyImageList };
+            yield return new object[] { true, false, View.List, CreateNonEmpty() };
             yield return new object[] { true, false, View.SmallIcon, null };
             yield return new object[] { true, false, View.SmallIcon, new ImageList() };
-            yield return new object[] { true, false, View.SmallIcon, nonEmptyImageList };
+            yield return new object[] { true, false, View.SmallIcon, CreateNonEmpty() };
             yield return new object[] { true, false, View.Tile, null };
             yield return new object[] { true, false, View.Tile, new ImageList() };
-            yield return new object[] { true, false, View.Tile, nonEmptyImageList };
+            yield return new object[] { true, false, View.Tile, CreateNonEmpty() };
 
             foreach (bool autoArrange in new bool[] { true, false })
             {
                 yield return new object[] { autoArrange, true, View.Details, null };
                 yield return new object[] { autoArrange, true, View.Details, new ImageList() };
-                yield return new object[] { autoArrange, true, View.Details, nonEmptyImageList };
+                yield return new object[] { autoArrange, true, View.Details, CreateNonEmpty() };
                 yield return new object[] { autoArrange, true, View.LargeIcon, null };
                 yield return new object[] { autoArrange, true, View.LargeIcon, new ImageList() };
-                yield return new object[] { autoArrange, true, View.LargeIcon, nonEmptyImageList };
+                yield return new object[] { autoArrange, true, View.LargeIcon, CreateNonEmpty() };
                 yield return new object[] { autoArrange, true, View.List, null };
                 yield return new object[] { autoArrange, true, View.List, new ImageList() };
-                yield return new object[] { autoArrange, true, View.List, nonEmptyImageList };
+                yield return new object[] { autoArrange, true, View.List, CreateNonEmpty() };
                 yield return new object[] { autoArrange, true, View.SmallIcon, null };
                 yield return new object[] { autoArrange, true, View.SmallIcon, new ImageList() };
-                yield return new object[] { autoArrange, true, View.SmallIcon, nonEmptyImageList };
+                yield return new object[] { autoArrange, true, View.SmallIcon, CreateNonEmpty() };
             }
 
             yield return new object[] { false, false, View.Details, null };
             yield return new object[] { false, false, View.Details, new ImageList() };
-            yield return new object[] { false, false, View.Details, nonEmptyImageList };
+            yield return new object[] { false, false, View.Details, CreateNonEmpty() };
             yield return new object[] { false, false, View.LargeIcon, null };
             yield return new object[] { false, false, View.LargeIcon, new ImageList() };
-            yield return new object[] { false, false, View.LargeIcon, nonEmptyImageList };
+            yield return new object[] { false, false, View.LargeIcon, CreateNonEmpty() };
             yield return new object[] { false, false, View.List, null };
             yield return new object[] { false, false, View.List, new ImageList() };
-            yield return new object[] { false, false, View.List, nonEmptyImageList };
+            yield return new object[] { false, false, View.List, CreateNonEmpty() };
             yield return new object[] { false, false, View.SmallIcon, null };
             yield return new object[] { false, false, View.SmallIcon, new ImageList() };
-            yield return new object[] { false, false, View.SmallIcon, nonEmptyImageList };
+            yield return new object[] { false, false, View.SmallIcon, CreateNonEmpty() };
             yield return new object[] { false, false, View.Tile, null };
             yield return new object[] { false, false, View.Tile, new ImageList() };
-            yield return new object[] { false, false, View.Tile, nonEmptyImageList };
+            yield return new object[] { false, false, View.Tile, CreateNonEmpty() };
         }
 
         [WinFormsTheory]
@@ -1677,56 +1673,53 @@ namespace System.Windows.Forms.Tests
 
         public static IEnumerable<object[]> GroupImageList_SetWithHandleWithNonNullOldValue_GetReturnsExpected()
         {
-            var nonEmptyImageList = new ImageList();
-            nonEmptyImageList.Images.Add(new Bitmap(10, 10));
-
             yield return new object[] { true, false, View.Details, null };
             yield return new object[] { true, false, View.Details, new ImageList() };
-            yield return new object[] { true, false, View.Details, nonEmptyImageList };
+            yield return new object[] { true, false, View.Details, CreateNonEmpty() };
             yield return new object[] { true, false, View.LargeIcon, null };
             yield return new object[] { true, false, View.LargeIcon, new ImageList() };
-            yield return new object[] { true, false, View.LargeIcon, nonEmptyImageList };
+            yield return new object[] { true, false, View.LargeIcon, CreateNonEmpty() };
             yield return new object[] { true, false, View.List, null };
             yield return new object[] { true, false, View.List, new ImageList() };
-            yield return new object[] { true, false, View.List, nonEmptyImageList };
+            yield return new object[] { true, false, View.List, CreateNonEmpty() };
             yield return new object[] { true, false, View.SmallIcon, null };
             yield return new object[] { true, false, View.SmallIcon, new ImageList() };
-            yield return new object[] { true, false, View.SmallIcon, nonEmptyImageList };
+            yield return new object[] { true, false, View.SmallIcon, CreateNonEmpty() };
             yield return new object[] { true, false, View.Tile, null };
             yield return new object[] { true, false, View.Tile, new ImageList() };
-            yield return new object[] { true, false, View.Tile, nonEmptyImageList };
+            yield return new object[] { true, false, View.Tile, CreateNonEmpty() };
 
             foreach (bool autoArrange in new bool[] { true, false })
             {
                 yield return new object[] { autoArrange, true, View.Details, null };
                 yield return new object[] { autoArrange, true, View.Details, new ImageList() };
-                yield return new object[] { autoArrange, true, View.Details, nonEmptyImageList };
+                yield return new object[] { autoArrange, true, View.Details, CreateNonEmpty() };
                 yield return new object[] { autoArrange, true, View.LargeIcon, null };
                 yield return new object[] { autoArrange, true, View.LargeIcon, new ImageList() };
-                yield return new object[] { autoArrange, true, View.LargeIcon, nonEmptyImageList };
+                yield return new object[] { autoArrange, true, View.LargeIcon, CreateNonEmpty() };
                 yield return new object[] { autoArrange, true, View.List, null };
                 yield return new object[] { autoArrange, true, View.List, new ImageList() };
-                yield return new object[] { autoArrange, true, View.List, nonEmptyImageList };
+                yield return new object[] { autoArrange, true, View.List, CreateNonEmpty() };
                 yield return new object[] { autoArrange, true, View.SmallIcon, null };
                 yield return new object[] { autoArrange, true, View.SmallIcon, new ImageList() };
-                yield return new object[] { autoArrange, true, View.SmallIcon, nonEmptyImageList };
+                yield return new object[] { autoArrange, true, View.SmallIcon, CreateNonEmpty() };
             }
 
             yield return new object[] { false, false, View.Details, null };
             yield return new object[] { false, false, View.Details, new ImageList() };
-            yield return new object[] { false, false, View.Details, nonEmptyImageList };
+            yield return new object[] { false, false, View.Details, CreateNonEmpty() };
             yield return new object[] { false, false, View.LargeIcon, null };
             yield return new object[] { false, false, View.LargeIcon, new ImageList() };
-            yield return new object[] { false, false, View.LargeIcon, nonEmptyImageList };
+            yield return new object[] { false, false, View.LargeIcon, CreateNonEmpty() };
             yield return new object[] { false, false, View.List, null };
             yield return new object[] { false, false, View.List, new ImageList() };
-            yield return new object[] { false, false, View.List, nonEmptyImageList };
+            yield return new object[] { false, false, View.List, CreateNonEmpty() };
             yield return new object[] { false, false, View.SmallIcon, null };
             yield return new object[] { false, false, View.SmallIcon, new ImageList() };
-            yield return new object[] { false, false, View.SmallIcon, nonEmptyImageList };
+            yield return new object[] { false, false, View.SmallIcon, CreateNonEmpty() };
             yield return new object[] { false, false, View.Tile, null };
             yield return new object[] { false, false, View.Tile, new ImageList() };
-            yield return new object[] { false, false, View.Tile, nonEmptyImageList };
+            yield return new object[] { false, false, View.Tile, CreateNonEmpty() };
         }
 
         [WinFormsTheory]
@@ -1738,7 +1731,6 @@ namespace System.Windows.Forms.Tests
                 AutoArrange = autoArrange,
                 VirtualMode = virtualMode,
                 View = view,
-                GroupImageList = new ImageList()
             };
 
             Assert.NotEqual(IntPtr.Zero, listView.Handle);
@@ -2473,9 +2465,6 @@ namespace System.Windows.Forms.Tests
 
         public static IEnumerable<object[]> LargeImageList_Set_GetReturnsExpected()
         {
-            var nonEmptyImageList = new ImageList();
-            nonEmptyImageList.Images.Add(new Bitmap(10, 10));
-
             foreach (bool autoArrange in new bool[] { true, false })
             {
                 foreach (bool virtualMode in new bool[] { true, false })
@@ -2484,13 +2473,13 @@ namespace System.Windows.Forms.Tests
                     {
                         yield return new object[] { autoArrange, virtualMode, view, null };
                         yield return new object[] { autoArrange, virtualMode, view, new ImageList() };
-                        yield return new object[] { autoArrange, virtualMode, view, nonEmptyImageList };
+                        yield return new object[] { autoArrange, virtualMode, view, CreateNonEmpty() };
                     }
                 }
 
                 yield return new object[] { autoArrange, false, View.Tile, null };
                 yield return new object[] { autoArrange, false, View.Tile, new ImageList() };
-                yield return new object[] { autoArrange, false, View.Tile, nonEmptyImageList };
+                yield return new object[] { autoArrange, false, View.Tile, CreateNonEmpty() };
             }
         }
 
@@ -2539,56 +2528,53 @@ namespace System.Windows.Forms.Tests
 
         public static IEnumerable<object[]> LargeImageList_SetWithHandle_GetReturnsExpected()
         {
-            var nonEmptyImageList = new ImageList();
-            nonEmptyImageList.Images.Add(new Bitmap(10, 10));
-
             yield return new object[] { true, false, View.Details, null, 0 };
             yield return new object[] { true, false, View.Details, new ImageList(), 0 };
-            yield return new object[] { true, false, View.Details, nonEmptyImageList, 0 };
+            yield return new object[] { true, false, View.Details, CreateNonEmpty(), 0 };
             yield return new object[] { true, false, View.LargeIcon, null, 0 };
             yield return new object[] { true, false, View.LargeIcon, new ImageList(), 1 };
-            yield return new object[] { true, false, View.LargeIcon, nonEmptyImageList, 1 };
+            yield return new object[] { true, false, View.LargeIcon, CreateNonEmpty(), 1 };
             yield return new object[] { true, false, View.List, null, 0 };
             yield return new object[] { true, false, View.List, new ImageList(), 0 };
-            yield return new object[] { true, false, View.List, nonEmptyImageList, 0 };
+            yield return new object[] { true, false, View.List, CreateNonEmpty(), 0 };
             yield return new object[] { true, false, View.SmallIcon, null, 0 };
             yield return new object[] { true, false, View.SmallIcon, new ImageList(), 1 };
-            yield return new object[] { true, false, View.SmallIcon, nonEmptyImageList, 1 };
+            yield return new object[] { true, false, View.SmallIcon, CreateNonEmpty(), 1 };
             yield return new object[] { true, false, View.Tile, null, 0 };
             yield return new object[] { true, false, View.Tile, new ImageList(), 0 };
-            yield return new object[] { true, false, View.Tile, nonEmptyImageList, 0 };
+            yield return new object[] { true, false, View.Tile, CreateNonEmpty(), 0 };
 
             foreach (bool autoArrange in new bool[] { true, false })
             {
                 yield return new object[] { autoArrange, true, View.Details, null, 0 };
                 yield return new object[] { autoArrange, true, View.Details, new ImageList(), 0 };
-                yield return new object[] { autoArrange, true, View.Details, nonEmptyImageList, 0 };
+                yield return new object[] { autoArrange, true, View.Details, CreateNonEmpty(), 0 };
                 yield return new object[] { autoArrange, true, View.LargeIcon, null, 0 };
                 yield return new object[] { autoArrange, true, View.LargeIcon, new ImageList(), 0 };
-                yield return new object[] { autoArrange, true, View.LargeIcon, nonEmptyImageList, 0 };
+                yield return new object[] { autoArrange, true, View.LargeIcon, CreateNonEmpty(), 0 };
                 yield return new object[] { autoArrange, true, View.List, null, 0 };
                 yield return new object[] { autoArrange, true, View.List, new ImageList(), 0 };
-                yield return new object[] { autoArrange, true, View.List, nonEmptyImageList, 0 };
+                yield return new object[] { autoArrange, true, View.List, CreateNonEmpty(), 0 };
                 yield return new object[] { autoArrange, true, View.SmallIcon, null, 0 };
                 yield return new object[] { autoArrange, true, View.SmallIcon, new ImageList(), 0 };
-                yield return new object[] { autoArrange, true, View.SmallIcon, nonEmptyImageList, 0 };
+                yield return new object[] { autoArrange, true, View.SmallIcon, CreateNonEmpty(), 0 };
             }
 
             yield return new object[] { false, false, View.Details, null, 0 };
             yield return new object[] { false, false, View.Details, new ImageList(), 0 };
-            yield return new object[] { false, false, View.Details, nonEmptyImageList, 0 };
+            yield return new object[] { false, false, View.Details, CreateNonEmpty(), 0 };
             yield return new object[] { false, false, View.LargeIcon, null, 0 };
             yield return new object[] { false, false, View.LargeIcon, new ImageList(), 0 };
-            yield return new object[] { false, false, View.LargeIcon, nonEmptyImageList, 0 };
+            yield return new object[] { false, false, View.LargeIcon, CreateNonEmpty(), 0 };
             yield return new object[] { false, false, View.List, null, 0 };
             yield return new object[] { false, false, View.List, new ImageList(), 0 };
-            yield return new object[] { false, false, View.List, nonEmptyImageList, 0 };
+            yield return new object[] { false, false, View.List, CreateNonEmpty(), 0 };
             yield return new object[] { false, false, View.SmallIcon, null, 0 };
             yield return new object[] { false, false, View.SmallIcon, new ImageList(), 0 };
-            yield return new object[] { false, false, View.SmallIcon, nonEmptyImageList, 0 };
+            yield return new object[] { false, false, View.SmallIcon, CreateNonEmpty(), 0 };
             yield return new object[] { false, false, View.Tile, null, 0 };
             yield return new object[] { false, false, View.Tile, new ImageList(), 0 };
-            yield return new object[] { false, false, View.Tile, nonEmptyImageList, 0 };
+            yield return new object[] { false, false, View.Tile, CreateNonEmpty(), 0 };
         }
 
         [WinFormsTheory]
@@ -2627,56 +2613,53 @@ namespace System.Windows.Forms.Tests
 
         public static IEnumerable<object[]> LargeImageList_SetWithHandleWithNonNullOldValue_GetReturnsExpected()
         {
-            var nonEmptyImageList = new ImageList();
-            nonEmptyImageList.Images.Add(new Bitmap(10, 10));
-
             yield return new object[] { true, false, View.Details, null, 0 };
             yield return new object[] { true, false, View.Details, new ImageList(), 0 };
-            yield return new object[] { true, false, View.Details, nonEmptyImageList, 0 };
+            yield return new object[] { true, false, View.Details, CreateNonEmpty(), 0 };
             yield return new object[] { true, false, View.LargeIcon, null, 1 };
             yield return new object[] { true, false, View.LargeIcon, new ImageList(), 1 };
-            yield return new object[] { true, false, View.LargeIcon, nonEmptyImageList, 1 };
+            yield return new object[] { true, false, View.LargeIcon, CreateNonEmpty(), 1 };
             yield return new object[] { true, false, View.List, null, 0 };
             yield return new object[] { true, false, View.List, new ImageList(), 0 };
-            yield return new object[] { true, false, View.List, nonEmptyImageList, 0 };
+            yield return new object[] { true, false, View.List, CreateNonEmpty(), 0 };
             yield return new object[] { true, false, View.SmallIcon, null, 1 };
             yield return new object[] { true, false, View.SmallIcon, new ImageList(), 1 };
-            yield return new object[] { true, false, View.SmallIcon, nonEmptyImageList, 1 };
+            yield return new object[] { true, false, View.SmallIcon, CreateNonEmpty(), 1 };
             yield return new object[] { true, false, View.Tile, null, 0 };
             yield return new object[] { true, false, View.Tile, new ImageList(), 0 };
-            yield return new object[] { true, false, View.Tile, nonEmptyImageList, 0 };
+            yield return new object[] { true, false, View.Tile, CreateNonEmpty(), 0 };
 
             foreach (bool autoArrange in new bool[] { true, false })
             {
                 yield return new object[] { autoArrange, true, View.Details, null, 0 };
                 yield return new object[] { autoArrange, true, View.Details, new ImageList(), 0 };
-                yield return new object[] { autoArrange, true, View.Details, nonEmptyImageList, 0 };
+                yield return new object[] { autoArrange, true, View.Details, CreateNonEmpty(), 0 };
                 yield return new object[] { autoArrange, true, View.LargeIcon, null, 0 };
                 yield return new object[] { autoArrange, true, View.LargeIcon, new ImageList(), 0 };
-                yield return new object[] { autoArrange, true, View.LargeIcon, nonEmptyImageList, 0 };
+                yield return new object[] { autoArrange, true, View.LargeIcon, CreateNonEmpty(), 0 };
                 yield return new object[] { autoArrange, true, View.List, null, 0 };
                 yield return new object[] { autoArrange, true, View.List, new ImageList(), 0 };
-                yield return new object[] { autoArrange, true, View.List, nonEmptyImageList, 0 };
+                yield return new object[] { autoArrange, true, View.List, CreateNonEmpty(), 0 };
                 yield return new object[] { autoArrange, true, View.SmallIcon, null, 0 };
                 yield return new object[] { autoArrange, true, View.SmallIcon, new ImageList(), 0 };
-                yield return new object[] { autoArrange, true, View.SmallIcon, nonEmptyImageList, 0 };
+                yield return new object[] { autoArrange, true, View.SmallIcon, CreateNonEmpty(), 0 };
             }
 
             yield return new object[] { false, false, View.Details, null, 0 };
             yield return new object[] { false, false, View.Details, new ImageList(), 0 };
-            yield return new object[] { false, false, View.Details, nonEmptyImageList, 0 };
+            yield return new object[] { false, false, View.Details, CreateNonEmpty(), 0 };
             yield return new object[] { false, false, View.LargeIcon, null, 0 };
             yield return new object[] { false, false, View.LargeIcon, new ImageList(), 0 };
-            yield return new object[] { false, false, View.LargeIcon, nonEmptyImageList, 0 };
+            yield return new object[] { false, false, View.LargeIcon, CreateNonEmpty(), 0 };
             yield return new object[] { false, false, View.List, null, 0 };
             yield return new object[] { false, false, View.List, new ImageList(), 0 };
-            yield return new object[] { false, false, View.List, nonEmptyImageList, 0 };
+            yield return new object[] { false, false, View.List, CreateNonEmpty(), 0 };
             yield return new object[] { false, false, View.SmallIcon, null, 0 };
             yield return new object[] { false, false, View.SmallIcon, new ImageList(), 0 };
-            yield return new object[] { false, false, View.SmallIcon, nonEmptyImageList, 0 };
+            yield return new object[] { false, false, View.SmallIcon, CreateNonEmpty(), 0 };
             yield return new object[] { false, false, View.Tile, null, 0 };
             yield return new object[] { false, false, View.Tile, new ImageList(), 0 };
-            yield return new object[] { false, false, View.Tile, nonEmptyImageList, 0 };
+            yield return new object[] { false, false, View.Tile, CreateNonEmpty(), 0 };
         }
 
         [WinFormsTheory]
@@ -3082,9 +3065,6 @@ namespace System.Windows.Forms.Tests
 
         public static IEnumerable<object[]> SmallImageList_Set_GetReturnsExpected()
         {
-            var nonEmptyImageList = new ImageList();
-            nonEmptyImageList.Images.Add(new Bitmap(10, 10));
-
             foreach (bool autoArrange in new bool[] { true, false })
             {
                 foreach (bool virtualMode in new bool[] { true, false })
@@ -3093,13 +3073,13 @@ namespace System.Windows.Forms.Tests
                     {
                         yield return new object[] { autoArrange, virtualMode, view, null };
                         yield return new object[] { autoArrange, virtualMode, view, new ImageList() };
-                        yield return new object[] { autoArrange, virtualMode, view, nonEmptyImageList };
+                        yield return new object[] { autoArrange, virtualMode, view, CreateNonEmpty() };
                     }
                 }
 
                 yield return new object[] { autoArrange, false, View.Tile, null };
                 yield return new object[] { autoArrange, false, View.Tile, new ImageList() };
-                yield return new object[] { autoArrange, false, View.Tile, nonEmptyImageList };
+                yield return new object[] { autoArrange, false, View.Tile, CreateNonEmpty() };
             }
         }
 
@@ -3148,56 +3128,53 @@ namespace System.Windows.Forms.Tests
 
         public static IEnumerable<object[]> SmallImageList_SetWithHandle_GetReturnsExpected()
         {
-            var nonEmptyImageList = new ImageList();
-            nonEmptyImageList.Images.Add(new Bitmap(10, 10));
-
             yield return new object[] { true, false, View.Details, null, 0, 0 };
             yield return new object[] { true, false, View.Details, new ImageList(), 1, 0 };
-            yield return new object[] { true, false, View.Details, nonEmptyImageList, 1, 0 };
+            yield return new object[] { true, false, View.Details, CreateNonEmpty(), 1, 0 };
             yield return new object[] { true, false, View.LargeIcon, null, 0, 0 };
             yield return new object[] { true, false, View.LargeIcon, new ImageList(), 1, 0 };
-            yield return new object[] { true, false, View.LargeIcon, nonEmptyImageList, 1, 0 };
+            yield return new object[] { true, false, View.LargeIcon, CreateNonEmpty(), 1, 0 };
             yield return new object[] { true, false, View.List, null, 0, 0 };
             yield return new object[] { true, false, View.List, new ImageList(), 0, 0 };
-            yield return new object[] { true, false, View.List, nonEmptyImageList, 0, 0 };
+            yield return new object[] { true, false, View.List, CreateNonEmpty(), 0, 0 };
             yield return new object[] { true, false, View.SmallIcon, null, 0, 0 };
             yield return new object[] { true, false, View.SmallIcon, new ImageList(), 4, 2 };
-            yield return new object[] { true, false, View.SmallIcon, nonEmptyImageList, 4, 2 };
+            yield return new object[] { true, false, View.SmallIcon, CreateNonEmpty(), 4, 2 };
             yield return new object[] { true, false, View.Tile, null, 0, 0 };
             yield return new object[] { true, false, View.Tile, new ImageList(), 0, 0 };
-            yield return new object[] { true, false, View.Tile, nonEmptyImageList, 0, 0 };
+            yield return new object[] { true, false, View.Tile, CreateNonEmpty(), 0, 0 };
 
             foreach (bool autoArrange in new bool[] { true, false })
             {
                 yield return new object[] { autoArrange, true, View.Details, null, 0, 0 };
                 yield return new object[] { autoArrange, true, View.Details, new ImageList(), 1, 0 };
-                yield return new object[] { autoArrange, true, View.Details, nonEmptyImageList, 1, 0 };
+                yield return new object[] { autoArrange, true, View.Details, CreateNonEmpty(), 1, 0 };
                 yield return new object[] { autoArrange, true, View.LargeIcon, null, 0, 0 };
                 yield return new object[] { autoArrange, true, View.LargeIcon, new ImageList(), 0, 0 };
-                yield return new object[] { autoArrange, true, View.LargeIcon, nonEmptyImageList, 0, 0 };
+                yield return new object[] { autoArrange, true, View.LargeIcon, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { autoArrange, true, View.List, null, 0, 0 };
                 yield return new object[] { autoArrange, true, View.List, new ImageList(), 0, 0 };
-                yield return new object[] { autoArrange, true, View.List, nonEmptyImageList, 0, 0 };
+                yield return new object[] { autoArrange, true, View.List, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { autoArrange, true, View.SmallIcon, null, 0, 0 };
                 yield return new object[] { autoArrange, true, View.SmallIcon, new ImageList(), 2, 2 };
-                yield return new object[] { autoArrange, true, View.SmallIcon, nonEmptyImageList, 2, 2 };
+                yield return new object[] { autoArrange, true, View.SmallIcon, CreateNonEmpty(), 2, 2 };
             }
 
             yield return new object[] { false, false, View.Details, null, 0, 0 };
             yield return new object[] { false, false, View.Details, new ImageList(), 1, 0 };
-            yield return new object[] { false, false, View.Details, nonEmptyImageList, 1, 0 };
+            yield return new object[] { false, false, View.Details, CreateNonEmpty(), 1, 0 };
             yield return new object[] { false, false, View.LargeIcon, null, 0, 0 };
             yield return new object[] { false, false, View.LargeIcon, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, View.LargeIcon, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, View.LargeIcon, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, View.List, null, 0, 0 };
             yield return new object[] { false, false, View.List, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, View.List, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, View.List, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, View.SmallIcon, null, 0, 0 };
             yield return new object[] { false, false, View.SmallIcon, new ImageList(), 2, 2 };
-            yield return new object[] { false, false, View.SmallIcon, nonEmptyImageList, 2, 2 };
+            yield return new object[] { false, false, View.SmallIcon, CreateNonEmpty(), 2, 2 };
             yield return new object[] { false, false, View.Tile, null, 0, 0 };
             yield return new object[] { false, false, View.Tile, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, View.Tile, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, View.Tile, CreateNonEmpty(), 0, 0 };
         }
 
         [WinFormsTheory]
@@ -3236,56 +3213,53 @@ namespace System.Windows.Forms.Tests
 
         public static IEnumerable<object[]> SmallImageList_SetWithHandleWithNonNullOldValue_GetReturnsExpected()
         {
-            var nonEmptyImageList = new ImageList();
-            nonEmptyImageList.Images.Add(new Bitmap(10, 10));
-
             yield return new object[] { true, false, View.Details, null, 1, 0 };
             yield return new object[] { true, false, View.Details, new ImageList(), 1, 0 };
-            yield return new object[] { true, false, View.Details, nonEmptyImageList, 1, 0 };
+            yield return new object[] { true, false, View.Details, CreateNonEmpty(), 1, 0 };
             yield return new object[] { true, false, View.LargeIcon, null, 1, 0 };
             yield return new object[] { true, false, View.LargeIcon, new ImageList(), 1, 0 };
-            yield return new object[] { true, false, View.LargeIcon, nonEmptyImageList, 1, 0 };
+            yield return new object[] { true, false, View.LargeIcon, CreateNonEmpty(), 1, 0 };
             yield return new object[] { true, false, View.List, null, 0, 0 };
             yield return new object[] { true, false, View.List, new ImageList(), 0, 0 };
-            yield return new object[] { true, false, View.List, nonEmptyImageList, 0, 0 };
+            yield return new object[] { true, false, View.List, CreateNonEmpty(), 0, 0 };
             yield return new object[] { true, false, View.SmallIcon, null, 4, 2 };
             yield return new object[] { true, false, View.SmallIcon, new ImageList(), 4, 2 };
-            yield return new object[] { true, false, View.SmallIcon, nonEmptyImageList, 4, 2 };
+            yield return new object[] { true, false, View.SmallIcon, CreateNonEmpty(), 4, 2 };
             yield return new object[] { true, false, View.Tile, null, 0, 0 };
             yield return new object[] { true, false, View.Tile, new ImageList(), 0, 0 };
-            yield return new object[] { true, false, View.Tile, nonEmptyImageList, 0, 0 };
+            yield return new object[] { true, false, View.Tile, CreateNonEmpty(), 0, 0 };
 
             foreach (bool autoArrange in new bool[] { true, false })
             {
                 yield return new object[] { autoArrange, true, View.Details, null, 1, 0 };
                 yield return new object[] { autoArrange, true, View.Details, new ImageList(), 1, 0 };
-                yield return new object[] { autoArrange, true, View.Details, nonEmptyImageList, 1, 0 };
+                yield return new object[] { autoArrange, true, View.Details, CreateNonEmpty(), 1, 0 };
                 yield return new object[] { autoArrange, true, View.LargeIcon, null, 0, 0 };
                 yield return new object[] { autoArrange, true, View.LargeIcon, new ImageList(), 0, 0 };
-                yield return new object[] { autoArrange, true, View.LargeIcon, nonEmptyImageList, 0, 0 };
+                yield return new object[] { autoArrange, true, View.LargeIcon, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { autoArrange, true, View.List, null, 0, 0 };
                 yield return new object[] { autoArrange, true, View.List, new ImageList(), 0, 0 };
-                yield return new object[] { autoArrange, true, View.List, nonEmptyImageList, 0, 0 };
+                yield return new object[] { autoArrange, true, View.List, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { autoArrange, true, View.SmallIcon, null, 2, 2 };
                 yield return new object[] { autoArrange, true, View.SmallIcon, new ImageList(), 2, 2 };
-                yield return new object[] { autoArrange, true, View.SmallIcon, nonEmptyImageList, 2, 2 };
+                yield return new object[] { autoArrange, true, View.SmallIcon, CreateNonEmpty(), 2, 2 };
             }
 
             yield return new object[] { false, false, View.Details, null, 1, 0 };
             yield return new object[] { false, false, View.Details, new ImageList(), 1, 0 };
-            yield return new object[] { false, false, View.Details, nonEmptyImageList, 1, 0 };
+            yield return new object[] { false, false, View.Details, CreateNonEmpty(), 1, 0 };
             yield return new object[] { false, false, View.LargeIcon, null, 0, 0 };
             yield return new object[] { false, false, View.LargeIcon, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, View.LargeIcon, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, View.LargeIcon, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, View.List, null, 0, 0 };
             yield return new object[] { false, false, View.List, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, View.List, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, View.List, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, View.SmallIcon, null, 2, 2 };
             yield return new object[] { false, false, View.SmallIcon, new ImageList(), 2, 2 };
-            yield return new object[] { false, false, View.SmallIcon, nonEmptyImageList, 2, 2 };
+            yield return new object[] { false, false, View.SmallIcon, CreateNonEmpty(), 2, 2 };
             yield return new object[] { false, false, View.Tile, null, 0, 0 };
             yield return new object[] { false, false, View.Tile, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, View.Tile, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, View.Tile, CreateNonEmpty(), 0, 0 };
         }
 
         [WinFormsTheory]
@@ -3392,9 +3366,6 @@ namespace System.Windows.Forms.Tests
 
         public static IEnumerable<object[]> StateImageList_Set_GetReturnsExpected()
         {
-            var nonEmptyImageList = new ImageList();
-            nonEmptyImageList.Images.Add(new Bitmap(10, 10));
-
             foreach (bool useCompatibleStateImageBehavior in new bool[] { true, false })
             {
                 foreach (bool checkBoxes in new bool[] { true, false })
@@ -3407,7 +3378,7 @@ namespace System.Windows.Forms.Tests
                             {
                                 yield return new object[] { useCompatibleStateImageBehavior, checkBoxes, autoArrange, virtualMode, view, null };
                                 yield return new object[] { useCompatibleStateImageBehavior, checkBoxes, autoArrange, virtualMode, view, new ImageList() };
-                                yield return new object[] { useCompatibleStateImageBehavior, checkBoxes, autoArrange, virtualMode, view, nonEmptyImageList };
+                                yield return new object[] { useCompatibleStateImageBehavior, checkBoxes, autoArrange, virtualMode, view, CreateNonEmpty() };
                             }
                         }
                     }
@@ -3415,11 +3386,11 @@ namespace System.Windows.Forms.Tests
 
                 yield return new object[] { useCompatibleStateImageBehavior, false, true, false, View.Tile, null };
                 yield return new object[] { useCompatibleStateImageBehavior, false, true, false, View.Tile, new ImageList() };
-                yield return new object[] { useCompatibleStateImageBehavior, false, true, false, View.Tile, nonEmptyImageList };
+                yield return new object[] { useCompatibleStateImageBehavior, false, true, false, View.Tile, CreateNonEmpty() };
 
                 yield return new object[] { useCompatibleStateImageBehavior, false, false, false, View.Tile, null };
                 yield return new object[] { useCompatibleStateImageBehavior, false, false, false, View.Tile, new ImageList() };
-                yield return new object[] { useCompatibleStateImageBehavior, false, false, false, View.Tile, nonEmptyImageList };
+                yield return new object[] { useCompatibleStateImageBehavior, false, false, false, View.Tile, CreateNonEmpty() };
             }
         }
 
@@ -3472,154 +3443,151 @@ namespace System.Windows.Forms.Tests
 
         public static IEnumerable<object[]> StateImageList_SetWithHandle_GetReturnsExpected()
         {
-            var nonEmptyImageList = new ImageList();
-            nonEmptyImageList.Images.Add(new Bitmap(10, 10));
-
             // UseCompatibleStateImageBehavior true
             foreach (bool checkBoxes in new bool[] { true, false })
             {
                 yield return new object[] { true, checkBoxes, true, false, View.Details, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, true, false, View.Details, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, true, false, View.Details, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, true, false, View.Details, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { true, checkBoxes, true, false, View.LargeIcon, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, true, false, View.LargeIcon, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, true, false, View.LargeIcon, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, true, false, View.LargeIcon, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { true, checkBoxes, true, false, View.List, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, true, false, View.List, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, true, false, View.List, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, true, false, View.List, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { true, checkBoxes, true, false, View.SmallIcon, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, true, false, View.SmallIcon, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, true, false, View.SmallIcon, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, true, false, View.SmallIcon, CreateNonEmpty(), 0, 0 };
 
                 foreach (bool autoArrange in new bool[] { true, false })
                 {
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.Details, null, 0, 0 };
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.Details, new ImageList(), 0, 0 };
-                    yield return new object[] { true, checkBoxes, autoArrange, true, View.Details, nonEmptyImageList, 0, 0 };
+                    yield return new object[] { true, checkBoxes, autoArrange, true, View.Details, CreateNonEmpty(), 0, 0 };
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.LargeIcon, null, 0, 0 };
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.LargeIcon, new ImageList(), 0, 0 };
-                    yield return new object[] { true, checkBoxes, autoArrange, true, View.LargeIcon, nonEmptyImageList, 0, 0 };
+                    yield return new object[] { true, checkBoxes, autoArrange, true, View.LargeIcon, CreateNonEmpty(), 0, 0 };
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.List, null, 0, 0 };
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.List, new ImageList(), 0, 0 };
-                    yield return new object[] { true, checkBoxes, autoArrange, true, View.List, nonEmptyImageList, 0, 0 };
+                    yield return new object[] { true, checkBoxes, autoArrange, true, View.List, CreateNonEmpty(), 0, 0 };
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.SmallIcon, null, 0, 0 };
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.SmallIcon, new ImageList(), 0, 0 };
-                    yield return new object[] { true, checkBoxes, autoArrange, true, View.SmallIcon, nonEmptyImageList, 0, 0 };
+                    yield return new object[] { true, checkBoxes, autoArrange, true, View.SmallIcon, CreateNonEmpty(), 0, 0 };
                 }
 
                 yield return new object[] { true, checkBoxes, false, false, View.Details, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, false, false, View.Details, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, false, false, View.Details, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, false, false, View.Details, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { true, checkBoxes, false, false, View.LargeIcon, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, false, false, View.LargeIcon, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, false, false, View.LargeIcon, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, false, false, View.LargeIcon, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { true, checkBoxes, false, false, View.List, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, false, false, View.List, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, false, false, View.List, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, false, false, View.List, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { true, checkBoxes, false, false, View.SmallIcon, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, false, false, View.SmallIcon, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, false, false, View.SmallIcon, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, false, false, View.SmallIcon, CreateNonEmpty(), 0, 0 };
             }
 
             yield return new object[] { true, false, true, false, View.Tile, null, 0, 0 };
             yield return new object[] { true, false, true, false, View.Tile, new ImageList(), 0, 0 };
-            yield return new object[] { true, false, true, false, View.Tile, nonEmptyImageList, 0, 0 };
+            yield return new object[] { true, false, true, false, View.Tile, CreateNonEmpty(), 0, 0 };
 
             yield return new object[] { true, false, false, false, View.Tile, null, 0, 0 };
             yield return new object[] { true, false, false, false, View.Tile, new ImageList(), 0, 0 };
-            yield return new object[] { true, false, false, false, View.Tile, nonEmptyImageList, 0, 0 };
+            yield return new object[] { true, false, false, false, View.Tile, CreateNonEmpty(), 0, 0 };
 
             // UseCompatibleStateImageBehavior false, CheckBoxes true
             yield return new object[] { false, true, true, false, View.Details, null, 0, 0 };
             yield return new object[] { false, true, true, false, View.Details, new ImageList(), 1, 1 };
-            yield return new object[] { false, true, true, false, View.Details, nonEmptyImageList, 1, 1 };
+            yield return new object[] { false, true, true, false, View.Details, CreateNonEmpty(), 1, 1 };
             yield return new object[] { false, true, true, false, View.LargeIcon, null, 0, 0 };
             yield return new object[] { false, true, true, false, View.LargeIcon, new ImageList(), 3, 1 };
-            yield return new object[] { false, true, true, false, View.LargeIcon, nonEmptyImageList, 3, 1 };
+            yield return new object[] { false, true, true, false, View.LargeIcon, CreateNonEmpty(), 3, 1 };
             yield return new object[] { false, true, true, false, View.List, null, 0, 0 };
             yield return new object[] { false, true, true, false, View.List, new ImageList(), 1, 1 };
-            yield return new object[] { false, true, true, false, View.List, nonEmptyImageList, 1, 1 };
+            yield return new object[] { false, true, true, false, View.List, CreateNonEmpty(), 1, 1 };
             yield return new object[] { false, true, true, false, View.SmallIcon, null, 0, 0 };
             yield return new object[] { false, true, true, false, View.SmallIcon, new ImageList(), 3, 1 };
-            yield return new object[] { false, true, true, false, View.SmallIcon, nonEmptyImageList, 3, 1 };
+            yield return new object[] { false, true, true, false, View.SmallIcon, CreateNonEmpty(), 3, 1 };
 
             foreach (bool autoArrange in new bool[] { true, false })
             {
                 yield return new object[] { false, true, autoArrange, true, View.Details, null, 0, 0 };
                 yield return new object[] { false, true, autoArrange, true, View.Details, new ImageList(), 1, 1 };
-                yield return new object[] { false, true, autoArrange, true, View.Details, nonEmptyImageList, 1, 1 };
+                yield return new object[] { false, true, autoArrange, true, View.Details, CreateNonEmpty(), 1, 1 };
                 yield return new object[] { false, true, autoArrange, true, View.LargeIcon, null, 0, 0 };
                 yield return new object[] { false, true, autoArrange, true, View.LargeIcon, new ImageList(), 1, 1 };
-                yield return new object[] { false, true, autoArrange, true, View.LargeIcon, nonEmptyImageList, 1, 1 };
+                yield return new object[] { false, true, autoArrange, true, View.LargeIcon, CreateNonEmpty(), 1, 1 };
                 yield return new object[] { false, true, autoArrange, true, View.List, null, 0, 0 };
                 yield return new object[] { false, true, autoArrange, true, View.List, new ImageList(), 1, 1 };
-                yield return new object[] { false, true, autoArrange, true, View.List, nonEmptyImageList, 1, 1 };
+                yield return new object[] { false, true, autoArrange, true, View.List, CreateNonEmpty(), 1, 1 };
                 yield return new object[] { false, true, autoArrange, true, View.SmallIcon, null, 0, 0 };
                 yield return new object[] { false, true, autoArrange, true, View.SmallIcon, new ImageList(), 1, 1 };
-                yield return new object[] { false, true, autoArrange, true, View.SmallIcon, nonEmptyImageList, 1, 1 };
+                yield return new object[] { false, true, autoArrange, true, View.SmallIcon, CreateNonEmpty(), 1, 1 };
             }
 
             yield return new object[] { false, true, false, false, View.Details, null, 0, 0 };
             yield return new object[] { false, true, false, false, View.Details, new ImageList(), 1, 1 };
-            yield return new object[] { false, true, false, false, View.Details, nonEmptyImageList, 1, 1 };
+            yield return new object[] { false, true, false, false, View.Details, CreateNonEmpty(), 1, 1 };
             yield return new object[] { false, true, false, false, View.LargeIcon, null, 0, 0 };
             yield return new object[] { false, true, false, false, View.LargeIcon, new ImageList(), 1, 1 };
-            yield return new object[] { false, true, false, false, View.LargeIcon, nonEmptyImageList, 1, 1 };
+            yield return new object[] { false, true, false, false, View.LargeIcon, CreateNonEmpty(), 1, 1 };
             yield return new object[] { false, true, false, false, View.List, null, 0, 0 };
             yield return new object[] { false, true, false, false, View.List, new ImageList(), 1, 1 };
-            yield return new object[] { false, true, false, false, View.List, nonEmptyImageList, 1, 1 };
+            yield return new object[] { false, true, false, false, View.List, CreateNonEmpty(), 1, 1 };
             yield return new object[] { false, true, false, false, View.SmallIcon, null, 0, 0 };
             yield return new object[] { false, true, false, false, View.SmallIcon, new ImageList(), 1, 1 };
-            yield return new object[] { false, true, false, false, View.SmallIcon, nonEmptyImageList, 1, 1 };
+            yield return new object[] { false, true, false, false, View.SmallIcon, CreateNonEmpty(), 1, 1 };
 
             // UseCompatibleStateImageBehavior false, CheckBoxes false
             yield return new object[] { false, false, true, false, View.Details, null, 0, 0 };
             yield return new object[] { false, false, true, false, View.Details, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, true, false, View.Details, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, true, false, View.Details, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, true, false, View.LargeIcon, null, 0, 0 };
             yield return new object[] { false, false, true, false, View.LargeIcon, new ImageList(), 1, 0 };
-            yield return new object[] { false, false, true, false, View.LargeIcon, nonEmptyImageList, 1, 0 };
+            yield return new object[] { false, false, true, false, View.LargeIcon, CreateNonEmpty(), 1, 0 };
             yield return new object[] { false, false, true, false, View.List, null, 0, 0 };
             yield return new object[] { false, false, true, false, View.List, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, true, false, View.List, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, true, false, View.List, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, true, false, View.SmallIcon, null, 0, 0 };
             yield return new object[] { false, false, true, false, View.SmallIcon, new ImageList(), 1, 0 };
-            yield return new object[] { false, false, true, false, View.SmallIcon, nonEmptyImageList, 1, 0 };
+            yield return new object[] { false, false, true, false, View.SmallIcon, CreateNonEmpty(), 1, 0 };
             yield return new object[] { false, false, true, false, View.Tile, null, 0, 0 };
             yield return new object[] { false, false, true, false, View.Tile, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, true, false, View.Tile, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, true, false, View.Tile, CreateNonEmpty(), 0, 0 };
 
             foreach (bool autoArrange in new bool[] { true, false })
             {
                 yield return new object[] { false, false, autoArrange, true, View.Details, null, 0, 0 };
                 yield return new object[] { false, false, autoArrange, true, View.Details, new ImageList(), 0, 0 };
-                yield return new object[] { false, false, autoArrange, true, View.Details, nonEmptyImageList, 0, 0 };
+                yield return new object[] { false, false, autoArrange, true, View.Details, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { false, false, autoArrange, true, View.LargeIcon, null, 0, 0 };
                 yield return new object[] { false, false, autoArrange, true, View.LargeIcon, new ImageList(), 0, 0 };
-                yield return new object[] { false, false, autoArrange, true, View.LargeIcon, nonEmptyImageList, 0, 0 };
+                yield return new object[] { false, false, autoArrange, true, View.LargeIcon, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { false, false, autoArrange, true, View.List, null, 0, 0 };
                 yield return new object[] { false, false, autoArrange, true, View.List, new ImageList(), 0, 0 };
-                yield return new object[] { false, false, autoArrange, true, View.List, nonEmptyImageList, 0, 0 };
+                yield return new object[] { false, false, autoArrange, true, View.List, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { false, false, autoArrange, true, View.SmallIcon, null, 0, 0 };
                 yield return new object[] { false, false, autoArrange, true, View.SmallIcon, new ImageList(), 0, 0 };
-                yield return new object[] { false, false, autoArrange, true, View.SmallIcon, nonEmptyImageList, 0, 0 };
+                yield return new object[] { false, false, autoArrange, true, View.SmallIcon, CreateNonEmpty(), 0, 0 };
             }
 
             yield return new object[] { false, false, false, false, View.Details, null, 0, 0 };
             yield return new object[] { false, false, false, false, View.Details, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, false, false, View.Details, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, false, false, View.Details, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, false, false, View.LargeIcon, null, 0, 0 };
             yield return new object[] { false, false, false, false, View.LargeIcon, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, false, false, View.LargeIcon, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, false, false, View.LargeIcon, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, false, false, View.List, null, 0, 0 };
             yield return new object[] { false, false, false, false, View.List, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, false, false, View.List, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, false, false, View.List, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, false, false, View.SmallIcon, null, 0, 0 };
             yield return new object[] { false, false, false, false, View.SmallIcon, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, false, false, View.SmallIcon, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, false, false, View.SmallIcon, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, false, false, View.Tile, null, 0, 0 };
             yield return new object[] { false, false, false, false, View.Tile, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, false, false, View.Tile, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, false, false, View.Tile, CreateNonEmpty(), 0, 0 };
         }
 
         [WinFormsTheory]
@@ -3660,157 +3628,155 @@ namespace System.Windows.Forms.Tests
 
         public static IEnumerable<object[]> StateImageList_SetWithHandleWithNonNullOldValue_GetReturnsExpected()
         {
-            var nonEmptyImageList = new ImageList();
-            nonEmptyImageList.Images.Add(new Bitmap(10, 10));
-
             // UseCompatibleStateImageBehavior true
             foreach (bool checkBoxes in new bool[] { true, false })
             {
                 yield return new object[] { true, checkBoxes, true, false, View.Details, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, true, false, View.Details, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, true, false, View.Details, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, true, false, View.Details, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { true, checkBoxes, true, false, View.LargeIcon, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, true, false, View.LargeIcon, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, true, false, View.LargeIcon, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, true, false, View.LargeIcon, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { true, checkBoxes, true, false, View.List, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, true, false, View.List, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, true, false, View.List, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, true, false, View.List, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { true, checkBoxes, true, false, View.SmallIcon, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, true, false, View.SmallIcon, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, true, false, View.SmallIcon, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, true, false, View.SmallIcon, CreateNonEmpty(), 0, 0 };
 
                 foreach (bool autoArrange in new bool[] { true, false })
                 {
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.Details, null, 0, 0 };
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.Details, new ImageList(), 0, 0 };
-                    yield return new object[] { true, checkBoxes, autoArrange, true, View.Details, nonEmptyImageList, 0, 0 };
+                    yield return new object[] { true, checkBoxes, autoArrange, true, View.Details, CreateNonEmpty(), 0, 0 };
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.LargeIcon, null, 0, 0 };
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.LargeIcon, new ImageList(), 0, 0 };
-                    yield return new object[] { true, checkBoxes, autoArrange, true, View.LargeIcon, nonEmptyImageList, 0, 0 };
+                    yield return new object[] { true, checkBoxes, autoArrange, true, View.LargeIcon, CreateNonEmpty(), 0, 0 };
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.List, null, 0, 0 };
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.List, new ImageList(), 0, 0 };
-                    yield return new object[] { true, checkBoxes, autoArrange, true, View.List, nonEmptyImageList, 0, 0 };
+                    yield return new object[] { true, checkBoxes, autoArrange, true, View.List, CreateNonEmpty(), 0, 0 };
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.SmallIcon, null, 0, 0 };
                     yield return new object[] { true, checkBoxes, autoArrange, true, View.SmallIcon, new ImageList(), 0, 0 };
-                    yield return new object[] { true, checkBoxes, autoArrange, true, View.SmallIcon, nonEmptyImageList, 0, 0 };
+                    yield return new object[] { true, checkBoxes, autoArrange, true, View.SmallIcon, CreateNonEmpty(), 0, 0 };
                 }
 
                 yield return new object[] { true, checkBoxes, false, false, View.Details, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, false, false, View.Details, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, false, false, View.Details, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, false, false, View.Details, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { true, checkBoxes, false, false, View.LargeIcon, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, false, false, View.LargeIcon, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, false, false, View.LargeIcon, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, false, false, View.LargeIcon, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { true, checkBoxes, false, false, View.List, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, false, false, View.List, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, false, false, View.List, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, false, false, View.List, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { true, checkBoxes, false, false, View.SmallIcon, null, 0, 0 };
                 yield return new object[] { true, checkBoxes, false, false, View.SmallIcon, new ImageList(), 0, 0 };
-                yield return new object[] { true, checkBoxes, false, false, View.SmallIcon, nonEmptyImageList, 0, 0 };
+                yield return new object[] { true, checkBoxes, false, false, View.SmallIcon, CreateNonEmpty(), 0, 0 };
             }
 
             yield return new object[] { true, false, true, false, View.Tile, null, 0, 0 };
             yield return new object[] { true, false, true, false, View.Tile, new ImageList(), 0, 0 };
-            yield return new object[] { true, false, true, false, View.Tile, nonEmptyImageList, 0, 0 };
+            yield return new object[] { true, false, true, false, View.Tile, CreateNonEmpty(), 0, 0 };
 
             yield return new object[] { true, false, false, false, View.Tile, null, 0, 0 };
             yield return new object[] { true, false, false, false, View.Tile, new ImageList(), 0, 0 };
-            yield return new object[] { true, false, false, false, View.Tile, nonEmptyImageList, 0, 0 };
+            yield return new object[] { true, false, false, false, View.Tile, CreateNonEmpty(), 0, 0 };
 
             // UseCompatibleStateImageBehavior false, CheckBoxes true
             yield return new object[] { false, true, true, false, View.Details, null, 1, 1 };
             yield return new object[] { false, true, true, false, View.Details, new ImageList(), 1, 1 };
-            yield return new object[] { false, true, true, false, View.Details, nonEmptyImageList, 1, 1 };
+            yield return new object[] { false, true, true, false, View.Details, CreateNonEmpty(), 1, 1 };
             yield return new object[] { false, true, true, false, View.LargeIcon, null, 3, 1 };
             yield return new object[] { false, true, true, false, View.LargeIcon, new ImageList(), 3, 1 };
-            yield return new object[] { false, true, true, false, View.LargeIcon, nonEmptyImageList, 3, 1 };
+            yield return new object[] { false, true, true, false, View.LargeIcon, CreateNonEmpty(), 3, 1 };
             yield return new object[] { false, true, true, false, View.List, null, 1, 1 };
             yield return new object[] { false, true, true, false, View.List, new ImageList(), 1, 1 };
-            yield return new object[] { false, true, true, false, View.List, nonEmptyImageList, 1, 1 };
+            yield return new object[] { false, true, true, false, View.List, CreateNonEmpty(), 1, 1 };
             yield return new object[] { false, true, true, false, View.SmallIcon, null, 3, 1 };
             yield return new object[] { false, true, true, false, View.SmallIcon, new ImageList(), 3, 1 };
-            yield return new object[] { false, true, true, false, View.SmallIcon, nonEmptyImageList, 3, 1 };
+            yield return new object[] { false, true, true, false, View.SmallIcon, CreateNonEmpty(), 3, 1 };
 
             foreach (bool autoArrange in new bool[] { true, false })
             {
                 yield return new object[] { false, true, autoArrange, true, View.Details, null, 1, 1 };
                 yield return new object[] { false, true, autoArrange, true, View.Details, new ImageList(), 1, 1 };
-                yield return new object[] { false, true, autoArrange, true, View.Details, nonEmptyImageList, 1, 1 };
+                yield return new object[] { false, true, autoArrange, true, View.Details, CreateNonEmpty(), 1, 1 };
                 yield return new object[] { false, true, autoArrange, true, View.LargeIcon, null, 1, 1 };
                 yield return new object[] { false, true, autoArrange, true, View.LargeIcon, new ImageList(), 1, 1 };
-                yield return new object[] { false, true, autoArrange, true, View.LargeIcon, nonEmptyImageList, 1, 1 };
+                yield return new object[] { false, true, autoArrange, true, View.LargeIcon, CreateNonEmpty(), 1, 1 };
                 yield return new object[] { false, true, autoArrange, true, View.List, null, 1, 1 };
                 yield return new object[] { false, true, autoArrange, true, View.List, new ImageList(), 1, 1 };
-                yield return new object[] { false, true, autoArrange, true, View.List, nonEmptyImageList, 1, 1 };
+                yield return new object[] { false, true, autoArrange, true, View.List, CreateNonEmpty(), 1, 1 };
                 yield return new object[] { false, true, autoArrange, true, View.SmallIcon, null, 1, 1 };
                 yield return new object[] { false, true, autoArrange, true, View.SmallIcon, new ImageList(), 1, 1 };
-                yield return new object[] { false, true, autoArrange, true, View.SmallIcon, nonEmptyImageList, 1, 1 };
+                yield return new object[] { false, true, autoArrange, true, View.SmallIcon, CreateNonEmpty(), 1, 1 };
             }
 
             yield return new object[] { false, true, false, false, View.Details, null, 1, 1 };
             yield return new object[] { false, true, false, false, View.Details, new ImageList(), 1, 1 };
-            yield return new object[] { false, true, false, false, View.Details, nonEmptyImageList, 1, 1 };
+            yield return new object[] { false, true, false, false, View.Details, CreateNonEmpty(), 1, 1 };
             yield return new object[] { false, true, false, false, View.LargeIcon, null, 1, 1 };
             yield return new object[] { false, true, false, false, View.LargeIcon, new ImageList(), 1, 1 };
-            yield return new object[] { false, true, false, false, View.LargeIcon, nonEmptyImageList, 1, 1 };
+            yield return new object[] { false, true, false, false, View.LargeIcon, CreateNonEmpty(), 1, 1 };
             yield return new object[] { false, true, false, false, View.List, null, 1, 1 };
             yield return new object[] { false, true, false, false, View.List, new ImageList(), 1, 1 };
-            yield return new object[] { false, true, false, false, View.List, nonEmptyImageList, 1, 1 };
+            yield return new object[] { false, true, false, false, View.List, CreateNonEmpty(), 1, 1 };
             yield return new object[] { false, true, false, false, View.SmallIcon, null, 1, 1 };
             yield return new object[] { false, true, false, false, View.SmallIcon, new ImageList(), 1, 1 };
-            yield return new object[] { false, true, false, false, View.SmallIcon, nonEmptyImageList, 1, 1 };
+            yield return new object[] { false, true, false, false, View.SmallIcon, CreateNonEmpty(), 1, 1 };
 
             // UseCompatibleStateImageBehavior false, CheckBoxes false
             yield return new object[] { false, false, true, false, View.Details, null, 0, 0 };
             yield return new object[] { false, false, true, false, View.Details, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, true, false, View.Details, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, true, false, View.Details, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, true, false, View.LargeIcon, null, 1, 0 };
             yield return new object[] { false, false, true, false, View.LargeIcon, new ImageList(), 1, 0 };
-            yield return new object[] { false, false, true, false, View.LargeIcon, nonEmptyImageList, 1, 0 };
+            yield return new object[] { false, false, true, false, View.LargeIcon, CreateNonEmpty(), 1, 0 };
             yield return new object[] { false, false, true, false, View.List, null, 0, 0 };
             yield return new object[] { false, false, true, false, View.List, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, true, false, View.List, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, true, false, View.List, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, true, false, View.SmallIcon, null, 1, 0 };
             yield return new object[] { false, false, true, false, View.SmallIcon, new ImageList(), 1, 0 };
-            yield return new object[] { false, false, true, false, View.SmallIcon, nonEmptyImageList, 1, 0 };
+            yield return new object[] { false, false, true, false, View.SmallIcon, CreateNonEmpty(), 1, 0 };
             yield return new object[] { false, false, true, false, View.Tile, null, 0, 0 };
             yield return new object[] { false, false, true, false, View.Tile, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, true, false, View.Tile, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, true, false, View.Tile, CreateNonEmpty(), 0, 0 };
 
             foreach (bool autoArrange in new bool[] { true, false })
             {
                 yield return new object[] { false, false, autoArrange, true, View.Details, null, 0, 0 };
                 yield return new object[] { false, false, autoArrange, true, View.Details, new ImageList(), 0, 0 };
-                yield return new object[] { false, false, autoArrange, true, View.Details, nonEmptyImageList, 0, 0 };
+                yield return new object[] { false, false, autoArrange, true, View.Details, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { false, false, autoArrange, true, View.LargeIcon, null, 0, 0 };
                 yield return new object[] { false, false, autoArrange, true, View.LargeIcon, new ImageList(), 0, 0 };
-                yield return new object[] { false, false, autoArrange, true, View.LargeIcon, nonEmptyImageList, 0, 0 };
+                yield return new object[] { false, false, autoArrange, true, View.LargeIcon, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { false, false, autoArrange, true, View.List, null, 0, 0 };
                 yield return new object[] { false, false, autoArrange, true, View.List, new ImageList(), 0, 0 };
-                yield return new object[] { false, false, autoArrange, true, View.List, nonEmptyImageList, 0, 0 };
+                yield return new object[] { false, false, autoArrange, true, View.List, CreateNonEmpty(), 0, 0 };
                 yield return new object[] { false, false, autoArrange, true, View.SmallIcon, null, 0, 0 };
                 yield return new object[] { false, false, autoArrange, true, View.SmallIcon, new ImageList(), 0, 0 };
-                yield return new object[] { false, false, autoArrange, true, View.SmallIcon, nonEmptyImageList, 0, 0 };
+                yield return new object[] { false, false, autoArrange, true, View.SmallIcon, CreateNonEmpty(), 0, 0 };
             }
 
             yield return new object[] { false, false, false, false, View.Details, null, 0, 0 };
             yield return new object[] { false, false, false, false, View.Details, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, false, false, View.Details, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, false, false, View.Details, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, false, false, View.LargeIcon, null, 0, 0 };
             yield return new object[] { false, false, false, false, View.LargeIcon, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, false, false, View.LargeIcon, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, false, false, View.LargeIcon, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, false, false, View.List, null, 0, 0 };
             yield return new object[] { false, false, false, false, View.List, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, false, false, View.List, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, false, false, View.List, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, false, false, View.SmallIcon, null, 0, 0 };
             yield return new object[] { false, false, false, false, View.SmallIcon, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, false, false, View.SmallIcon, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, false, false, View.SmallIcon, CreateNonEmpty(), 0, 0 };
             yield return new object[] { false, false, false, false, View.Tile, null, 0, 0 };
             yield return new object[] { false, false, false, false, View.Tile, new ImageList(), 0, 0 };
-            yield return new object[] { false, false, false, false, View.Tile, nonEmptyImageList, 0, 0 };
+            yield return new object[] { false, false, false, false, View.Tile, CreateNonEmpty(), 0, 0 };
         }
 
-        [WinFormsTheory]
+        [WinFormsTheory(Skip = "Leads to random AccessViolationException. See: https://github.com/dotnet/winforms/issues/3358")]
+        [ActiveIssue("https://github.com/dotnet/winforms/issues/3358")]
         [MemberData(nameof(StateImageList_SetWithHandleWithNonNullOldValue_GetReturnsExpected))]
         public void ListView_StateImageList_SetWithHandleWithNonNullOldValue_GetReturnsExpected(bool useCompatibleStateImageBehavior, bool checkBoxes, bool autoArrange, bool virtualMode, View view, ImageList value, int expectedInvalidatedCallCount, int expectedCreatedCallCount)
         {
@@ -3822,8 +3788,10 @@ namespace System.Windows.Forms.Tests
                 AutoArrange = autoArrange,
                 VirtualMode = virtualMode,
                 View = view,
-                StateImageList = imageList
             };
+
+            listView.StateImageList = imageList;
+
             Assert.NotEqual(IntPtr.Zero, listView.Handle);
             int invalidatedCallCount = 0;
             listView.Invalidated += (sender, e) => invalidatedCallCount++;
@@ -4187,6 +4155,13 @@ namespace System.Windows.Forms.Tests
         {
             using var control = new SubListView();
             Assert.False(control.GetTopLevel());
+        }
+
+        private static ImageList CreateNonEmpty()
+        {
+            var nonEmptyImageList = new ImageList();
+            nonEmptyImageList.Images.Add(new Bitmap(10, 10));
+            return nonEmptyImageList;
         }
 
         private class SubListView : ListView

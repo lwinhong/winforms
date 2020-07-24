@@ -410,8 +410,9 @@ namespace System.Windows.Forms
                 // We can paint to an enhanced metafile, but not all GDI / GDI+ is
                 // supported on classic metafiles.  We throw VIEW_E_DRAW in the hope that
                 // the caller figures it out and sends us a different DC.
-                //
-                Gdi32.ObjectType hdcType = Gdi32.GetObjectType(hdcDraw);
+
+                Gdi32.HDC hdc = (Gdi32.HDC)hdcDraw;
+                Gdi32.ObjectType hdcType = Gdi32.GetObjectType(hdc);
                 if (hdcType == Gdi32.ObjectType.OBJ_METADC)
                 {
                     return HRESULT.VIEW_E_DRAW;
@@ -438,13 +439,13 @@ namespace System.Windows.Forms
                     // we back-convert prcBounds so that we convert it to this coordinate
                     // system. This puts us in the most similar coordinates as we currently
                     // use.
-                    Gdi32.LPtoDP(hdcDraw, ref rc, 2);
+                    Gdi32.LPtoDP(hdc, ref rc, 2);
 
-                    iMode = Gdi32.SetMapMode(hdcDraw, Gdi32.MM.ANISOTROPIC);
-                    Gdi32.SetWindowOrgEx(hdcDraw, 0, 0, &pW);
-                    Gdi32.SetWindowExtEx(hdcDraw, _control.Width, _control.Height, &sWindowExt);
-                    Gdi32.SetViewportOrgEx(hdcDraw, rc.left, rc.top, &pVp);
-                    Gdi32.SetViewportExtEx(hdcDraw, rc.right - rc.left, rc.bottom - rc.top, &sViewportExt);
+                    iMode = Gdi32.SetMapMode(hdc, Gdi32.MM.ANISOTROPIC);
+                    Gdi32.SetWindowOrgEx(hdc, 0, 0, &pW);
+                    Gdi32.SetWindowExtEx(hdc, _control.Width, _control.Height, &sWindowExt);
+                    Gdi32.SetViewportOrgEx(hdc, rc.left, rc.top, &pVp);
+                    Gdi32.SetViewportExtEx(hdc, rc.right - rc.left, rc.bottom - rc.top, &sViewportExt);
                 }
 
                 // Now do the actual drawing.  We must ask all of our children to draw as well.
@@ -457,7 +458,7 @@ namespace System.Windows.Forms
                     }
                     else
                     {
-                        _control.PrintToMetaFile(hdcDraw, flags);
+                        _control.PrintToMetaFile(hdc, flags);
                     }
                 }
                 finally
@@ -465,11 +466,11 @@ namespace System.Windows.Forms
                     // And clean up the DC
                     if (prcBounds != null)
                     {
-                        Gdi32.SetWindowOrgEx(hdcDraw, pW.X, pW.Y, null);
-                        Gdi32.SetWindowExtEx(hdcDraw, sWindowExt.Width, sWindowExt.Height, null);
-                        Gdi32.SetViewportOrgEx(hdcDraw, pVp.X, pVp.Y, null);
-                        Gdi32.SetViewportExtEx(hdcDraw, sViewportExt.Width, sViewportExt.Height, null);
-                        Gdi32.SetMapMode(hdcDraw, iMode);
+                        Gdi32.SetWindowOrgEx(hdc, pW.X, pW.Y, null);
+                        Gdi32.SetWindowExtEx(hdc, sWindowExt.Width, sWindowExt.Height, null);
+                        Gdi32.SetViewportOrgEx(hdc, pVp.X, pVp.Y, null);
+                        Gdi32.SetViewportExtEx(hdc, sViewportExt.Width, sViewportExt.Height, null);
+                        Gdi32.SetMapMode(hdc, iMode);
                     }
                 }
 
@@ -1122,7 +1123,9 @@ namespace System.Windows.Forms
                                     byte[] bytes = Convert.FromBase64String(obj.ToString());
                                     MemoryStream stream = new MemoryStream(bytes);
                                     BinaryFormatter formatter = new BinaryFormatter();
+#pragma warning disable CS0618 // Type or member is obsolete
                                     props[i].SetValue(_control, formatter.Deserialize(stream));
+#pragma warning restore CS0618 // Type or member is obsolete
                                 }
                                 else
                                 {
@@ -1525,7 +1528,9 @@ namespace System.Windows.Forms
                     public SafeIUnknown(object obj, bool addRefIntPtr, Guid iid)
                         : base(IntPtr.Zero, true)
                     {
+#pragma warning disable SYSLIB0004 // Type or member is obsolete
                         RuntimeHelpers.PrepareConstrainedRegions();
+#pragma warning restore SYSLIB0004 // Type or member is obsolete
                         try
                         {
                             // Set this.handle in a finally block to ensure the com ptr is set in the SafeHandle
@@ -1798,7 +1803,9 @@ namespace System.Windows.Forms
                             // Resource property.  Save this to the bag as a 64bit encoded string.
                             MemoryStream stream = new MemoryStream();
                             BinaryFormatter formatter = new BinaryFormatter();
+#pragma warning disable CS0618 // Type or member is obsolete
                             formatter.Serialize(stream, props[i].GetValue(_control));
+#pragma warning restore CS0618 // Type or member is obsolete
                             byte[] bytes = new byte[(int)stream.Length];
                             stream.Position = 0;
                             stream.Read(bytes, 0, bytes.Length);
@@ -2472,7 +2479,9 @@ namespace System.Windows.Forms
                     BinaryFormatter formatter = new BinaryFormatter();
                     try
                     {
+#pragma warning disable CS0618 // Type or member is obsolete
                         _bag = (Hashtable)formatter.Deserialize(stream);
+#pragma warning restore CS0618 // Type or member is obsolete
                     }
                     catch (Exception e)
                     {
@@ -2507,7 +2516,9 @@ namespace System.Windows.Forms
                 {
                     Stream stream = new DataStreamFromComStream(istream);
                     BinaryFormatter formatter = new BinaryFormatter();
+#pragma warning disable CS0618 // Type or member is obsolete
                     formatter.Serialize(stream, _bag);
+#pragma warning restore CS0618 // Type or member is obsolete
                 }
             }
         }

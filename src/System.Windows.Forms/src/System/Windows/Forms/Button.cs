@@ -20,13 +20,13 @@ namespace System.Windows.Forms
     /// </summary>
     [SRDescription(nameof(SR.DescriptionButton))]
     [Designer("System.Windows.Forms.Design.ButtonBaseDesigner, " + AssemblyRef.SystemDesign)]
-    public class Button : ButtonBase, IButtonControl
+    public partial class Button : ButtonBase, IButtonControl
     {
         /// <summary>
         ///  The dialog result that will be sent to the parent dialog form when
         ///  we are clicked.
         /// </summary>
-        private DialogResult dialogResult;
+        private DialogResult _dialogResult;
 
         private const int InvalidDimensionValue = int.MinValue;
 
@@ -34,7 +34,7 @@ namespace System.Windows.Forms
         ///  For buttons whose FaltStyle = FlatStyle.Flat, this property specifies the size, in pixels
         ///  of the border around the button.
         /// </summary>
-        private Size systemSize = new Size(InvalidDimensionValue, InvalidDimensionValue);
+        private Size _systemSize = new Size(InvalidDimensionValue, InvalidDimensionValue);
 
         /// <summary>
         ///  Initializes a new instance of the <see cref='Button'/>
@@ -87,6 +87,9 @@ namespace System.Windows.Forms
             }
         }
 
+        protected override AccessibleObject CreateAccessibilityInstance()
+            => new ButtonAccessibleObject(this);
+
         internal override ButtonBaseAdapter CreateFlatAdapter()
         {
             return new ButtonFlatAdapter(this);
@@ -110,7 +113,7 @@ namespace System.Windows.Forms
                 return AutoSizeMode == AutoSizeMode.GrowAndShrink ? prefSize : LayoutUtils.UnionSizes(prefSize, Size);
             }
 
-            if (systemSize.Width == InvalidDimensionValue)
+            if (_systemSize.Width == InvalidDimensionValue)
             {
                 Size requiredSize;
                 // Note: The result from the BCM_GETIDEALSIZE message isn't accurate if the font has been
@@ -123,9 +126,9 @@ namespace System.Windows.Forms
                 // with an 8px font.
                 requiredSize.Width += 14;
                 requiredSize.Height += 9;
-                systemSize = requiredSize;
+                _systemSize = requiredSize;
             }
-            Size paddedSize = systemSize + Padding.Size;
+            Size paddedSize = _systemSize + Padding.Size;
             return AutoSizeMode == AutoSizeMode.GrowAndShrink ? paddedSize : LayoutUtils.UnionSizes(paddedSize, Size);
         }
 
@@ -169,7 +172,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                return dialogResult;
+                return _dialogResult;
             }
 
             set
@@ -178,9 +181,11 @@ namespace System.Windows.Forms
                 {
                     throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(DialogResult));
                 }
-                dialogResult = value;
+                _dialogResult = value;
             }
         }
+
+        internal override bool SupportsUiaProviders => true;
 
         /// <summary>
         ///  Raises the <see cref='Control.OnMouseEnter'/> event.
@@ -241,7 +246,7 @@ namespace System.Windows.Forms
             Form form = FindForm();
             if (form != null)
             {
-                form.DialogResult = dialogResult;
+                form.DialogResult = _dialogResult;
             }
 
             // accessibility stuff
@@ -249,12 +254,16 @@ namespace System.Windows.Forms
             AccessibilityNotifyClients(AccessibleEvents.StateChange, -1);
             AccessibilityNotifyClients(AccessibleEvents.NameChange, -1);
 
+            // UIA events:
+            AccessibilityObject.RaiseAutomationPropertyChangedEvent(UiaCore.UIA.NamePropertyId, Name, Name);
+            AccessibilityObject.RaiseAutomationEvent(UiaCore.UIA.AutomationPropertyChangedEventId);
+
             base.OnClick(e);
         }
 
         protected override void OnFontChanged(EventArgs e)
         {
-            systemSize = new Size(InvalidDimensionValue, InvalidDimensionValue);
+            _systemSize = new Size(InvalidDimensionValue, InvalidDimensionValue);
             base.OnFontChanged(e);
         }
 
@@ -290,7 +299,7 @@ namespace System.Windows.Forms
 
         protected override void OnTextChanged(EventArgs e)
         {
-            systemSize = new Size(InvalidDimensionValue, InvalidDimensionValue);
+            _systemSize = new Size(InvalidDimensionValue, InvalidDimensionValue);
             base.OnTextChanged(e);
         }
 
@@ -309,7 +318,7 @@ namespace System.Windows.Forms
             if (DpiHelper.IsScalingRequirementMet)
             {
                 // reset cached boundary size - it needs to be recalculated for new DPI
-                systemSize = new Size(InvalidDimensionValue, InvalidDimensionValue);
+                _systemSize = new Size(InvalidDimensionValue, InvalidDimensionValue);
             }
         }
 

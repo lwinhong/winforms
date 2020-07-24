@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -448,9 +448,11 @@ namespace System.Windows.Forms.Tests
         {
             using var stream = new MemoryStream();
             var formatter = new BinaryFormatter();
+#pragma warning disable CS0618 // Type or member is obsolete
             formatter.Serialize(stream, source);
             stream.Position = 0;
             return (T)formatter.Deserialize(stream);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         [WinFormsTheory]
@@ -818,7 +820,7 @@ namespace System.Windows.Forms.Tests
         [WinFormsFact]
         public void ImageList_Dispose_InvokeEmptyWithoutHandle_Nop()
         {
-            var list = new ImageList();
+            using var list = new ImageList();
             list.Dispose();
             Assert.Empty(list.Images);
             Assert.False(list.HandleCreated);
@@ -833,7 +835,7 @@ namespace System.Windows.Forms.Tests
         {
             using var icon = new Icon("bitmaps/10x16_one_entry_32bit.ico");
             using var bitmap = new Bitmap(10, 10);
-            var list = new ImageList();
+            using var list = new ImageList();
             list.Images.Add(icon);
             list.Images.Add(bitmap);
 
@@ -857,7 +859,7 @@ namespace System.Windows.Forms.Tests
         {
             using var bitmap1 = new Bitmap(10, 10);
             using var bitmap2 = new Bitmap(10, 10);
-            var list = new ImageList();
+            using var list = new ImageList();
             list.Images.Add(bitmap1);
             list.Images.Add(bitmap2);
 
@@ -874,7 +876,7 @@ namespace System.Windows.Forms.Tests
         [WinFormsFact]
         public void ImageList_Dispose_InvokeEmptyWithHandle_Nop()
         {
-            var list = new ImageList();
+            using var list = new ImageList();
             Assert.NotEqual(IntPtr.Zero, list.Handle);
 
             list.Dispose();
@@ -891,7 +893,7 @@ namespace System.Windows.Forms.Tests
         {
             using var icon = new Icon("bitmaps/10x16_one_entry_32bit.ico");
             using var bitmap = new Bitmap(10, 10);
-            var list = new ImageList();
+            using var list = new ImageList();
             list.Images.Add(icon);
             list.Images.Add(bitmap);
             Assert.NotEqual(IntPtr.Zero, list.Handle);

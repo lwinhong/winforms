@@ -13,7 +13,7 @@ namespace System.Windows.Forms
     {
         internal class LayoutData
         {
-            internal bool dirty = true;
+            internal bool _dirty = true;
 
             // used for resizing.
             public Rectangle ClientRectangle = Rectangle.Empty;
@@ -83,10 +83,10 @@ namespace System.Windows.Forms
                 sb.Append(ResizeBoxRect.ToString());
                 sb.Append('\n');
                 sb.Append("ColumnHeadersVisible = ");
-                sb.Append(ColumnHeadersVisible.ToString());
+                sb.Append(ColumnHeadersVisible);
                 sb.Append('\n');
                 sb.Append("RowHeadersVisible = ");
-                sb.Append(RowHeadersVisible.ToString());
+                sb.Append(RowHeadersVisible);
                 sb.Append(" }");
                 return sb.ToString();
             }

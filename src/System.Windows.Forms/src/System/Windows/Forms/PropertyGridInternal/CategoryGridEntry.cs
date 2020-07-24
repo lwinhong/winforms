@@ -16,8 +16,8 @@ namespace System.Windows.Forms.PropertyGridInternal
     internal class CategoryGridEntry : GridEntry
     {
         internal string name;
-        private Brush backBrush = null;
-        private static Hashtable categoryStates = null;
+        private Brush backBrush;
+        private static Hashtable categoryStates;
 
         public CategoryGridEntry(PropertyGrid ownerGrid, GridEntry peParent, string name, GridEntry[] childGridEntries)
         : base(ownerGrid, peParent)
@@ -228,7 +228,7 @@ namespace System.Windows.Forms.PropertyGridInternal
 
                 int indent = PropertyLabelIndent - 2;
                 Rectangle focusRect = new Rectangle(indent, rect.Y, labelWidth + 3, rect.Height - 1);
-                if (SystemInformation.HighContrast && !OwnerGrid.developerOverride)
+                if (SystemInformation.HighContrast && !OwnerGrid._developerOverride)
                 {
                     // we changed line color to SystemColors.ControlDarkDark in high contrast mode
                     ControlPaint.DrawFocusRectangle(g, focusRect, SystemColors.ControlText, OwnerGrid.LineColor);

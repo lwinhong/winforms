@@ -244,7 +244,7 @@ namespace System.ComponentModel.Design.Serialization
             private const int StateEvents = 4;
             private const int StateModifier = 5;
 
-            private MemoryStream _resourceStream = null;
+            private MemoryStream _resourceStream;
 
             // Transient fields only used during creation of the store
             private Hashtable _objects;
@@ -406,7 +406,9 @@ namespace System.ComponentModel.Design.Serialization
                             BinaryFormatter formatter = new BinaryFormatter();
                             _resourceStream = new MemoryStream();
 
+#pragma warning disable CS0618 // Type or member is obsolete
                             formatter.Serialize(_resourceStream, _resources.Data);
+#pragma warning restore CS0618 // Type or member is obsolete
                         }
                     }
 
@@ -478,7 +480,9 @@ namespace System.ComponentModel.Design.Serialization
                 {
                     BinaryFormatter formatter = new BinaryFormatter();
                     _resourceStream.Seek(0, SeekOrigin.Begin);
+#pragma warning disable CS0618 // Type or member is obsolete
                     Hashtable resources = formatter.Deserialize(_resourceStream) as Hashtable;
+#pragma warning restore CS0618 // Type or member is obsolete
                     _resources = new LocalResourceManager(resources);
                 }
 
@@ -566,7 +570,9 @@ namespace System.ComponentModel.Design.Serialization
             internal static CodeDomSerializationStore Load(Stream stream)
             {
                 BinaryFormatter f = new BinaryFormatter();
+#pragma warning disable CS0618 // Type or member is obsolete
                 return (CodeDomSerializationStore)f.Deserialize(stream);
+#pragma warning restore CS0618 // Type or member is obsolete
             }
 
             /// <summary>
@@ -1641,7 +1647,7 @@ namespace System.ComponentModel.Design.Serialization
             private class LocalDesignerSerializationManager : DesignerSerializationManager
             {
                 private readonly CodeDomSerializationStore _store;
-                private Nullable<bool> _typeSvcAvailable = new Nullable<bool>();
+                private bool? _typeSvcAvailable;
 
                 /// <summary>
                 ///  Creates a new serilalization manager.

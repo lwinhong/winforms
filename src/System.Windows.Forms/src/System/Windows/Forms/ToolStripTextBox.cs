@@ -18,18 +18,18 @@ namespace System.Windows.Forms
     [ToolStripItemDesignerAvailability(ToolStripItemDesignerAvailability.MenuStrip | ToolStripItemDesignerAvailability.ToolStrip | ToolStripItemDesignerAvailability.ContextMenuStrip)]
     public class ToolStripTextBox : ToolStripControlHost
     {
-        internal static readonly object EventTextBoxTextAlignChanged = new object();
-        internal static readonly object EventAcceptsTabChanged = new object();
-        internal static readonly object EventBorderStyleChanged = new object();
-        internal static readonly object EventHideSelectionChanged = new object();
-        internal static readonly object EventReadOnlyChanged = new object();
-        internal static readonly object EventMultilineChanged = new object();
-        internal static readonly object EventModifiedChanged = new object();
+        internal static readonly object s_eventTextBoxTextAlignChanged = new object();
+        internal static readonly object s_eventAcceptsTabChanged = new object();
+        internal static readonly object s_eventBorderStyleChanged = new object();
+        internal static readonly object s_eventHideSelectionChanged = new object();
+        internal static readonly object s_eventReadOnlyChanged = new object();
+        internal static readonly object s_eventMultilineChanged = new object();
+        internal static readonly object s_eventModifiedChanged = new object();
 
-        private static readonly Padding defaultMargin = new Padding(1, 0, 1, 0);
-        private static readonly Padding defaultDropDownMargin = new Padding(1);
-        private Padding scaledDefaultMargin = defaultMargin;
-        private Padding scaledDefaultDropDownMargin = defaultDropDownMargin;
+        private static readonly Padding s_defaultMargin = new Padding(1, 0, 1, 0);
+        private static readonly Padding s_defaultDropDownMargin = new Padding(1);
+        private Padding _scaledDefaultMargin = s_defaultMargin;
+        private Padding _scaledDefaultDropDownMargin = s_defaultDropDownMargin;
 
         public ToolStripTextBox() : base(CreateControlInstance())
         {
@@ -38,8 +38,8 @@ namespace System.Windows.Forms
 
             if (DpiHelper.IsScalingRequirementMet)
             {
-                scaledDefaultMargin = DpiHelper.LogicalToDeviceUnits(defaultMargin);
-                scaledDefaultDropDownMargin = DpiHelper.LogicalToDeviceUnits(defaultDropDownMargin);
+                _scaledDefaultMargin = DpiHelper.LogicalToDeviceUnits(s_defaultMargin);
+                _scaledDefaultDropDownMargin = DpiHelper.LogicalToDeviceUnits(s_defaultDropDownMargin);
             }
         }
 
@@ -82,11 +82,11 @@ namespace System.Windows.Forms
             {
                 if (IsOnDropDown)
                 {
-                    return scaledDefaultDropDownMargin;
+                    return _scaledDefaultDropDownMargin;
                 }
                 else
                 {
-                    return scaledDefaultMargin;
+                    return _scaledDefaultMargin;
                 }
             }
         }
@@ -150,31 +150,31 @@ namespace System.Windows.Forms
         }
         private void HandleTextBoxTextAlignChanged(object sender, EventArgs e)
         {
-            RaiseEvent(EventTextBoxTextAlignChanged, e);
+            RaiseEvent(s_eventTextBoxTextAlignChanged, e);
         }
         protected virtual void OnAcceptsTabChanged(EventArgs e)
         {
-            RaiseEvent(EventAcceptsTabChanged, e);
+            RaiseEvent(s_eventAcceptsTabChanged, e);
         }
         protected virtual void OnBorderStyleChanged(EventArgs e)
         {
-            RaiseEvent(EventBorderStyleChanged, e);
+            RaiseEvent(s_eventBorderStyleChanged, e);
         }
         protected virtual void OnHideSelectionChanged(EventArgs e)
         {
-            RaiseEvent(EventHideSelectionChanged, e);
+            RaiseEvent(s_eventHideSelectionChanged, e);
         }
         protected virtual void OnModifiedChanged(EventArgs e)
         {
-            RaiseEvent(EventModifiedChanged, e);
+            RaiseEvent(s_eventModifiedChanged, e);
         }
         protected virtual void OnMultilineChanged(EventArgs e)
         {
-            RaiseEvent(EventMultilineChanged, e);
+            RaiseEvent(s_eventMultilineChanged, e);
         }
         protected virtual void OnReadOnlyChanged(EventArgs e)
         {
-            RaiseEvent(EventReadOnlyChanged, e);
+            RaiseEvent(s_eventReadOnlyChanged, e);
         }
 
         protected override void OnSubscribeControlEvents(Control control)
@@ -428,32 +428,32 @@ namespace System.Windows.Forms
         [SRDescription(nameof(SR.TextBoxBaseOnAcceptsTabChangedDescr))]
         public event EventHandler AcceptsTabChanged
         {
-            add => Events.AddHandler(EventAcceptsTabChanged, value);
-            remove => Events.RemoveHandler(EventAcceptsTabChanged, value);
+            add => Events.AddHandler(s_eventAcceptsTabChanged, value);
+            remove => Events.RemoveHandler(s_eventAcceptsTabChanged, value);
         }
 
         [SRCategory(nameof(SR.CatPropertyChanged))]
         [SRDescription(nameof(SR.TextBoxBaseOnBorderStyleChangedDescr))]
         public event EventHandler BorderStyleChanged
         {
-            add => Events.AddHandler(EventBorderStyleChanged, value);
-            remove => Events.RemoveHandler(EventBorderStyleChanged, value);
+            add => Events.AddHandler(s_eventBorderStyleChanged, value);
+            remove => Events.RemoveHandler(s_eventBorderStyleChanged, value);
         }
 
         [SRCategory(nameof(SR.CatPropertyChanged))]
         [SRDescription(nameof(SR.TextBoxBaseOnHideSelectionChangedDescr))]
         public event EventHandler HideSelectionChanged
         {
-            add => Events.AddHandler(EventHideSelectionChanged, value);
-            remove => Events.RemoveHandler(EventHideSelectionChanged, value);
+            add => Events.AddHandler(s_eventHideSelectionChanged, value);
+            remove => Events.RemoveHandler(s_eventHideSelectionChanged, value);
         }
 
         [SRCategory(nameof(SR.CatPropertyChanged))]
         [SRDescription(nameof(SR.TextBoxBaseOnModifiedChangedDescr))]
         public event EventHandler ModifiedChanged
         {
-            add => Events.AddHandler(EventModifiedChanged, value);
-            remove => Events.RemoveHandler(EventModifiedChanged, value);
+            add => Events.AddHandler(s_eventModifiedChanged, value);
+            remove => Events.RemoveHandler(s_eventModifiedChanged, value);
         }
 
         [SRCategory(nameof(SR.CatPropertyChanged))]
@@ -462,24 +462,24 @@ namespace System.Windows.Forms
         [EditorBrowsable(EditorBrowsableState.Never)]
         public event EventHandler MultilineChanged
         {
-            add => Events.AddHandler(EventMultilineChanged, value);
-            remove => Events.RemoveHandler(EventMultilineChanged, value);
+            add => Events.AddHandler(s_eventMultilineChanged, value);
+            remove => Events.RemoveHandler(s_eventMultilineChanged, value);
         }
 
         [SRCategory(nameof(SR.CatPropertyChanged))]
         [SRDescription(nameof(SR.TextBoxBaseOnReadOnlyChangedDescr))]
         public event EventHandler ReadOnlyChanged
         {
-            add => Events.AddHandler(EventReadOnlyChanged, value);
-            remove => Events.RemoveHandler(EventReadOnlyChanged, value);
+            add => Events.AddHandler(s_eventReadOnlyChanged, value);
+            remove => Events.RemoveHandler(s_eventReadOnlyChanged, value);
         }
 
         [SRCategory(nameof(SR.CatPropertyChanged))]
         [SRDescription(nameof(SR.ToolStripTextBoxTextBoxTextAlignChangedDescr))]
         public event EventHandler TextBoxTextAlignChanged
         {
-            add => Events.AddHandler(EventTextBoxTextAlignChanged, value);
-            remove => Events.RemoveHandler(EventTextBoxTextAlignChanged, value);
+            add => Events.AddHandler(s_eventTextBoxTextAlignChanged, value);
+            remove => Events.RemoveHandler(s_eventTextBoxTextAlignChanged, value);
         }
         #endregion WrappedEvents
 
@@ -504,15 +504,15 @@ namespace System.Windows.Forms
         #endregion
         private class ToolStripTextBoxControl : TextBox
         {
-            private bool mouseIsOver = false;
-            private bool isFontSet = true;
-            private bool alreadyHooked;
+            private bool _mouseIsOver;
+            private bool _isFontSet = true;
+            private bool _alreadyHooked;
 
             public ToolStripTextBoxControl()
             {
                 // required to make the text box height match the combo.
                 Font = ToolStripManager.DefaultFont;
-                isFontSet = false;
+                _isFontSet = false;
             }
 
             // returns the distance from the client rect to the upper left hand corner of the control
@@ -575,12 +575,12 @@ namespace System.Windows.Forms
 
             internal bool MouseIsOver
             {
-                get { return mouseIsOver; }
+                get { return _mouseIsOver; }
                 set
                 {
-                    if (mouseIsOver != value)
+                    if (_mouseIsOver != value)
                     {
-                        mouseIsOver = value;
+                        _mouseIsOver = value;
                         if (!Focused)
                         {
                             InvalidateNonClient();
@@ -595,7 +595,7 @@ namespace System.Windows.Forms
                 set
                 {
                     base.Font = value;
-                    isFontSet = ShouldSerializeFont();
+                    _isFontSet = ShouldSerializeFont();
                 }
             }
 
@@ -660,7 +660,7 @@ namespace System.Windows.Forms
             {
                 if (hook)
                 {
-                    if (!alreadyHooked)
+                    if (!_alreadyHooked)
                     {
                         try
                         {
@@ -668,11 +668,11 @@ namespace System.Windows.Forms
                         }
                         finally
                         {
-                            alreadyHooked = true;
+                            _alreadyHooked = true;
                         }
                     }
                 }
-                else if (alreadyHooked)
+                else if (_alreadyHooked)
                 {
                     try
                     {
@@ -680,7 +680,7 @@ namespace System.Windows.Forms
                     }
                     finally
                     {
-                        alreadyHooked = false;
+                        _alreadyHooked = false;
                     }
                 }
             }
@@ -689,7 +689,7 @@ namespace System.Windows.Forms
             {
                 if (e.Category == UserPreferenceCategory.Window)
                 {
-                    if (!isFontSet)
+                    if (!_isFontSet)
                     {
                         Font = ToolStripManager.DefaultFont;
                     }
@@ -729,51 +729,40 @@ namespace System.Windows.Forms
 
                 // Paint over the edges of the text box.
 
-                // Using GetWindowDC instead of GetDCEx as GetDCEx seems to return a null handle and a last error of
-                // the operation succeeded.  We're not going to use the clipping rect anyways - so it's not
-                // that bigga deal.
-                IntPtr hdc = User32.GetWindowDC(new HandleRef(this, m.HWnd));
-                if (hdc == IntPtr.Zero)
+                // Note that GetWindowDC just calls GetDCEx with DCX_WINDOW | DCX_USESTYLE.
+
+                using var hdc = new User32.GetDcScope(m.HWnd, IntPtr.Zero, User32.DCX.WINDOW | User32.DCX.USESTYLE);
+                if (hdc.IsNull)
                 {
                     throw new Win32Exception();
                 }
-                try
+
+                // Don't set the clipping region based on the WParam - windows seems to take out the two pixels intended for the non-client border.
+
+                Color outerBorderColor = (MouseIsOver || Focused) ? ColorTable.TextBoxBorder : BackColor;
+                Color innerBorderColor = BackColor;
+
+                if (!Enabled)
                 {
-                    // Don't set the clipping region based on the WParam - windows seems to take out the two pixels intended for the non-client border.
-
-                    Color outerBorderColor = (MouseIsOver || Focused) ? ColorTable.TextBoxBorder : BackColor;
-                    Color innerBorderColor = BackColor;
-
-                    if (!Enabled)
-                    {
-                        outerBorderColor = SystemColors.ControlDark;
-                        innerBorderColor = SystemColors.Control;
-                    }
-                    using (Graphics g = Graphics.FromHdcInternal(hdc))
-                    {
-                        Rectangle clientRect = AbsoluteClientRectangle;
-
-                        // could have set up a clip and fill-rectangled, thought this would be faster.
-                        using (Brush b = new SolidBrush(innerBorderColor))
-                        {
-                            g.FillRectangle(b, 0, 0, Width, clientRect.Top); // top border
-                            g.FillRectangle(b, 0, 0, clientRect.Left, Height); // left border
-                            g.FillRectangle(b, 0, clientRect.Bottom, Width, Height - clientRect.Height); // bottom border
-                            g.FillRectangle(b, clientRect.Right, 0, Width - clientRect.Right, Height); // right border
-                        }
-
-                        // paint the outside rect.
-                        using (Pen p = new Pen(outerBorderColor))
-                        {
-                            g.DrawRectangle(p, 0, 0, Width - 1, Height - 1);
-                        }
-                    }
+                    outerBorderColor = SystemColors.ControlDark;
+                    innerBorderColor = SystemColors.Control;
                 }
-                finally
-                {
-                    User32.ReleaseDC(new HandleRef(this, Handle), hdc);
-                }
-                // we've handled WM_NCPAINT.
+
+                using Graphics g = hdc.CreateGraphics();
+                Rectangle clientRect = AbsoluteClientRectangle;
+
+                // Could have set up a clip and fill-rectangled, thought this would be faster.
+                using Brush b = new SolidBrush(innerBorderColor);
+                g.FillRectangle(b, 0, 0, Width, clientRect.Top);                                // top border
+                g.FillRectangle(b, 0, 0, clientRect.Left, Height);                              // left border
+                g.FillRectangle(b, 0, clientRect.Bottom, Width, Height - clientRect.Height);    // bottom border
+                g.FillRectangle(b, clientRect.Right, 0, Width - clientRect.Right, Height);      // right border
+
+                // Paint the outside rect.
+                using Pen p = new Pen(outerBorderColor);
+                g.DrawRectangle(p, 0, 0, Width - 1, Height - 1);
+
+                // We've handled WM_NCPAINT.
                 m.Result = IntPtr.Zero;
             }
             protected override void WndProc(ref Message m)
@@ -798,10 +787,13 @@ namespace System.Windows.Forms
 
             internal override object GetPropertyValue(UiaCore.UIA propertyID)
             {
-                if (propertyID == UiaCore.UIA.ControlTypePropertyId)
+                switch (propertyID)
                 {
-                    return UiaCore.UIA.EditControlTypeId;
-                }
+                    case UiaCore.UIA.ControlTypePropertyId:
+                       return UiaCore.UIA.EditControlTypeId;
+                    case UiaCore.UIA.NamePropertyId:
+                       return Name;
+            }
 
                 return base.GetPropertyValue(propertyID);
             }
