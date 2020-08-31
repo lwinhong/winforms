@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using static Interop;
 
 namespace System.Windows.Forms
 {
@@ -517,12 +516,12 @@ namespace System.Windows.Forms
 
         protected override Rectangle GetContentBounds(Graphics graphics, DataGridViewCellStyle cellStyle, int rowIndex)
         {
-            if (cellStyle == null)
+            if (cellStyle is null)
             {
                 throw new ArgumentNullException(nameof(cellStyle));
             }
 
-            if (DataGridView == null || rowIndex < 0 || OwningColumn == null)
+            if (DataGridView is null || rowIndex < 0 || OwningColumn is null)
             {
                 return Rectangle.Empty;
             }
@@ -578,14 +577,14 @@ namespace System.Windows.Forms
 
         protected override Rectangle GetErrorIconBounds(Graphics graphics, DataGridViewCellStyle cellStyle, int rowIndex)
         {
-            if (cellStyle == null)
+            if (cellStyle is null)
             {
                 throw new ArgumentNullException(nameof(cellStyle));
             }
 
-            if (DataGridView == null ||
+            if (DataGridView is null ||
                 rowIndex < 0 ||
-                OwningColumn == null ||
+                OwningColumn is null ||
                 !DataGridView.ShowCellErrors ||
                 string.IsNullOrEmpty(GetErrorText(rowIndex)))
             {
@@ -616,12 +615,12 @@ namespace System.Windows.Forms
 
         protected override Size GetPreferredSize(Graphics graphics, DataGridViewCellStyle cellStyle, int rowIndex, Size constraintSize)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return new Size(-1, -1);
             }
 
-            if (cellStyle == null)
+            if (cellStyle is null)
             {
                 throw new ArgumentNullException(nameof(cellStyle));
             }
@@ -788,7 +787,7 @@ namespace System.Windows.Forms
 
         protected override void OnKeyUp(KeyEventArgs e, int rowIndex)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -811,7 +810,7 @@ namespace System.Windows.Forms
 
         protected override void OnMouseDown(DataGridViewCellMouseEventArgs e)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -826,7 +825,7 @@ namespace System.Windows.Forms
 
         protected override void OnMouseLeave(int rowIndex)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -846,7 +845,7 @@ namespace System.Windows.Forms
 
         protected override void OnMouseMove(DataGridViewCellMouseEventArgs e)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -858,7 +857,7 @@ namespace System.Windows.Forms
                     DataGridView.InvalidateCell(ColumnIndex, e.RowIndex);
                 }
 
-                if (s_dataGridViewCursor == null)
+                if (s_dataGridViewCursor is null)
                 {
                     s_dataGridViewCursor = DataGridView.UserSetCursor;
                 }
@@ -883,7 +882,7 @@ namespace System.Windows.Forms
 
         protected override void OnMouseUp(DataGridViewCellMouseEventArgs e)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -905,7 +904,7 @@ namespace System.Windows.Forms
             DataGridViewAdvancedBorderStyle advancedBorderStyle,
             DataGridViewPaintParts paintParts)
         {
-            if (cellStyle == null)
+            if (cellStyle is null)
             {
                 throw new ArgumentNullException(nameof(cellStyle));
             }
@@ -955,7 +954,7 @@ namespace System.Windows.Forms
             Debug.Assert(!computeErrorIconBounds || !paint || !computeContentBounds);
             Debug.Assert(cellStyle != null);
 
-            if (paint && DataGridViewCell.PaintBorder(paintParts))
+            if (paint && PaintBorder(paintParts))
             {
                 PaintBorder(g, clipBounds, cellBounds, cellStyle, advancedBorderStyle);
             }
@@ -971,11 +970,14 @@ namespace System.Windows.Forms
             Point ptCurrentCell = DataGridView.CurrentCellAddress;
             bool cellCurrent = ptCurrentCell.X == ColumnIndex && ptCurrentCell.Y == rowIndex;
             bool cellSelected = (cellState & DataGridViewElementStates.Selected) != 0;
-            SolidBrush br = DataGridView.GetCachedBrush((DataGridViewCell.PaintSelectionBackground(paintParts) && cellSelected) ? cellStyle.SelectionBackColor : cellStyle.BackColor);
+            Color brushColor = PaintSelectionBackground(paintParts) && cellSelected
+                ? cellStyle.SelectionBackColor
+                : cellStyle.BackColor;
 
-            if (paint && DataGridViewCell.PaintBackground(paintParts) && br.Color.A == 255)
+            if (paint && PaintBackground(paintParts) && !brushColor.HasTransparency())
             {
-                g.FillRectangle(br, valBounds);
+                using var brush = brushColor.GetCachedSolidBrushScope();
+                g.FillRectangle(brush, valBounds);
             }
 
             if (cellStyle.Padding != Padding.Empty)
@@ -1005,25 +1007,45 @@ namespace System.Windows.Forms
                     valBounds.Height -= VerticalTextMarginBottom;
                 }
 
-                Font linkFont = null;
-                Font hoverFont = null;
-                LinkUtilities.EnsureLinkFonts(cellStyle.Font, LinkBehavior, ref linkFont, ref hoverFont);
-                TextFormatFlags flags = DataGridViewUtilities.ComputeTextFormatFlagsForCellStyleAlignment(DataGridView.RightToLeftInternal, cellStyle.Alignment, cellStyle.WrapMode);
-                // paint the focus rectangle around the link
-                if (paint)
+                Font getLinkFont = null;
+                Font getHoverFont = null;
+
+                LinkUtilities.EnsureLinkFonts(cellStyle.Font, LinkBehavior, ref getLinkFont, ref getHoverFont);
+                TextFormatFlags flags = DataGridViewUtilities.ComputeTextFormatFlagsForCellStyleAlignment(
+                    DataGridView.RightToLeftInternal,
+                    cellStyle.Alignment,
+                    cellStyle.WrapMode);
+
+                using Font linkFont = getLinkFont;
+                using Font hoverFont = getHoverFont;
+
+                // Paint the focus rectangle around the link
+                if (!paint)
+                {
+                    Debug.Assert(computeContentBounds);
+                    resultBounds = DataGridViewUtilities.GetTextBounds(
+                        valBounds,
+                        formattedValueStr,
+                        flags,
+                        cellStyle,
+                        LinkState == LinkState.Hover ? hoverFont : linkFont);
+                }
+                else
                 {
                     if (valBounds.Width > 0 && valBounds.Height > 0)
                     {
                         if (cellCurrent &&
                             DataGridView.ShowFocusCues &&
                             DataGridView.Focused &&
-                            DataGridViewCell.PaintFocus(paintParts))
+                            PaintFocus(paintParts))
                         {
-                            Rectangle focusBounds = DataGridViewUtilities.GetTextBounds(valBounds,
-                                                                                        formattedValueStr,
-                                                                                        flags,
-                                                                                        cellStyle,
-                                                                                        LinkState == LinkState.Hover ? hoverFont : linkFont);
+                            Rectangle focusBounds = DataGridViewUtilities.GetTextBounds(
+                                valBounds,
+                                formattedValueStr,
+                                flags,
+                                cellStyle,
+                                LinkState == LinkState.Hover ? hoverFont : linkFont);
+
                             if ((cellStyle.Alignment & AnyLeft) != 0)
                             {
                                 focusBounds.X--;
@@ -1034,9 +1056,11 @@ namespace System.Windows.Forms
                                 focusBounds.X++;
                                 focusBounds.Width++;
                             }
+
                             focusBounds.Height += 2;
-                            ControlPaint.DrawFocusRectangle(g, focusBounds, Color.Empty, br.Color);
+                            ControlPaint.DrawFocusRectangle(g, focusBounds, Color.Empty, brushColor);
                         }
+
                         Color linkColor;
                         if ((LinkState & LinkState.Active) == LinkState.Active)
                         {
@@ -1050,40 +1074,35 @@ namespace System.Windows.Forms
                         {
                             linkColor = LinkColor;
                         }
-                        if (DataGridViewCell.PaintContentForeground(paintParts))
+
+                        if (PaintContentForeground(paintParts))
                         {
                             if ((flags & TextFormatFlags.SingleLine) != 0)
                             {
                                 flags |= TextFormatFlags.EndEllipsis;
                             }
-                            TextRenderer.DrawText(g,
-                                                  formattedValueStr,
-                                                  LinkState == LinkState.Hover ? hoverFont : linkFont,
-                                                  valBounds,
-                                                  linkColor,
-                                                  flags);
+
+                            TextRenderer.DrawText(
+                                g,
+                                formattedValueStr,
+                                LinkState == LinkState.Hover ? hoverFont : linkFont,
+                                valBounds,
+                                linkColor,
+                                flags);
                         }
                     }
                     else if (cellCurrent &&
-                             DataGridView.ShowFocusCues &&
-                             DataGridView.Focused &&
-                             DataGridViewCell.PaintFocus(paintParts) &&
-                             errorBounds.Width > 0 &&
-                             errorBounds.Height > 0)
+                        DataGridView.ShowFocusCues &&
+                        DataGridView.Focused &&
+                        PaintFocus(paintParts) &&
+                        errorBounds.Width > 0 &&
+                        errorBounds.Height > 0)
                     {
                         // Draw focus rectangle
-                        ControlPaint.DrawFocusRectangle(g, errorBounds, Color.Empty, br.Color);
+                        ControlPaint.DrawFocusRectangle(g, errorBounds, Color.Empty, brushColor);
                     }
                 }
-                else
-                {
-                    Debug.Assert(computeContentBounds);
-                    resultBounds = DataGridViewUtilities.GetTextBounds(valBounds,
-                                                                       formattedValueStr,
-                                                                       flags,
-                                                                       cellStyle,
-                                                                       LinkState == LinkState.Hover ? hoverFont : linkFont);
-                }
+
                 linkFont.Dispose();
                 hoverFont.Dispose();
             }
@@ -1092,13 +1111,13 @@ namespace System.Windows.Forms
                 if (cellCurrent &&
                     DataGridView.ShowFocusCues &&
                     DataGridView.Focused &&
-                    DataGridViewCell.PaintFocus(paintParts) &&
+                    PaintFocus(paintParts) &&
                     paint &&
                     valBounds.Width > 0 &&
                     valBounds.Height > 0)
                 {
                     // Draw focus rectangle
-                    ControlPaint.DrawFocusRectangle(g, valBounds, Color.Empty, br.Color);
+                    ControlPaint.DrawFocusRectangle(g, valBounds, Color.Empty, brushColor);
                 }
             }
             else if (computeErrorIconBounds)
@@ -1109,7 +1128,7 @@ namespace System.Windows.Forms
                 }
             }
 
-            if (DataGridView.ShowCellErrors && paint && DataGridViewCell.PaintErrorIcon(paintParts))
+            if (DataGridView.ShowCellErrors && paint && PaintErrorIcon(paintParts))
             {
                 PaintErrorIcon(g, cellStyle, rowIndex, cellBounds, errorBounds, errorText);
             }

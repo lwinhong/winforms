@@ -66,11 +66,11 @@ namespace System.Windows.Forms
             }
             set
             {
-                if (FormattedValueType == null)
+                if (FormattedValueType is null)
                 {
                     throw new ArgumentException(SR.DataGridViewCell_FormattedValueTypeNull);
                 }
-                if (value == null || !FormattedValueType.IsAssignableFrom(value.GetType()))
+                if (value is null || !FormattedValueType.IsAssignableFrom(value.GetType()))
                 {
                     // Assigned formatted value may not be of the good type, in cases where the app
                     // is feeding wrong values to the cell in virtual / databound mode.
@@ -135,7 +135,7 @@ namespace System.Windows.Forms
 
         public virtual object GetEditingCellFormattedValue(DataGridViewDataErrorContexts context)
         {
-            if (FormattedValueType == null)
+            if (FormattedValueType is null)
             {
                 throw new InvalidOperationException(SR.DataGridViewCell_FormattedValueTypeNull);
             }
@@ -505,12 +505,12 @@ namespace System.Windows.Forms
 
         protected override Rectangle GetContentBounds(Graphics graphics, DataGridViewCellStyle cellStyle, int rowIndex)
         {
-            if (cellStyle == null)
+            if (cellStyle is null)
             {
                 throw new ArgumentNullException(nameof(cellStyle));
             }
 
-            if (DataGridView == null || rowIndex < 0 || OwningColumn == null)
+            if (DataGridView is null || rowIndex < 0 || OwningColumn is null)
             {
                 return Rectangle.Empty;
             }
@@ -564,14 +564,14 @@ namespace System.Windows.Forms
 
         protected override Rectangle GetErrorIconBounds(Graphics graphics, DataGridViewCellStyle cellStyle, int rowIndex)
         {
-            if (cellStyle == null)
+            if (cellStyle is null)
             {
                 throw new ArgumentNullException(nameof(cellStyle));
             }
 
-            if (DataGridView == null ||
+            if (DataGridView is null ||
                 rowIndex < 0 ||
-                OwningColumn == null ||
+                OwningColumn is null ||
                 !DataGridView.ShowCellErrors ||
                 string.IsNullOrEmpty(GetErrorText(rowIndex)))
             {
@@ -684,12 +684,12 @@ namespace System.Windows.Forms
 
         protected override Size GetPreferredSize(Graphics graphics, DataGridViewCellStyle cellStyle, int rowIndex, Size constraintSize)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return new Size(-1, -1);
             }
 
-            if (cellStyle == null)
+            if (cellStyle is null)
             {
                 throw new ArgumentNullException(nameof(cellStyle));
             }
@@ -836,7 +836,7 @@ namespace System.Windows.Forms
 
         private void OnCommonContentClick(DataGridViewCellEventArgs e)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -864,7 +864,7 @@ namespace System.Windows.Forms
 
         protected override void OnKeyDown(KeyEventArgs e, int rowIndex)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -877,7 +877,7 @@ namespace System.Windows.Forms
 
         protected override void OnKeyUp(KeyEventArgs e, int rowIndex)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -901,7 +901,7 @@ namespace System.Windows.Forms
 
         protected override void OnLeave(int rowIndex, bool throughMouseClick)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -914,7 +914,7 @@ namespace System.Windows.Forms
 
         protected override void OnMouseDown(DataGridViewCellMouseEventArgs e)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -927,7 +927,7 @@ namespace System.Windows.Forms
 
         protected override void OnMouseLeave(int rowIndex)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -953,7 +953,7 @@ namespace System.Windows.Forms
 
         protected override void OnMouseMove(DataGridViewCellMouseEventArgs e)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -989,7 +989,7 @@ namespace System.Windows.Forms
 
         protected override void OnMouseUp(DataGridViewCellMouseEventArgs e)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -1032,7 +1032,7 @@ namespace System.Windows.Forms
             DataGridViewAdvancedBorderStyle advancedBorderStyle,
             DataGridViewPaintParts paintParts)
         {
-            if (cellStyle == null)
+            if (cellStyle is null)
             {
                 throw new ArgumentNullException(nameof(cellStyle));
             }
@@ -1137,14 +1137,14 @@ namespace System.Windows.Forms
                 bs |= ButtonState.Pushed;
             }
 
-            SolidBrush br = DataGridView.GetCachedBrush(
-                PaintSelectionBackground(paintParts) && cellSelected
-                    ? cellStyle.SelectionBackColor
-                    : cellStyle.BackColor);
+            Color brushColor = PaintSelectionBackground(paintParts) && cellSelected
+                ? cellStyle.SelectionBackColor
+                : cellStyle.BackColor;
 
-            if (paint && PaintBackground(paintParts) && br.Color.A == 255)
+            if (paint && PaintBackground(paintParts) && !brushColor.HasTransparency())
             {
-                g.FillRectangle(br, valBounds);
+                using var brush = brushColor.GetCachedSolidBrushScope();
+                g.FillRectangle(brush, valBounds);
             }
 
             if (cellStyle.Padding != Padding.Empty)
@@ -1169,7 +1169,7 @@ namespace System.Windows.Forms
                 ptCurrentCell.Y == rowIndex)
             {
                 // Draw focus rectangle
-                ControlPaint.DrawFocusRectangle(g, valBounds, Color.Empty, br.Color);
+                ControlPaint.DrawFocusRectangle(g, valBounds, Color.Empty, brushColor);
             }
 
             Rectangle errorBounds = valBounds;
@@ -1306,19 +1306,18 @@ namespace System.Windows.Forms
 
                         Rectangle checkBounds = new Rectangle(checkBoxX, checkBoxY, checkBoxSize.Width, checkBoxSize.Height);
 
-                        SolidBrush foreBrush = null;
-                        SolidBrush backBrush = null;
-                        Color highlight = Color.Empty;
+                        Color foreBrushColor = default;
+                        Color backBrushColor = default;
+                        Color highlight = default;
 
                         if (paint && PaintContentForeground(paintParts))
                         {
-                            foreBrush = DataGridView.GetCachedBrush(
-                                cellSelected ? cellStyle.SelectionForeColor : cellStyle.ForeColor);
-                            backBrush = DataGridView.GetCachedBrush(
-                                (PaintSelectionBackground(paintParts) && cellSelected)
-                                    ? cellStyle.SelectionBackColor
-                                    : cellStyle.BackColor);
-                            highlight = ControlPaint.LightLight(backBrush.Color);
+                            foreBrushColor = cellSelected ? cellStyle.SelectionForeColor : cellStyle.ForeColor;
+                            backBrushColor = PaintSelectionBackground(paintParts) && cellSelected
+                                ? cellStyle.SelectionBackColor
+                                : cellStyle.BackColor;
+
+                            highlight = ControlPaint.LightLight(backBrushColor);
 
                             if (DataGridView.MouseEnteredCellAddress.Y == rowIndex &&
                                 DataGridView.MouseEnteredCellAddress.X == ColumnIndex &&
@@ -1336,9 +1335,10 @@ namespace System.Windows.Forms
                                     ButtonBaseAdapter.ColorOptions.Adjust255(adjust, highlight.G),
                                     ButtonBaseAdapter.ColorOptions.Adjust255(adjust, highlight.B));
                             }
-                            highlight = g.GetNearestColor(highlight);
 
-                            using Pen pen = new Pen(foreBrush.Color);
+                            highlight = g.FindNearestColor(highlight);
+
+                            using var pen = foreBrushColor.GetCachedPenScope();
                             g.DrawLine(pen, checkBounds.Left, checkBounds.Top, checkBounds.Right - 1, checkBounds.Top);
                             g.DrawLine(pen, checkBounds.Left, checkBounds.Top, checkBounds.Left, checkBounds.Bottom - 1);
                         }
@@ -1351,11 +1351,11 @@ namespace System.Windows.Forms
                         {
                             if (checkState == CheckState.Indeterminate)
                             {
-                                ButtonBaseAdapter.DrawDitheredFill(g, backBrush.Color, highlight, checkBounds);
+                                ButtonBaseAdapter.DrawDitheredFill(g, backBrushColor, highlight, checkBounds);
                             }
                             else
                             {
-                                using SolidBrush highBrush = new SolidBrush(highlight);
+                                using var highBrush = highlight.GetCachedSolidBrushScope();
                                 g.FillRectangle(highBrush, checkBounds);
                             }
 
@@ -1366,7 +1366,7 @@ namespace System.Windows.Forms
                                 fullSize.Width++;
                                 fullSize.Height++;
 
-                                if (checkImage == null || checkImage.Width != fullSize.Width || checkImage.Height != fullSize.Height)
+                                if (checkImage is null || checkImage.Width != fullSize.Width || checkImage.Height != fullSize.Height)
                                 {
                                     if (checkImage != null)
                                     {
@@ -1398,8 +1398,8 @@ namespace System.Windows.Forms
                                     checkImage,
                                     fullSize,
                                     checkState == CheckState.Indeterminate
-                                        ? ControlPaint.LightLight(foreBrush.Color)
-                                        : foreBrush.Color);
+                                        ? ControlPaint.LightLight(foreBrushColor)
+                                        : foreBrushColor);
                             }
                         }
 
@@ -1455,8 +1455,7 @@ namespace System.Windows.Forms
                                     g,
                                     layout,
                                     colors,
-                                    colors.windowText,
-                                    colors.buttonFace);
+                                    colors.windowText);
                             }
 
                             resultBounds = layout.checkBounds;
@@ -1506,8 +1505,7 @@ namespace System.Windows.Forms
                                     g,
                                     layout,
                                     colors,
-                                    colors.windowText,
-                                    colors.highlight);
+                                    colors.windowText);
                             }
                             resultBounds = layout.checkBounds;
                         }
@@ -1544,7 +1542,7 @@ namespace System.Windows.Forms
                                     colors.options.HighContrast ? colors.buttonFace : colors.highlight,
                                     disabledColors: true);
 
-                                ControlPaint.DrawBorderSolid(g, layout.checkBounds, colors.buttonShadow);
+                                ControlPaint.DrawBorderSimple(g, layout.checkBounds, colors.buttonShadow);
                                 CheckBoxBaseAdapter.DrawCheckOnly(
                                     checkBoxSize.Width,
                                     checkState == CheckState.Checked || checkState == CheckState.Indeterminate,
@@ -1553,8 +1551,7 @@ namespace System.Windows.Forms
                                     g,
                                     layout,
                                     colors,
-                                    colors.windowText,
-                                    colors.highlight);
+                                    colors.windowText);
                             }
 
                             resultBounds = layout.checkBounds;
@@ -1593,7 +1590,7 @@ namespace System.Windows.Forms
             TypeConverter formattedValueTypeConverter,
             TypeConverter valueTypeConverter)
         {
-            Debug.Assert(formattedValue == null || FormattedValueType == null || FormattedValueType.IsAssignableFrom(formattedValue.GetType()));
+            Debug.Assert(formattedValue is null || FormattedValueType is null || FormattedValueType.IsAssignableFrom(formattedValue.GetType()));
 
             if (formattedValue != null)
             {
@@ -1681,7 +1678,7 @@ namespace System.Windows.Forms
 
         private bool SwitchFormattedValue()
         {
-            if (FormattedValueType == null)
+            if (FormattedValueType is null)
             {
                 return false;
             }

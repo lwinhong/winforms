@@ -339,7 +339,7 @@ namespace System.Windows.Forms
                     }
                     else
                     {
-                        using Pen pen = new Pen(color);
+                        using var pen = color.GetCachedPenScope();
                         e.Graphics.DrawLine(pen, pt1, pt2);
                     }
                 }
@@ -360,7 +360,7 @@ namespace System.Windows.Forms
             protected void StartTimer()
             {
                 _parent.OnStartTimer();
-                if (_timer == null)
+                if (_timer is null)
                 {
                     // Generates UpDown events
                     _timer = new Timer();
@@ -543,7 +543,7 @@ namespace System.Windows.Forms
                 {
                     get
                     {
-                        if (_owner == null)
+                        if (_owner is null)
                         {
                             return base.RuntimeId;
                         }

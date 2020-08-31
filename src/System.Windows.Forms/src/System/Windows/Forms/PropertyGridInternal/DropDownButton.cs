@@ -167,7 +167,7 @@ namespace System.Windows.Forms.PropertyGridInternal
                 }
                 else
                 {
-                    ControlPaint.DrawBorderSolid(e, r, ControlPaint.Dark(Control.BackColor));
+                    ControlPaint.DrawBorderSimple(e, r, ControlPaint.Dark(Control.BackColor));
                 }
             }
             else
@@ -196,7 +196,7 @@ namespace System.Windows.Forms.PropertyGridInternal
                 }
                 else
                 {
-                    ControlPaint.DrawBorderSolid(e, r, ControlPaint.Dark(Control.BackColor));
+                    ControlPaint.DrawBorderSimple(e, r, ControlPaint.Dark(Control.BackColor));
                 }
             }
         }
@@ -304,14 +304,6 @@ namespace System.Windows.Forms.PropertyGridInternal
             UiaCore.UIA.LegacyIAccessibleRolePropertyId => Role,
             _ => base.GetPropertyValue(propertyID),
         };
-
-        /// <summary>
-        ///  Indicates whether the specified pattern is supported.
-        /// </summary>
-        /// <param name="patternId">The pattern ID.</param>
-        /// <returns>True if specified pattern is supported, otherwise false.</returns>
-        internal override bool IsPatternSupported(UiaCore.UIA patternId)
-            => patternId == UiaCore.UIA.LegacyIAccessiblePatternId || base.IsPatternSupported(patternId);
 
         /// <summary>
         ///  Gets the accessible role.

@@ -137,7 +137,7 @@ namespace System.Windows.Forms
 
                 // Unsupported navigation operation for this object, or unexpected error.
                 // Return false to force fall back on default system navigation behavior.
-                if (ctrls == null || ctrls.Length == 0)
+                if (ctrls is null || ctrls.Length == 0)
                 {
                     return false;
                 }
@@ -156,11 +156,11 @@ namespace System.Windows.Forms
             public override string? DefaultAction => Owner.AccessibleDefaultActionDescription ?? base.DefaultAction;
 
             // This is used only if control supports IAccessibleEx
-            internal override int[] RuntimeId
+            internal override int[]? RuntimeId
             {
                 get
                 {
-                    if (_runtimeId == null)
+                    if (_runtimeId is null)
                     {
                         _runtimeId = new int[] { 0x2a, (int)(long)Handle };
                     }
@@ -317,7 +317,7 @@ namespace System.Windows.Forms
                     // Try to get to the parent of this control.
                     Control parent = Owner.ParentInternal;
 
-                    if (parent == null)
+                    if (parent is null)
                     {
                         return null;
                     }
@@ -365,7 +365,7 @@ namespace System.Windows.Forms
                 int topic = 0;
 
                 QueryAccessibilityHelpEventHandler? handler = (QueryAccessibilityHelpEventHandler?)Owner.Events[s_queryAccessibilityHelpEvent];
-                if (handler == null)
+                if (handler is null)
                 {
                     return base.GetHelpTopic(out fileName);
                 }
@@ -485,7 +485,7 @@ namespace System.Windows.Forms
                 return base.RaiseAutomationPropertyChangedEvent(propertyId, oldValue, newValue);
             }
 
-            internal override UiaCore.IRawElementProviderSimple HostRawElementProvider
+            internal override UiaCore.IRawElementProviderSimple? HostRawElementProvider
             {
                 get
                 {

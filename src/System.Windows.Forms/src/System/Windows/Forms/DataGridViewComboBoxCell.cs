@@ -206,7 +206,7 @@ namespace System.Windows.Forms
                         ValueMemberInternal = null;
                     }
 
-                    if (value == null)
+                    if (value is null)
                     {
                         DisplayMemberInternal = null;
                         ValueMemberInternal = null;
@@ -231,7 +231,7 @@ namespace System.Windows.Forms
             get
             {
                 object displayMember = Properties.GetObject(s_propComboBoxCellDisplayMember);
-                if (displayMember == null)
+                if (displayMember is null)
                 {
                     return string.Empty;
                 }
@@ -577,7 +577,7 @@ namespace System.Windows.Forms
                 {
                     if (value)
                     {
-                        if (DataSource == null)
+                        if (DataSource is null)
                         {
                             Items.SortInternal();
                         }
@@ -617,7 +617,7 @@ namespace System.Windows.Forms
             get
             {
                 object valueMember = Properties.GetObject(s_propComboBoxCellValueMember);
-                if (valueMember == null)
+                if (valueMember is null)
                 {
                     return string.Empty;
                 }
@@ -829,7 +829,7 @@ namespace System.Windows.Forms
             dataGridViewCell.DataSource = DataSource;
             dataGridViewCell.DisplayMember = DisplayMember;
             dataGridViewCell.ValueMember = ValueMember;
-            if (HasItems && DataSource == null && Items.Count > 0)
+            if (HasItems && DataSource is null && Items.Count > 0)
             {
                 dataGridViewCell.Items.AddRangeInternal(Items.InnerArray.ToArray());
             }
@@ -889,7 +889,7 @@ namespace System.Windows.Forms
         public override void DetachEditingControl()
         {
             DataGridView dgv = DataGridView;
-            if (dgv == null || dgv.EditingControl == null)
+            if (dgv is null || dgv.EditingControl is null)
             {
                 throw new InvalidOperationException();
             }
@@ -907,12 +907,12 @@ namespace System.Windows.Forms
 
         protected override Rectangle GetContentBounds(Graphics graphics, DataGridViewCellStyle cellStyle, int rowIndex)
         {
-            if (cellStyle == null)
+            if (cellStyle is null)
             {
                 throw new ArgumentNullException(nameof(cellStyle));
             }
 
-            if (DataGridView == null || rowIndex < 0 || OwningColumn == null)
+            if (DataGridView is null || rowIndex < 0 || OwningColumn is null)
             {
                 return Rectangle.Empty;
             }
@@ -963,7 +963,7 @@ namespace System.Windows.Forms
         private CurrencyManager GetDataManager(DataGridView dataGridView)
         {
             CurrencyManager cm = (CurrencyManager)Properties.GetObject(s_propComboBoxCellDataManager);
-            if (cm == null && DataSource != null && dataGridView != null && dataGridView.BindingContext != null && !(DataSource == Convert.DBNull))
+            if (cm is null && DataSource != null && dataGridView != null && dataGridView.BindingContext != null && !(DataSource == Convert.DBNull))
             {
                 if (DataSource is ISupportInitializeNotification dsInit && !dsInit.IsInitialized)
                 {
@@ -1011,14 +1011,14 @@ namespace System.Windows.Forms
 
         protected override Rectangle GetErrorIconBounds(Graphics graphics, DataGridViewCellStyle cellStyle, int rowIndex)
         {
-            if (cellStyle == null)
+            if (cellStyle is null)
             {
                 throw new ArgumentNullException(nameof(cellStyle));
             }
 
-            if (DataGridView == null ||
+            if (DataGridView is null ||
                 rowIndex < 0 ||
-                OwningColumn == null ||
+                OwningColumn is null ||
                 !DataGridView.ShowCellErrors ||
                 string.IsNullOrEmpty(GetErrorText(rowIndex)))
             {
@@ -1075,7 +1075,7 @@ namespace System.Windows.Forms
                                                     TypeConverter formattedValueTypeConverter,
                                                     DataGridViewDataErrorContexts context)
         {
-            if (valueTypeConverter == null)
+            if (valueTypeConverter is null)
             {
                 if (ValueMemberProperty != null)
                 {
@@ -1087,11 +1087,11 @@ namespace System.Windows.Forms
                 }
             }
 
-            if (value == null || ((ValueType != null && !ValueType.IsAssignableFrom(value.GetType())) && value != System.DBNull.Value))
+            if (value is null || ((ValueType != null && !ValueType.IsAssignableFrom(value.GetType())) && value != System.DBNull.Value))
             {
                 // Do not raise the DataError event if the value is null and the row is the 'new row'.
 
-                if (value == null)
+                if (value is null)
                 {
                     return base.GetFormattedValue(null, rowIndex, ref cellStyle, valueTypeConverter, formattedValueTypeConverter, context);
                 }
@@ -1223,7 +1223,7 @@ namespace System.Windows.Forms
         internal ObjectCollection GetItems(DataGridView dataGridView)
         {
             ObjectCollection items = (ObjectCollection)Properties.GetObject(s_propComboBoxCellItems);
-            if (items == null)
+            if (items is null)
             {
                 items = new ObjectCollection(this);
                 Properties.SetObject(s_propComboBoxCellItems, items);
@@ -1291,12 +1291,12 @@ namespace System.Windows.Forms
 
         protected override Size GetPreferredSize(Graphics graphics, DataGridViewCellStyle cellStyle, int rowIndex, Size constraintSize)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return new Size(-1, -1);
             }
 
-            if (cellStyle == null)
+            if (cellStyle is null)
             {
                 throw new ArgumentNullException(nameof(cellStyle));
             }
@@ -1410,7 +1410,7 @@ namespace System.Windows.Forms
                 comboBox.DataSource = DataSource;
                 comboBox.DisplayMember = DisplayMember;
                 comboBox.ValueMember = ValueMember;
-                if (HasItems && DataSource == null && Items.Count > 0)
+                if (HasItems && DataSource is null && Items.Count > 0)
                 {
                     comboBox.Items.AddRange(Items.InnerArray.ToArray());
                 }
@@ -1467,7 +1467,7 @@ namespace System.Windows.Forms
 
                     PropertyDescriptorCollection props = DataManager.GetItemProperties();
                     PropertyDescriptor displayMemberProperty = props.Find(displayBindingMember.BindingField, true);
-                    if (displayMemberProperty == null)
+                    if (displayMemberProperty is null)
                     {
                         throw new ArgumentException(string.Format(SR.DataGridViewComboBoxCell_FieldNotFound, displayMember));
                     }
@@ -1495,7 +1495,7 @@ namespace System.Windows.Forms
 
                     PropertyDescriptorCollection props = DataManager.GetItemProperties();
                     PropertyDescriptor valueMemberProperty = props.Find(valueBindingMember.BindingField, true);
-                    if (valueMemberProperty == null)
+                    if (valueMemberProperty is null)
                     {
                         throw new ArgumentException(string.Format(SR.DataGridViewComboBoxCell_FieldNotFound, valueMember));
                     }
@@ -1514,7 +1514,7 @@ namespace System.Windows.Forms
         /// </summary>
         private object ItemFromComboBoxDataSource(PropertyDescriptor property, object key)
         {
-            if (key == null)
+            if (key is null)
             {
                 throw new ArgumentNullException(nameof(key));
             }
@@ -1569,13 +1569,13 @@ namespace System.Windows.Forms
                 {
                     displayValue = propDesc.GetValue(item);
                 }
-                if (displayValue == null || !displayValue.Equals(key))
+                if (displayValue is null || !displayValue.Equals(key))
                 {
                     // No, the selected item is not looked for.
                     item = null; // Need to loop through all the items
                 }
             }
-            if (item == null)
+            if (item is null)
             {
                 foreach (object itemCandidate in Items)
                 {
@@ -1593,19 +1593,19 @@ namespace System.Windows.Forms
                     }
                 }
             }
-            if (item == null)
+            if (item is null)
             {
                 // The provided field could be wrong - try to match the key against an actual item
                 if (OwnsEditingComboBox(rowIndex))
                 {
                     // It is likely that the item looked for is the selected item.
                     item = EditingComboBox.SelectedItem;
-                    if (item == null || !item.Equals(key))
+                    if (item is null || !item.Equals(key))
                     {
                         item = null;
                     }
                 }
-                if (item == null && Items.Contains(key))
+                if (item is null && Items.Contains(key))
                 {
                     item = key;
                 }
@@ -1654,7 +1654,7 @@ namespace System.Windows.Forms
                 //Find the item in the Items collection based on the provided ValueMember or DisplayMember
                 item = ItemFromComboBoxItems(rowIndex, string.IsNullOrEmpty(ValueMember) ? DisplayMember : ValueMember, value);
             }
-            if (item == null)
+            if (item is null)
             {
                 displayValue = null;
                 return false;
@@ -1675,7 +1675,7 @@ namespace System.Windows.Forms
         /// </summary>
         private bool LookupValue(object formattedValue, out object value)
         {
-            if (formattedValue == null)
+            if (formattedValue is null)
             {
                 value = null;
                 return true;
@@ -1696,7 +1696,7 @@ namespace System.Windows.Forms
                 //Find the item in the Items collection based on the provided DisplayMember or ValueMember
                 item = ItemFromComboBoxItems(RowIndex, string.IsNullOrEmpty(DisplayMember) ? ValueMember : DisplayMember, formattedValue);
             }
-            if (item == null)
+            if (item is null)
             {
                 value = null;
                 return false;
@@ -1720,7 +1720,7 @@ namespace System.Windows.Forms
 
         protected override void OnEnter(int rowIndex, bool throughMouseClick)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -1750,7 +1750,7 @@ namespace System.Windows.Forms
 
         protected override void OnLeave(int rowIndex, bool throughMouseClick)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -1759,7 +1759,7 @@ namespace System.Windows.Forms
 
         protected override void OnMouseClick(DataGridViewCellMouseEventArgs e)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -1771,7 +1771,7 @@ namespace System.Windows.Forms
                 {
                     _flags = (byte)(_flags & ~IgnoreNextMouseClick);
                 }
-                else if ((EditingComboBox == null || !EditingComboBox.DroppedDown) &&
+                else if ((EditingComboBox is null || !EditingComboBox.DroppedDown) &&
                          DataGridView.EditMode != DataGridViewEditMode.EditProgrammatically &&
                          DataGridView.BeginEdit(true /*selectAll*/))
                 {
@@ -1785,7 +1785,7 @@ namespace System.Windows.Forms
 
         protected override void OnMouseEnter(int rowIndex)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -1800,7 +1800,7 @@ namespace System.Windows.Forms
 
         protected override void OnMouseLeave(int rowIndex)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -1827,7 +1827,7 @@ namespace System.Windows.Forms
 
         protected override void OnMouseMove(DataGridViewCellMouseEventArgs e)
         {
-            if (DataGridView == null)
+            if (DataGridView is null)
             {
                 return;
             }
@@ -1870,16 +1870,16 @@ namespace System.Windows.Forms
                         cellBounds,
                         rowIndex,
                         cellState,
-                        null /*formattedValue*/,            // dropDownButtonRect is independent of formattedValue
-                        null /*errorText*/,                 // dropDownButtonRect is independent of errorText
+                        formattedValue: null,            // dropDownButtonRect is independent of formattedValue
+                        errorText: null,                 // dropDownButtonRect is independent of errorText
                         cellStyle,
                         dgvabsEffective,
                         out dropDownButtonRect,
                         DataGridViewPaintParts.ContentForeground,
-                        false /*computeContentBounds*/,
-                        false /*computeErrorIconBounds*/,
-                        true  /*computeDropDownButtonRect*/,
-                        false /*paint*/);
+                        computeContentBounds: false,
+                        computeErrorIconBounds: false,
+                        computeDropDownButtonRect: true,
+                        paint: false);
                 }
 
                 bool newMouseInDropDownButtonBounds = dropDownButtonRect.Contains(DataGridView.PointToClient(Control.MousePosition));
@@ -1909,7 +1909,7 @@ namespace System.Windows.Forms
             DataGridViewAdvancedBorderStyle advancedBorderStyle,
             DataGridViewPaintParts paintParts)
         {
-            if (cellStyle == null)
+            if (cellStyle is null)
             {
                 throw new ArgumentNullException(nameof(cellStyle));
             }
@@ -1999,7 +1999,6 @@ namespace System.Windows.Forms
             valBounds.Width -= borderWidths.Right;
             valBounds.Height -= borderWidths.Bottom;
 
-            SolidBrush br;
             Point ptCurrentCell = DataGridView.CurrentCellAddress;
             bool cellCurrent = ptCurrentCell.X == ColumnIndex && ptCurrentCell.Y == rowIndex;
             bool cellEdited = cellCurrent && DataGridView.EditingControl != null;
@@ -2008,18 +2007,15 @@ namespace System.Windows.Forms
                                 ((DisplayStyleForCurrentCellOnly && cellCurrent) || !DisplayStyleForCurrentCellOnly);
             bool drawDropDownButton = DisplayStyle != DataGridViewComboBoxDisplayStyle.Nothing &&
                                 ((DisplayStyleForCurrentCellOnly && cellCurrent) || !DisplayStyleForCurrentCellOnly);
-            if (DataGridViewCell.PaintSelectionBackground(paintParts) && cellSelected && !cellEdited)
-            {
-                br = DataGridView.GetCachedBrush(cellStyle.SelectionBackColor);
-            }
-            else
-            {
-                br = DataGridView.GetCachedBrush(cellStyle.BackColor);
-            }
 
-            if (paint && DataGridViewCell.PaintBackground(paintParts) && br.Color.A == 255 && valBounds.Width > 0 && valBounds.Height > 0)
+            Color brushColor = PaintSelectionBackground(paintParts) && cellSelected && !cellEdited
+                ? cellStyle.SelectionBackColor
+                : cellStyle.BackColor;
+            using var brush = paint && !brushColor.HasTransparency() ? brushColor.GetCachedSolidBrushScope() : default;
+
+            if (paint && PaintBackground(paintParts) && !brushColor.HasTransparency() && valBounds.Width > 0 && valBounds.Height > 0)
             {
-                DataGridViewCell.PaintPadding(g, valBounds, cellStyle, br, DataGridView.RightToLeftInternal);
+                PaintPadding(g, valBounds, cellStyle, brush, DataGridView.RightToLeftInternal);
             }
 
             if (cellStyle.Padding != Padding.Empty)
@@ -2040,11 +2036,12 @@ namespace System.Windows.Forms
             {
                 if (paintXPThemes && drawComboBox)
                 {
-                    if (paintPostXPThemes && DataGridViewCell.PaintBackground(paintParts) && br.Color.A == 255)
+                    if (paintPostXPThemes && PaintBackground(paintParts) && !brushColor.HasTransparency())
                     {
-                        g.FillRectangle(br, valBounds.Left, valBounds.Top, valBounds.Width, valBounds.Height);
+                        g.FillRectangle(brush, valBounds.Left, valBounds.Top, valBounds.Width, valBounds.Height);
                     }
-                    if (DataGridViewCell.PaintContentBackground(paintParts))
+
+                    if (PaintContentBackground(paintParts))
                     {
                         if (paintPostXPThemes)
                         {
@@ -2055,13 +2052,14 @@ namespace System.Windows.Forms
                             DataGridViewComboBoxCellRenderer.DrawTextBox(g, valBounds, comboBoxState);
                         }
                     }
+
                     if (!paintPostXPThemes &&
-                        DataGridViewCell.PaintBackground(paintParts) && br.Color.A == 255 && valBounds.Width > 2 && valBounds.Height > 2)
+                        PaintBackground(paintParts) && !brushColor.HasTransparency() && valBounds.Width > 2 && valBounds.Height > 2)
                     {
-                        g.FillRectangle(br, valBounds.Left + 1, valBounds.Top + 1, valBounds.Width - 2, valBounds.Height - 2);
+                        g.FillRectangle(brush, valBounds.Left + 1, valBounds.Top + 1, valBounds.Width - 2, valBounds.Height - 2);
                     }
                 }
-                else if (DataGridViewCell.PaintBackground(paintParts) && br.Color.A == 255)
+                else if (PaintBackground(paintParts) && !brushColor.HasTransparency())
                 {
                     if (paintPostXPThemes && drawDropDownButton && !drawComboBox)
                     {
@@ -2069,7 +2067,7 @@ namespace System.Windows.Forms
                     }
                     else
                     {
-                        g.FillRectangle(br, valBounds.Left, valBounds.Top, valBounds.Width, valBounds.Height);
+                        g.FillRectangle(brush, valBounds.Left, valBounds.Top, valBounds.Width, valBounds.Height);
                     }
                 }
             }
@@ -2095,25 +2093,28 @@ namespace System.Windows.Forms
                     {
                         if (paintPostXPThemes)
                         {
-                            dropRect = new Rectangle(DataGridView.RightToLeftInternal ? valBounds.Left : valBounds.Right - dropWidth,
-                                                    valBounds.Top,
-                                                    dropWidth,
-                                                    dropHeight);
+                            dropRect = new Rectangle(
+                                DataGridView.RightToLeftInternal ? valBounds.Left : valBounds.Right - dropWidth,
+                                valBounds.Top,
+                                dropWidth,
+                                dropHeight);
                         }
                         else
                         {
-                            dropRect = new Rectangle(DataGridView.RightToLeftInternal ? valBounds.Left + 1 : valBounds.Right - dropWidth - 1,
-                                                    valBounds.Top + 1,
-                                                    dropWidth,
-                                                    dropHeight);
+                            dropRect = new Rectangle(
+                                DataGridView.RightToLeftInternal ? valBounds.Left + 1 : valBounds.Right - dropWidth - 1,
+                                valBounds.Top + 1,
+                                dropWidth,
+                                dropHeight);
                         }
                     }
                     else
                     {
-                        dropRect = new Rectangle(DataGridView.RightToLeftInternal ? valBounds.Left + 2 : valBounds.Right - dropWidth - 2,
-                                                valBounds.Top + 2,
-                                                dropWidth,
-                                                dropHeight);
+                        dropRect = new Rectangle(
+                            DataGridView.RightToLeftInternal ? valBounds.Left + 2 : valBounds.Right - dropWidth - 2,
+                            valBounds.Top + 2,
+                            dropWidth,
+                            dropHeight);
                     }
 
                     if (paintPostXPThemes && drawDropDownButton && !drawComboBox)
@@ -2125,7 +2126,7 @@ namespace System.Windows.Forms
                         dropDownButtonRect = dropRect;
                     }
 
-                    if (paint && DataGridViewCell.PaintContentBackground(paintParts))
+                    if (paint && PaintContentBackground(paintParts))
                     {
                         if (drawDropDownButton)
                         {
@@ -2149,10 +2150,11 @@ namespace System.Windows.Forms
 
                                     if (SystemInformation.HighContrast)
                                     {
-                                        // In the case of ComboBox style, background is not filled in,
-                                        // in the case of DrawReadOnlyButton uses theming API to render CP_READONLY COMBOBOX part that renders the background,
-                                        // this API does not have "selected" state, thus always uses BackColor
-                                        br = DataGridView.GetCachedBrush(cellStyle.BackColor);
+                                        // In the case of ComboBox style, background is not filled in. In the case of
+                                        // DrawReadOnlyButton uses theming API to render CP_READONLY COMBOBOX part that
+                                        // renders the background, this API does not have "selected" state, thus always
+                                        // uses BackColor.
+                                        brushColor = cellStyle.BackColor;
                                     }
                                 }
                                 else
@@ -2165,58 +2167,12 @@ namespace System.Windows.Forms
                                 g.FillRectangle(SystemBrushes.Control, dropRect);
                             }
                         }
+
                         if (!paintFlat && !paintXPThemes && (drawComboBox || drawDropDownButton))
                         {
-                            // border painting is ripped from button renderer
-                            Color color = SystemColors.Control;
-                            Color buttonShadow;
-                            Color buttonShadowDark;
-                            Color buttonFace = color;
-                            Color highlight;
-                            bool stockColor = color.ToKnownColor() == SystemColors.Control.ToKnownColor();
-                            bool highContrast = SystemInformation.HighContrast;
-                            if (color == SystemColors.Control)
-                            {
-                                buttonShadow = SystemColors.ControlDark;
-                                buttonShadowDark = SystemColors.ControlDarkDark;
-                                highlight = SystemColors.ControlLightLight;
-                            }
-                            else
-                            {
-                                buttonShadow = ControlPaint.Dark(color);
-                                highlight = ControlPaint.LightLight(color);
-                                if (highContrast)
-                                {
-                                    buttonShadowDark = ControlPaint.LightLight(color);
-                                }
-                                else
-                                {
-                                    buttonShadowDark = ControlPaint.DarkDark(color);
-                                }
-                            }
+                            Pen pen = SystemInformation.HighContrast ? SystemPens.ControlLight : SystemPens.Control;
 
-                            buttonShadow = g.GetNearestColor(buttonShadow);
-                            buttonShadowDark = g.GetNearestColor(buttonShadowDark);
-                            buttonFace = g.GetNearestColor(buttonFace);
-                            highlight = g.GetNearestColor(highlight);
                             // top + left
-                            Pen pen;
-                            if (stockColor)
-                            {
-                                if (SystemInformation.HighContrast)
-                                {
-                                    pen = SystemPens.ControlLight;
-                                }
-                                else
-                                {
-                                    pen = SystemPens.Control;
-                                }
-                            }
-                            else
-                            {
-                                pen = new Pen(highlight);
-                            }
-
                             if (drawDropDownButton)
                             {
                                 g.DrawLine(pen, dropRect.X, dropRect.Y,
@@ -2224,6 +2180,7 @@ namespace System.Windows.Forms
                                 g.DrawLine(pen, dropRect.X, dropRect.Y,
                                         dropRect.X, dropRect.Y + dropRect.Height - 1);
                             }
+
                             // the bounds around the combobox control
                             if (drawComboBox)
                             {
@@ -2232,15 +2189,10 @@ namespace System.Windows.Forms
                                 g.DrawLine(pen, valBounds.X + valBounds.Width - 1, valBounds.Y,
                                         valBounds.X + valBounds.Width - 1, valBounds.Y + valBounds.Height - 1);
                             }
+
+                            pen = SystemPens.ControlDarkDark;
+
                             // bottom + right
-                            if (stockColor)
-                            {
-                                pen = SystemPens.ControlDarkDark;
-                            }
-                            else
-                            {
-                                pen.Color = buttonShadowDark;
-                            }
                             if (drawDropDownButton)
                             {
                                 g.DrawLine(pen, dropRect.X, dropRect.Y + dropRect.Height - 1,
@@ -2248,6 +2200,7 @@ namespace System.Windows.Forms
                                 g.DrawLine(pen, dropRect.X + dropRect.Width - 1, dropRect.Y,
                                         dropRect.X + dropRect.Width - 1, dropRect.Y + dropRect.Height - 1);
                             }
+
                             // the bounds around the combobox control
                             if (drawComboBox)
                             {
@@ -2256,15 +2209,9 @@ namespace System.Windows.Forms
                                 g.DrawLine(pen, valBounds.X, valBounds.Y,
                                         valBounds.X, valBounds.Y + valBounds.Height - 1);
                             }
+
                             // Top + Left inset
-                            if (stockColor)
-                            {
-                                pen = SystemPens.ControlLightLight;
-                            }
-                            else
-                            {
-                                pen.Color = buttonFace;
-                            }
+                            pen = SystemPens.ControlLightLight;
                             if (drawDropDownButton)
                             {
                                 g.DrawLine(pen, dropRect.X + 1, dropRect.Y + 1,
@@ -2272,25 +2219,15 @@ namespace System.Windows.Forms
                                 g.DrawLine(pen, dropRect.X + 1, dropRect.Y + 1,
                                         dropRect.X + 1, dropRect.Y + dropRect.Height - 2);
                             }
+
                             // Bottom + Right inset
-                            if (stockColor)
-                            {
-                                pen = SystemPens.ControlDark;
-                            }
-                            else
-                            {
-                                pen.Color = buttonShadow;
-                            }
+                            pen = SystemPens.ControlDark;
                             if (drawDropDownButton)
                             {
                                 g.DrawLine(pen, dropRect.X + 1, dropRect.Y + dropRect.Height - 2,
                                         dropRect.X + dropRect.Width - 2, dropRect.Y + dropRect.Height - 2);
                                 g.DrawLine(pen, dropRect.X + dropRect.Width - 2, dropRect.Y + 1,
                                         dropRect.X + dropRect.Width - 2, dropRect.Y + dropRect.Height - 2);
-                            }
-                            if (!stockColor)
-                            {
-                                pen.Dispose();
                             }
                         }
 
@@ -2389,7 +2326,7 @@ namespace System.Windows.Forms
             {
                 if (cellCurrent &&
                     !cellEdited &&
-                    DataGridViewCell.PaintFocus(paintParts) &&
+                    PaintFocus(paintParts) &&
                     DataGridView.ShowFocusCues &&
                     DataGridView.Focused &&
                     paint)
@@ -2405,7 +2342,7 @@ namespace System.Windows.Forms
                         focusBounds.Width++;
                         focusBounds.Y--;
                         focusBounds.Height += 2;
-                        ControlPaint.DrawFocusRectangle(g, focusBounds, Color.Empty, br.Color);
+                        ControlPaint.DrawFocusRectangle(g, focusBounds, Color.Empty, brushColor);
                     }
                     else if (paintPostXPThemes)
                     {
@@ -2416,12 +2353,12 @@ namespace System.Windows.Forms
                         focusBounds.Height -= 2;
                         if (focusBounds.Width > 0 && focusBounds.Height > 0)
                         {
-                            ControlPaint.DrawFocusRectangle(g, focusBounds, Color.Empty, br.Color);
+                            ControlPaint.DrawFocusRectangle(g, focusBounds, Color.Empty, brushColor);
                         }
                     }
                     else
                     {
-                        ControlPaint.DrawFocusRectangle(g, textBounds, Color.Empty, br.Color);
+                        ControlPaint.DrawFocusRectangle(g, textBounds, Color.Empty, brushColor);
                     }
                 }
 
@@ -2429,7 +2366,7 @@ namespace System.Windows.Forms
                 {
                     valBounds.Width--;
                     valBounds.Height--;
-                    if (!cellEdited && paint && DataGridViewCell.PaintContentBackground(paintParts) && drawComboBox)
+                    if (!cellEdited && paint && PaintContentBackground(paintParts) && drawComboBox)
                     {
                         g.DrawRectangle(SystemPens.ControlDark, valBounds);
                     }
@@ -2456,7 +2393,7 @@ namespace System.Windows.Forms
                         TextFormatFlags flags = DataGridViewUtilities.ComputeTextFormatFlagsForCellStyleAlignment(DataGridView.RightToLeftInternal, cellStyle.Alignment, cellStyle.WrapMode);
                         if (!cellEdited && paint)
                         {
-                            if (DataGridViewCell.PaintContentForeground(paintParts))
+                            if (PaintContentForeground(paintParts))
                             {
                                 if ((flags & TextFormatFlags.SingleLine) != 0)
                                 {
@@ -2471,12 +2408,14 @@ namespace System.Windows.Forms
                                 {
                                     textColor = cellSelected ? cellStyle.SelectionForeColor : cellStyle.ForeColor;
                                 }
-                                TextRenderer.DrawText(g,
-                                                    formattedString,
-                                                    cellStyle.Font,
-                                                    textBounds,
-                                                    textColor,
-                                                    flags);
+
+                                TextRenderer.DrawText(
+                                    g,
+                                    formattedString,
+                                    cellStyle.Font,
+                                    textBounds,
+                                    textColor,
+                                    flags);
                             }
                         }
                         else if (computeContentBounds)
@@ -2486,7 +2425,7 @@ namespace System.Windows.Forms
                     }
                 }
 
-                if (DataGridView.ShowCellErrors && paint && DataGridViewCell.PaintErrorIcon(paintParts))
+                if (DataGridView.ShowCellErrors && paint && PaintErrorIcon(paintParts))
                 {
                     PaintErrorIcon(g, cellStyle, rowIndex, cellBounds, errorBounds, errorText);
                     if (cellEdited)
@@ -2511,12 +2450,13 @@ namespace System.Windows.Forms
             return resultBounds;
         }
 
-        public override object ParseFormattedValue(object formattedValue,
-                                                   DataGridViewCellStyle cellStyle,
-                                                   TypeConverter formattedValueTypeConverter,
-                                                   TypeConverter valueTypeConverter)
+        public override object ParseFormattedValue(
+            object formattedValue,
+            DataGridViewCellStyle cellStyle,
+            TypeConverter formattedValueTypeConverter,
+            TypeConverter valueTypeConverter)
         {
-            if (valueTypeConverter == null)
+            if (valueTypeConverter is null)
             {
                 if (ValueMemberProperty != null)
                 {
@@ -2611,7 +2551,7 @@ namespace System.Windows.Forms
             {
                 get
                 {
-                    if (comparer == null)
+                    if (comparer is null)
                     {
                         comparer = new ItemComparer(owner);
                     }
@@ -2637,7 +2577,7 @@ namespace System.Windows.Forms
             {
                 get
                 {
-                    if (items == null)
+                    if (items is null)
                     {
                         items = new ArrayList();
                     }
@@ -2689,7 +2629,7 @@ namespace System.Windows.Forms
                 //this.owner.CheckNoSharedCell();
                 owner.CheckNoDataSource();
 
-                if (item == null)
+                if (item is null)
                 {
                     throw new ArgumentNullException(nameof(item));
                 }
@@ -2744,14 +2684,14 @@ namespace System.Windows.Forms
             /// </summary>
             internal void AddRangeInternal(ICollection items)
             {
-                if (items == null)
+                if (items is null)
                 {
                     throw new ArgumentNullException(nameof(items));
                 }
 
                 foreach (object item in items)
                 {
-                    if (item == null)
+                    if (item is null)
                     {
                         throw new InvalidOperationException(SR.InvalidNullItemInCollection);
                     }
@@ -2853,7 +2793,7 @@ namespace System.Windows.Forms
 
             public int IndexOf(object value)
             {
-                if (value == null)
+                if (value is null)
                 {
                     throw new ArgumentNullException(nameof(value));
                 }
@@ -2872,7 +2812,7 @@ namespace System.Windows.Forms
                 //this.owner.CheckNoSharedCell();
                 owner.CheckNoDataSource();
 
-                if (item == null)
+                if (item is null)
                 {
                     throw new ArgumentNullException(nameof(item));
                 }
@@ -2937,15 +2877,15 @@ namespace System.Windows.Forms
 
             public int Compare(object item1, object item2)
             {
-                if (item1 == null)
+                if (item1 is null)
                 {
-                    if (item2 == null)
+                    if (item2 is null)
                     {
                         return 0; //both null, then they are equal
                     }
                     return -1; //item1 is null, but item2 is valid (greater)
                 }
-                if (item2 == null)
+                if (item2 is null)
                 {
                     return 1; //item2 is null, so item 1 is greater
                 }

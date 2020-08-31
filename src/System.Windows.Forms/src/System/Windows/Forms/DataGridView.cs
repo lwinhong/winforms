@@ -353,8 +353,9 @@ namespace System.Windows.Forms
         private Timer _vertScrollTimer, _horizScrollTimer;
 
         private readonly Hashtable _converters;
-        private Hashtable _pens;
-        private Hashtable _brushes;
+        private static Color s_defaultBackColor = SystemColors.Window;
+        private static Color s_defaultBackgroundColor = SystemColors.ControlDark;
+        private Color _backgroundColor = s_defaultBackgroundColor;
 
         private RECT[] _cachedScrollableRegion;
 
@@ -414,9 +415,7 @@ namespace System.Windows.Forms
             _lstRows = new ArrayList();
 
             _converters = new Hashtable(8);
-            _pens = new Hashtable(8);
-            _brushes = new Hashtable(10);
-            GridPen = new Pen(DefaultGridColor);
+            GridPenColor = DefaultGridColor;
 
             _selectedBandIndexes = new DataGridViewIntLinkedList();
             _individualSelectedCells = new DataGridViewCellLinkedList();
@@ -671,7 +670,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (DataSource == null)
+                if (DataSource is null)
                 {
                     return AllowUserToAddRows;
                 }
@@ -713,7 +712,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (DataSource == null)
+                if (DataSource is null)
                 {
                     return AllowUserToDeleteRows;
                 }
@@ -827,7 +826,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_alternatingRowsDefaultCellStyle == null)
+                if (_alternatingRowsDefaultCellStyle is null)
                 {
                     _alternatingRowsDefaultCellStyle = new DataGridViewCellStyle();
                     _alternatingRowsDefaultCellStyle.AddScope(this, DataGridViewCellStyleScopes.AlternatingRows);
@@ -1057,8 +1056,6 @@ namespace System.Windows.Forms
             remove => base.BackColorChanged -= value;
         }
 
-        internal SolidBrush BackgroundBrush { get; private set; } = DefaultBackgroundBrush;
-
         /// <summary>
         ///  Gets or sets the background color of the dataGridView.
         /// </summary>
@@ -1066,23 +1063,17 @@ namespace System.Windows.Forms
         [SRDescription(nameof(SR.DataGridViewBackgroundColorDescr))]
         public Color BackgroundColor
         {
-            get
-            {
-                return BackgroundBrush.Color;
-            }
+            get => _backgroundColor;
             set
             {
                 if (value.IsEmpty)
-                {
                     throw new ArgumentException(string.Format(SR.DataGridView_EmptyColor, "BackgroundColor"));
-                }
                 if (value.A < 255)
-                {
                     throw new ArgumentException(string.Format(SR.DataGridView_TransparentColor, "BackgroundColor"));
-                }
-                if (!value.Equals(BackgroundBrush.Color))
+
+                if (!value.Equals(_backgroundColor))
                 {
-                    BackgroundBrush = new SolidBrush(value);
+                    _backgroundColor = value;
                     OnBackgroundColorChanged(EventArgs.Empty);
                 }
             }
@@ -1128,10 +1119,7 @@ namespace System.Windows.Forms
             remove => base.BackgroundImageLayoutChanged -= value;
         }
 
-        private bool ShouldSerializeBackgroundColor()
-        {
-            return !BackgroundColor.Equals(DefaultBackgroundBrush.Color);
-        }
+        private bool ShouldSerializeBackgroundColor() => !BackgroundColor.Equals(s_defaultBackgroundColor);
 
         [DefaultValue(BorderStyle.FixedSingle)]
         [SRCategory(nameof(SR.CatAppearance))]
@@ -1409,7 +1397,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_dgvcpe == null)
+                if (_dgvcpe is null)
                 {
                     _dgvcpe = new DataGridViewCellPaintingEventArgs(this);
                 }
@@ -1421,7 +1409,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_dgvcsce == null)
+                if (_dgvcsce is null)
                 {
                     _dgvcsce = new DataGridViewCellStyleChangedEventArgs();
                 }
@@ -1433,7 +1421,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_dgvcve == null)
+                if (_dgvcve is null)
                 {
                     _dgvcve = new DataGridViewCellValueEventArgs();
                 }
@@ -1609,7 +1597,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_columnHeadersDefaultCellStyle == null)
+                if (_columnHeadersDefaultCellStyle is null)
                 {
                     _columnHeadersDefaultCellStyle = DefaultColumnHeadersDefaultCellStyle;
                 }
@@ -1798,7 +1786,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_dataGridViewColumns == null)
+                if (_dataGridViewColumns is null)
                 {
                     _dataGridViewColumns = CreateColumnsInstance();
                 }
@@ -1825,9 +1813,9 @@ namespace System.Windows.Forms
             set
             {
                 if ((value != null && (value.RowIndex != _ptCurrentCell.Y || value.ColumnIndex != _ptCurrentCell.X)) ||
-                    (value == null && _ptCurrentCell.X != -1))
+                    (value is null && _ptCurrentCell.X != -1))
                 {
-                    if (value == null)
+                    if (value is null)
                     {
                         ClearSelection();
                         if (!SetCurrentCellAddressCore(-1, -1, true /*setAnchorCellAddress*/, true /*validateCurrentCell*/, false /*throughMouseClick*/))
@@ -1983,7 +1971,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (DataConnection == null)
+                if (DataConnection is null)
                 {
                     return string.Empty;
                 }
@@ -1997,7 +1985,7 @@ namespace System.Windows.Forms
                 if (value != DataMember)
                 {
                     CurrentCell = null;
-                    if (DataConnection == null)
+                    if (DataConnection is null)
                     {
                         DataConnection = new DataGridViewDataConnection(this);
                     }
@@ -2024,7 +2012,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (DataConnection == null)
+                if (DataConnection is null)
                 {
                     return null;
                 }
@@ -2038,7 +2026,7 @@ namespace System.Windows.Forms
                 if (value != DataSource)
                 {
                     CurrentCell = null;
-                    if (DataConnection == null)
+                    if (DataConnection is null)
                     {
                         DataConnection = new DataGridViewDataConnection(this);
                         DataConnection.SetDataConnection(value, DataMember);
@@ -2051,7 +2039,7 @@ namespace System.Windows.Forms
                             DataMember = string.Empty;
                         }
                         DataConnection.SetDataConnection(value, DataMember);
-                        if (value == null)
+                        if (value is null)
                         {
                             DataConnection = null;
                         }
@@ -2069,22 +2057,6 @@ namespace System.Windows.Forms
             remove => Events.RemoveHandler(s_dataSourceChangedEvent, value);
         }
 
-        private static SolidBrush DefaultBackBrush
-        {
-            get
-            {
-                return (SolidBrush)SystemBrushes.Window;
-            }
-        }
-
-        private static SolidBrush DefaultBackgroundBrush
-        {
-            get
-            {
-                return (SolidBrush)SystemBrushes.ControlDark;
-            }
-        }
-
         [SRCategory(nameof(SR.CatAppearance))]
         [SRDescription(nameof(SR.DataGridView_DefaultCellStyleDescr))]
         [AmbientValue(null)]
@@ -2092,7 +2064,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_defaultCellStyle == null)
+                if (_defaultCellStyle is null)
                 {
                     _defaultCellStyle = DefaultDefaultCellStyle;
                     return _defaultCellStyle;
@@ -2101,7 +2073,7 @@ namespace System.Windows.Forms
                     _defaultCellStyle.ForeColor == Color.Empty ||
                     _defaultCellStyle.SelectionBackColor == Color.Empty ||
                     _defaultCellStyle.SelectionForeColor == Color.Empty ||
-                    _defaultCellStyle.Font == null ||
+                    _defaultCellStyle.Font is null ||
                     _defaultCellStyle.Alignment == DataGridViewContentAlignment.NotSet ||
                     _defaultCellStyle.WrapMode == DataGridViewTriState.NotSet)
                 {
@@ -2111,7 +2083,7 @@ namespace System.Windows.Forms
                     };
                     if (_defaultCellStyle.BackColor == Color.Empty)
                     {
-                        defaultCellStyleTmp.BackColor = DefaultBackBrush.Color;
+                        defaultCellStyleTmp.BackColor = s_defaultBackColor;
                     }
                     if (_defaultCellStyle.ForeColor == Color.Empty)
                     {
@@ -2126,7 +2098,7 @@ namespace System.Windows.Forms
                     {
                         defaultCellStyleTmp.SelectionForeColor = DefaultSelectionForeBrush.Color;
                     }
-                    if (_defaultCellStyle.Font == null)
+                    if (_defaultCellStyle.Font is null)
                     {
                         defaultCellStyleTmp.Font = base.Font;
                         _dataGridViewState1[State1_AmbientFont] = true;
@@ -2171,7 +2143,7 @@ namespace System.Windows.Forms
             {
                 DataGridViewCellStyle defaultCellStyle = new DataGridViewCellStyle
                 {
-                    BackColor = DefaultBackBrush.Color,
+                    BackColor = s_defaultBackColor,
                     ForeColor = base.ForeColor,
                     SelectionBackColor = DefaultSelectionBackBrush.Color,
                     SelectionForeColor = DefaultSelectionForeBrush.Color,
@@ -2397,7 +2369,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_editingPanel == null)
+                if (_editingPanel is null)
                 {
                     _editingPanel = new DataGridViewEditingPanel(this)
                     {
@@ -2412,7 +2384,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_editingPanelAccessibleObject == null)
+                if (_editingPanelAccessibleObject is null)
                 {
                     _editingPanelAccessibleObject = new DataGridViewEditingPanelAccessibleObject(this, EditingPanel);
                 }
@@ -2554,7 +2526,7 @@ namespace System.Windows.Forms
                 }
 #if DEBUG
                 DataGridViewColumn dataGridViewColumnDbg1 = Columns.GetFirstColumn(DataGridViewElementStates.Displayed);
-                int firstDisplayedColumnIndexDbg1 = (dataGridViewColumnDbg1 == null) ? -1 : dataGridViewColumnDbg1.Index;
+                int firstDisplayedColumnIndexDbg1 = (dataGridViewColumnDbg1 is null) ? -1 : dataGridViewColumnDbg1.Index;
 
                 int firstDisplayedColumnIndexDbg2 = -1;
                 DataGridViewColumn dataGridViewColumnDbg = Columns.GetFirstColumn(DataGridViewElementStates.Visible | DataGridViewElementStates.Frozen);
@@ -2793,28 +2765,16 @@ namespace System.Windows.Forms
         [SRDescription(nameof(SR.DataGridViewGridColorDescr))]
         public Color GridColor
         {
-            get
-            {
-                return GridPen.Color;
-            }
+            get => GridPenColor;
             set
             {
                 if (value.IsEmpty)
-                {
-                    throw new ArgumentException(string.Format(SR.DataGridView_EmptyColor, "GridColor"));
-                }
+                    throw new ArgumentException(string.Format(SR.DataGridView_EmptyColor, nameof(GridColor)));
                 if (value.A < 255)
-                {
-                    throw new ArgumentException(string.Format(SR.DataGridView_TransparentColor, "GridColor"));
-                }
-                if (!value.Equals(GridPen.Color))
-                {
-                    if (GridPen != null)
-                    {
-                        GridPen.Dispose();
-                    }
+                    throw new ArgumentException(string.Format(SR.DataGridView_TransparentColor, nameof(GridColor)));
 
-                    GridPen = new Pen(value);
+                if (!value.Equals(GridPenColor))
+                {
                     OnGridColorChanged(EventArgs.Empty);
                 }
             }
@@ -2830,10 +2790,10 @@ namespace System.Windows.Forms
 
         private bool ShouldSerializeGridColor()
         {
-            return !GridPen.Color.Equals(DefaultGridColor);
+            return !GridPenColor.Equals(DefaultGridColor);
         }
 
-        internal Pen GridPen { get; private set; }
+        internal Color GridPenColor { get; private set; }
 
         internal int HorizontalOffset
         {
@@ -3004,7 +2964,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_horizScrollTimer == null)
+                if (_horizScrollTimer is null)
                 {
                     _horizScrollTimer = new Timer();
                     _horizScrollTimer.Tick += new EventHandler(HorizScrollTimer_Tick);
@@ -3318,7 +3278,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_placeholderCellStyle == null)
+                if (_placeholderCellStyle is null)
                 {
                     _placeholderCellStyle = new DataGridViewCellStyle();
                 }
@@ -3601,7 +3561,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_rowHeadersDefaultCellStyle == null)
+                if (_rowHeadersDefaultCellStyle is null)
                 {
                     _rowHeadersDefaultCellStyle = DefaultRowHeadersDefaultCellStyle;
                 }
@@ -3786,7 +3746,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_dataGridViewRows == null)
+                if (_dataGridViewRows is null)
                 {
                     _dataGridViewRows = CreateRowsInstance();
                 }
@@ -3800,7 +3760,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_rowsDefaultCellStyle == null)
+                if (_rowsDefaultCellStyle is null)
                 {
                     _rowsDefaultCellStyle = new DataGridViewCellStyle();
                     _rowsDefaultCellStyle.AddScope(this, DataGridViewCellStyleScopes.Rows);
@@ -3841,7 +3801,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_rowTemplate == null)
+                if (_rowTemplate is null)
                 {
                     _rowTemplate = new DataGridViewRow();
                 }
@@ -4371,7 +4331,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_topLeftHeaderCell == null)
+                if (_topLeftHeaderCell is null)
                 {
                     TopLeftHeaderCell = new DataGridViewTopLeftHeaderCell();
                 }
@@ -4468,7 +4428,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_vertScrollTimer == null)
+                if (_vertScrollTimer is null)
                 {
                     _vertScrollTimer = new Timer();
                     _vertScrollTimer.Tick += new EventHandler(VertScrollTimer_Tick);
@@ -5103,7 +5063,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_dgvrhine == null)
+                if (_dgvrhine is null)
                 {
                     _dgvrhine = new DataGridViewRowHeightInfoNeededEventArgs();
                 }
@@ -5148,7 +5108,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_dgvrpope == null)
+                if (_dgvrpope is null)
                 {
                     _dgvrpope = new DataGridViewRowPostPaintEventArgs(this);
                 }
@@ -5168,7 +5128,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_dgvrprpe == null)
+                if (_dgvrprpe is null)
                 {
                     _dgvrprpe = new DataGridViewRowPrePaintEventArgs(this);
                 }

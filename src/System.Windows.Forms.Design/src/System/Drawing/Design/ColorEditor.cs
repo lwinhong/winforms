@@ -29,7 +29,7 @@ namespace System.Drawing.Design
         /// </summary>
         public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
         {
-            if (provider == null)
+            if (provider is null)
             {
                 return value;
             }
@@ -38,7 +38,7 @@ namespace System.Drawing.Design
                 return value;
             }
 
-            if (_colorUI == null)
+            if (_colorUI is null)
             {
                 _colorUI = new ColorUI(this);
             }
@@ -575,7 +575,7 @@ namespace System.Drawing.Design
                         return null;
                     }
 
-                    if (cells[id] == null)
+                    if (cells[id] is null)
                     {
                         cells[id] = new ColorCellAccessibleObject(this, ColorPalette.GetColorFromCell(id), id);
                     }
@@ -689,7 +689,7 @@ namespace System.Drawing.Design
             {
                 get
                 {
-                    if (customColors == null)
+                    if (customColors is null)
                     {
                         customColors = new Color[ColorPalette.CELLS_CUSTOM];
                         for (int i = 0; i < ColorPalette.CELLS_CUSTOM; i++)
@@ -1100,13 +1100,13 @@ namespace System.Drawing.Design
                 switch ((WM)msg)
                 {
                     case WM.INITDIALOG:
-                        SendDlgItemMessageW(hwnd, (DialogItemID)COLOR.HUE, (WM)EM.SETMARGINS, (IntPtr)(EC.LEFTMARGIN | EC.RIGHTMARGIN));
-                        SendDlgItemMessageW(hwnd, (DialogItemID)COLOR.SAT, (WM)EM.SETMARGINS, (IntPtr)(EC.LEFTMARGIN | EC.RIGHTMARGIN));
-                        SendDlgItemMessageW(hwnd, (DialogItemID)COLOR.LUM, (WM)EM.SETMARGINS, (IntPtr)(EC.LEFTMARGIN | EC.RIGHTMARGIN));
-                        SendDlgItemMessageW(hwnd, (DialogItemID)COLOR.RED, (WM)EM.SETMARGINS, (IntPtr)(EC.LEFTMARGIN | EC.RIGHTMARGIN));
-                        SendDlgItemMessageW(hwnd, (DialogItemID)COLOR.GREEN, (WM)EM.SETMARGINS, (IntPtr)(EC.LEFTMARGIN | EC.RIGHTMARGIN));
-                        SendDlgItemMessageW(hwnd, (DialogItemID)COLOR.BLUE, (WM)EM.SETMARGINS, (IntPtr)(EC.LEFTMARGIN | EC.RIGHTMARGIN));
-                        IntPtr hwndCtl = GetDlgItem(hwnd, (DialogItemID)COLOR.MIX);
+                        SendDlgItemMessageW(hwnd, (DialogItemID)Comdlg32.COLOR.HUE, (WM)EM.SETMARGINS, (IntPtr)(EC.LEFTMARGIN | EC.RIGHTMARGIN));
+                        SendDlgItemMessageW(hwnd, (DialogItemID)Comdlg32.COLOR.SAT, (WM)EM.SETMARGINS, (IntPtr)(EC.LEFTMARGIN | EC.RIGHTMARGIN));
+                        SendDlgItemMessageW(hwnd, (DialogItemID)Comdlg32.COLOR.LUM, (WM)EM.SETMARGINS, (IntPtr)(EC.LEFTMARGIN | EC.RIGHTMARGIN));
+                        SendDlgItemMessageW(hwnd, (DialogItemID)Comdlg32.COLOR.RED, (WM)EM.SETMARGINS, (IntPtr)(EC.LEFTMARGIN | EC.RIGHTMARGIN));
+                        SendDlgItemMessageW(hwnd, (DialogItemID)Comdlg32.COLOR.GREEN, (WM)EM.SETMARGINS, (IntPtr)(EC.LEFTMARGIN | EC.RIGHTMARGIN));
+                        SendDlgItemMessageW(hwnd, (DialogItemID)Comdlg32.COLOR.BLUE, (WM)EM.SETMARGINS, (IntPtr)(EC.LEFTMARGIN | EC.RIGHTMARGIN));
+                        IntPtr hwndCtl = GetDlgItem(hwnd, (DialogItemID)Comdlg32.COLOR.MIX);
                         EnableWindow(hwndCtl, BOOL.FALSE);
                         SetWindowPos(
                             hwndCtl,
@@ -1122,22 +1122,21 @@ namespace System.Drawing.Design
                         break;
 
                     case WM.COMMAND:
-                        switch (PARAM.LOWORD(wParam))
+                        if (PARAM.LOWORD(wParam) == (int)Comdlg32.COLOR.ADD)
                         {
-                            case (int)COLOR.ADD:
-                                BOOL err = BOOL.FALSE;
-                                byte red = (byte)User32.GetDlgItemInt(hwnd, (int)COLOR.RED, &err, BOOL.FALSE);
-                                Debug.Assert(err.IsFalse(), "Couldn't find dialog member COLOR_RED");
+                            BOOL err = BOOL.FALSE;
+                            byte red = (byte)User32.GetDlgItemInt(hwnd, (int)Comdlg32.COLOR.RED, &err, BOOL.FALSE);
+                            Debug.Assert(err.IsFalse(), "Couldn't find dialog member COLOR_RED");
 
-                                byte green = (byte)User32.GetDlgItemInt(hwnd, (int)COLOR.GREEN, &err, BOOL.FALSE);
-                                Debug.Assert(err.IsFalse(), "Couldn't find dialog member COLOR_GREEN");
+                            byte green = (byte)User32.GetDlgItemInt(hwnd, (int)Comdlg32.COLOR.GREEN, &err, BOOL.FALSE);
+                            Debug.Assert(err.IsFalse(), "Couldn't find dialog member COLOR_GREEN");
 
-                                byte blue = (byte)User32.GetDlgItemInt(hwnd, (int)COLOR.BLUE, &err, BOOL.FALSE);
-                                Debug.Assert(err.IsFalse(), "Couldn't find dialog member COLOR_BLUE");
+                            byte blue = (byte)User32.GetDlgItemInt(hwnd, (int)Comdlg32.COLOR.BLUE, &err, BOOL.FALSE);
+                            Debug.Assert(err.IsFalse(), "Couldn't find dialog member COLOR_BLUE");
 
-                                Color = Color.FromArgb(red, green, blue);
-                                PostMessageW(hwnd, WM.COMMAND, PARAM.FromLowHigh((int)ID.OK, 0), GetDlgItem(hwnd, (DialogItemID)ID.OK));
-                                break;
+                            Color = Color.FromArgb(red, green, blue);
+                            PostMessageW(hwnd, WM.COMMAND, PARAM.FromLowHigh((int)ID.OK, 0), GetDlgItem(hwnd, (DialogItemID)ID.OK));
+                            break;
                         }
                         break;
                 }
