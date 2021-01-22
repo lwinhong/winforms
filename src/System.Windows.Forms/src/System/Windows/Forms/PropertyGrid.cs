@@ -1041,10 +1041,7 @@ namespace System.Windows.Forms
             set
             {
                 //valid values are 0x0 to 0x3
-                if (!ClientUtils.IsEnumValid(value, (int)value, (int)PropertySort.NoSort, (int)PropertySort.CategorizedAlphabetical))
-                {
-                    throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(PropertySort));
-                }
+                SourceGenerated.EnumValidator.Validate(value);
                 ToolStripButton newButton;
 
                 if ((value & PropertySort.Categorized) != 0)
@@ -2040,7 +2037,7 @@ namespace System.Windows.Forms
 
         private ToolStripButton CreatePushButton(string toolTipText, int imageIndex, EventHandler eventHandler, bool useCheckButtonRole = false)
         {
-            ToolStripButton button = new ToolStripButton
+            PropertyGridToolStripButton button = new PropertyGridToolStripButton
             {
                 Text = toolTipText,
                 AutoToolTip = true,
@@ -5464,6 +5461,11 @@ namespace System.Windows.Forms
         /// </returns>
         internal override UiaCore.IRawElementProviderFragment ElementProviderFromPoint(double x, double y)
         {
+            if (!_owningPropertyGrid.IsHandleCreated)
+            {
+                return null;
+            }
+
             Point clientPoint = _owningPropertyGrid.PointToClient(new Point((int)x, (int)y));
 
             Control element = _owningPropertyGrid.GetElementFromPoint(clientPoint);

@@ -73,10 +73,7 @@ namespace System.Windows.Forms
             set
             {
                 //valid values are 0x0 to 0x6
-                if (!ClientUtils.IsEnumValid(value, (int)value, (int)TableLayoutPanelCellBorderStyle.None, (int)TableLayoutPanelCellBorderStyle.OutsetPartial))
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value), value, string.Format(SR.InvalidArgument, nameof(CellBorderStyle), value));
-                }
+                SourceGenerated.EnumValidator.Validate(value);
                 _borderStyle = value;
                 //set the CellBorderWidth according to the current CellBorderStyle.
                 TableLayout.ContainerInfo containerInfo = TableLayout.GetContainerInfo(Owner);
@@ -206,10 +203,7 @@ namespace System.Windows.Forms
             set
             {
                 //valid values are 0x0 to 0x2
-                if (!ClientUtils.IsEnumValid(value, (int)value, (int)TableLayoutPanelGrowStyle.FixedSize, (int)TableLayoutPanelGrowStyle.AddColumns))
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value), value, string.Format(SR.InvalidArgument, nameof(GrowStyle), value));
-                }
+                SourceGenerated.EnumValidator.Validate(value);
 
                 TableLayout.ContainerInfo containerInfo = TableLayout.GetContainerInfo(Owner);
                 if (containerInfo.GrowStyle != value)
@@ -224,7 +218,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_stub != null)
+                if (_stub is not null)
                 {
                     return true;
                 }
@@ -287,7 +281,7 @@ namespace System.Windows.Forms
             else
             {
                 IArrangedElement element = LayoutEngine.CastToArrangedElement(control);
-                if (element.Container != null)
+                if (element.Container is not null)
                 {
                     TableLayout.ClearCachedAssignments(TableLayout.GetContainerInfo(element.Container));
                 }
@@ -333,7 +327,7 @@ namespace System.Windows.Forms
             else
             {
                 IArrangedElement element = LayoutEngine.CastToArrangedElement(control);
-                if (element.Container != null)
+                if (element.Container is not null)
                 {
                     TableLayout.ClearCachedAssignments(TableLayout.GetContainerInfo(element.Container));
                 }
@@ -486,7 +480,7 @@ namespace System.Windows.Forms
             else
             {
                 IArrangedElement element = LayoutEngine.CastToArrangedElement(control);
-                if (element.Container != null)
+                if (element.Container is not null)
                 {
                     TableLayout.ClearCachedAssignments(TableLayout.GetContainerInfo(element.Container));
                 }
@@ -550,7 +544,7 @@ namespace System.Windows.Forms
                         // We need to go through the PropertyDescriptor for the Name property
                         // since it is shadowed.
                         PropertyDescriptor prop = TypeDescriptor.GetProperties(c)["Name"];
-                        if (prop != null && prop.PropertyType == typeof(string))
+                        if (prop is not null && prop.PropertyType == typeof(string))
                         {
                             controlInfo.Name = prop.GetValue(c);
                         }

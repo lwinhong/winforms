@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Xunit;
+using static Interop;
 using static Interop.UiaCore;
 
 namespace System.Windows.Forms.Tests
@@ -30,13 +32,12 @@ namespace System.Windows.Forms.Tests
             var checkBoxAccessibleObject = new CheckBox.CheckBoxAccessibleObject(checkBox);
 
             Assert.NotNull(checkBoxAccessibleObject.Owner);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(checkBox.IsHandleCreated);
+            Assert.False(checkBox.IsHandleCreated);
         }
 
         [WinFormsFact]
         public void CheckBoxAccessibleObject_CustomDoDefaultAction_ReturnsExpected()
-        {;
+        {
             using var checkBox = new CheckBox
             {
                 Name = "CheckBox1",
@@ -47,8 +48,7 @@ namespace System.Windows.Forms.Tests
             var checkBoxAccessibleObject = new CheckBox.CheckBoxAccessibleObject(checkBox);
 
             Assert.Equal("TestActionDescription", checkBoxAccessibleObject.DefaultAction);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(checkBox.IsHandleCreated);
+            Assert.False(checkBox.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -59,8 +59,7 @@ namespace System.Windows.Forms.Tests
             var checkBoxAccessibleObject = new CheckBox.CheckBoxAccessibleObject(checkBox);
 
             Assert.Equal(AccessibleRole.CheckButton, checkBoxAccessibleObject.Role);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(checkBox.IsHandleCreated);
+            Assert.False(checkBox.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -75,34 +74,45 @@ namespace System.Windows.Forms.Tests
             var checkBoxAccessibleObject = new CheckBox.CheckBoxAccessibleObject(checkBox);
 
             Assert.Equal(AccessibleRole.PushButton, checkBoxAccessibleObject.Role);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(checkBox.IsHandleCreated);
+            Assert.False(checkBox.IsHandleCreated);
         }
 
-        [WinFormsFact]
-        public void CheckBoxAccessibleObject_State_ReturnsExpected()
+        [WinFormsTheory]
+        [InlineData(true, AccessibleStates.Focusable)]
+        [InlineData(false, AccessibleStates.None)]
+        public void CheckBoxAccessibleObject_State_ReturnsExpected(bool createControl, AccessibleStates accessibleStates)
         {
             using var checkBox = new CheckBox();
-            Assert.False(checkBox.IsHandleCreated);
+
+            if (createControl)
+            {
+                checkBox.CreateControl();
+            }
+
             var checkBoxAccessibleObject = new CheckBox.CheckBoxAccessibleObject(checkBox);
 
-            Assert.Equal(AccessibleStates.Focusable, checkBoxAccessibleObject.State);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(checkBox.IsHandleCreated);
+            Assert.Equal(accessibleStates, checkBoxAccessibleObject.State);
+            Assert.Equal(createControl, checkBox.IsHandleCreated);
         }
 
-        [WinFormsFact]
-        public void CheckBoxAccessibleObject_ToggleState_ReturnsExpected()
+        [WinFormsTheory]
+        [InlineData(true, (int)ToggleState.On)]
+        [InlineData(false, (int)ToggleState.Off)]
+        public void CheckBoxAccessibleObject_ToggleState_ReturnsExpected(bool createControl, int toggleState)
         {
             using var checkBox = new CheckBox();
-            Assert.False(checkBox.IsHandleCreated);
+
+            if (createControl)
+            {
+                checkBox.CreateControl();
+            }
+
             var checkBoxAccessibleObject = new CheckBox.CheckBoxAccessibleObject(checkBox);
             Assert.Equal(ToggleState.Off, checkBoxAccessibleObject.ToggleState);
             checkBoxAccessibleObject.DoDefaultAction();
 
-            Assert.Equal(ToggleState.On, checkBoxAccessibleObject.ToggleState);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(checkBox.IsHandleCreated);
+            Assert.Equal((ToggleState)toggleState, checkBoxAccessibleObject.ToggleState);
+            Assert.Equal(createControl, checkBox.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -117,8 +127,7 @@ namespace System.Windows.Forms.Tests
             var checkBoxAccessibleObject = new CheckBox.CheckBoxAccessibleObject(checkBox);
 
             Assert.Equal("TestDescription", checkBoxAccessibleObject.Description);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(checkBox.IsHandleCreated);
+            Assert.False(checkBox.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -133,13 +142,12 @@ namespace System.Windows.Forms.Tests
             var checkBoxAccessibleObject = new CheckBox.CheckBoxAccessibleObject(checkBox);
 
             Assert.Equal("TestName", checkBoxAccessibleObject.Name);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(checkBox.IsHandleCreated);
+            Assert.False(checkBox.IsHandleCreated);
         }
 
         [WinFormsTheory]
         [InlineData((int)UIA.NamePropertyId, "TestName")]
-        [InlineData((int)UIA.ControlTypePropertyId, UIA.CheckBoxControlTypeId)]
+        [InlineData((int)UIA.ControlTypePropertyId, UIA.CheckBoxControlTypeId)] // If AccessibleRole is Default
         [InlineData((int)UIA.IsKeyboardFocusablePropertyId, true)]
         [InlineData((int)UIA.AutomationIdPropertyId, "CheckBox1")]
         public void CheckBoxAccessibleObject_GetPropertyValue_Invoke_ReturnsExpected(int propertyID, object expected)
@@ -155,8 +163,7 @@ namespace System.Windows.Forms.Tests
             object value = checkBoxAccessibleObject.GetPropertyValue((UIA)propertyID);
 
             Assert.Equal(expected, value);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(checkBox.IsHandleCreated);
+            Assert.False(checkBox.IsHandleCreated);
         }
 
         [WinFormsTheory]
@@ -169,8 +176,7 @@ namespace System.Windows.Forms.Tests
             var checkBoxAccessibleObject = new CheckBox.CheckBoxAccessibleObject(checkBox);
 
             Assert.True(checkBoxAccessibleObject.IsPatternSupported((UIA)patternId));
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(checkBox.IsHandleCreated);
+            Assert.False(checkBox.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -188,8 +194,36 @@ namespace System.Windows.Forms.Tests
             checkBoxAccessibleObject.Toggle();
 
             Assert.False(checkBox.Checked);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(checkBox.IsHandleCreated);
+            Assert.False(checkBox.IsHandleCreated);
+        }
+
+        public static IEnumerable<object[]> CheckBoxAccessibleObject_GetPropertyValue_ControlType_IsExpected_ForCustomRole_TestData()
+        {
+            Array roles = Enum.GetValues(typeof(AccessibleRole));
+
+            foreach (AccessibleRole role in roles)
+            {
+                if (role == AccessibleRole.Default)
+                {
+                    continue; // The test checks custom roles
+                }
+
+                yield return new object[] { role };
+            }
+        }
+
+        [WinFormsTheory]
+        [MemberData(nameof(CheckBoxAccessibleObject_GetPropertyValue_ControlType_IsExpected_ForCustomRole_TestData))]
+        public void CheckBoxAccessibleObject_GetPropertyValue_ControlType_IsExpected_ForCustomRole(AccessibleRole role)
+        {
+            using CheckBox checkBox = new CheckBox();
+            checkBox.AccessibleRole = role;
+
+            object actual = checkBox.AccessibilityObject.GetPropertyValue(UIA.ControlTypePropertyId);
+            UIA expected = AccessibleRoleControlTypeMap.GetControlType(role);
+
+            Assert.Equal(expected, actual);
+            Assert.False(checkBox.IsHandleCreated);
         }
     }
 }

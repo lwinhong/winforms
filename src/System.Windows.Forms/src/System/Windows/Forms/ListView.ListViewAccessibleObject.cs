@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Drawing;
 using static Interop;
 
@@ -30,7 +29,7 @@ namespace System.Windows.Forms
             {
                 get
                 {
-                    if (!_owningListView.IsHandleCreated || !_owningListView.ShowGroups)
+                    if (!_owningListView.IsHandleCreated || !_owningListView.ShowGroups || _owningListView.VirtualMode)
                     {
                         return false;
                     }
@@ -76,7 +75,7 @@ namespace System.Windows.Forms
                 }
             }
 
-            internal override UiaCore.IRawElementProviderFragment ElementProviderFromPoint(double x, double y)
+            internal override UiaCore.IRawElementProviderFragment? ElementProviderFromPoint(double x, double y)
             {
                 AccessibleObject? element = HitTest((int)x, (int)y);
 
@@ -250,7 +249,12 @@ namespace System.Windows.Forms
                     UiaCore.UIA.IsKeyboardFocusablePropertyId => (State & AccessibleStates.Focusable) == AccessibleStates.Focusable,
                     UiaCore.UIA.HasKeyboardFocusPropertyId => false,
                     UiaCore.UIA.RuntimeIdPropertyId => RuntimeId,
-                    UiaCore.UIA.ControlTypePropertyId => UiaCore.UIA.ListControlTypeId,
+                    // If we don't set a default role for the accessible object
+                    // it will be retrieved from Windows.
+                    // And we don't have a 100% guarantee it will be correct, hence set it ourselves.
+                    UiaCore.UIA.ControlTypePropertyId => _owningListView.AccessibleRole == AccessibleRole.Default
+                                                         ? UiaCore.UIA.ListControlTypeId
+                                                         : base.GetPropertyValue(propertyID),
                     UiaCore.UIA.IsMultipleViewPatternAvailablePropertyId => IsPatternSupported(UiaCore.UIA.MultipleViewPatternId),
                     UiaCore.UIA.ItemStatusPropertyId => GetItemStatus(),
                     _ => base.GetPropertyValue(propertyID)
@@ -266,10 +270,10 @@ namespace System.Windows.Forms
                     return Array.Empty<UiaCore.IRawElementProviderSimple>();
                 }
 
-                UiaCore.IRawElementProviderSimple[] selectedItemProviders = new UiaCore.IRawElementProviderSimple[_owningListView.SelectedItems.Count];
+                UiaCore.IRawElementProviderSimple[] selectedItemProviders = new UiaCore.IRawElementProviderSimple[_owningListView.SelectedIndices.Count];
                 for (int i = 0; i < selectedItemProviders.Length; i++)
                 {
-                    selectedItemProviders[i] = _owningListView.SelectedItems[i].AccessibilityObject;
+                    selectedItemProviders[i] = _owningListView.Items[_owningListView.SelectedIndices[i]].AccessibilityObject;
                 }
 
                 return selectedItemProviders;

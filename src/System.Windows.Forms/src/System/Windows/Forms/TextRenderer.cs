@@ -13,10 +13,7 @@ namespace System.Windows.Forms
     /// </summary>
     public static class TextRenderer
     {
-        private static readonly Gdi32.QUALITY s_defaultQuality = GetDefaultFontQuality();
-
-        // Used to clear TextRenderer specific flags from TextFormatFlags
-        internal const int GdiUnsupportedFlagMask = (unchecked((int)0xFF000000));
+        internal static Gdi32.QUALITY DefaultQuality { get; } = GetDefaultFontQuality();
 
         internal static Size MaxSize { get; } = new Size(int.MaxValue, int.MaxValue);
 
@@ -70,7 +67,7 @@ namespace System.Windows.Forms
             Point pt,
             Color foreColor,
             TextFormatFlags flags)
-            => DrawTextInternal(dc, text, font, pt, foreColor, Color.Empty, flags: GetTextFormatFlags(flags));
+            => DrawTextInternal(dc, text, font, pt, foreColor, Color.Empty, flags);
 
         /// <summary>
         ///  Draws the specified text at the specified location using the specified device context, font, color, and
@@ -100,8 +97,7 @@ namespace System.Windows.Forms
                 pt,
                 foreColor,
                 Color.Empty,
-                flags:
-                GetTextFormatFlags(flags, blockModifyString: true));
+                BlockModifyString(flags));
 
         public static void DrawText(
             IDeviceContext dc,
@@ -111,7 +107,7 @@ namespace System.Windows.Forms
             Color foreColor,
             Color backColor,
             TextFormatFlags flags)
-            => DrawTextInternal(dc, text, font, pt, foreColor, backColor, flags: GetTextFormatFlags(flags));
+            => DrawTextInternal(dc, text, font, pt, foreColor, backColor, flags);
 
         /// <summary>
         ///  Draws the specified text at the specified location using the specified device context, font, color, back
@@ -143,8 +139,7 @@ namespace System.Windows.Forms
                 pt,
                 foreColor,
                 backColor,
-                flags:
-                GetTextFormatFlags(flags, blockModifyString: true));
+                BlockModifyString(flags));
 
         public static void DrawText(IDeviceContext dc, string? text, Font? font, Rectangle bounds, Color foreColor)
             => DrawTextInternal(dc, text, font, bounds, foreColor, Color.Empty);
@@ -202,7 +197,7 @@ namespace System.Windows.Forms
             Rectangle bounds,
             Color foreColor,
             TextFormatFlags flags)
-            => DrawTextInternal(dc, text, font, bounds, foreColor, Color.Empty, flags: GetTextFormatFlags(flags));
+            => DrawTextInternal(dc, text, font, bounds, foreColor, Color.Empty, flags);
 
         /// <summary>
         ///  Draws the specified text within the specified bounds using the specified device context, font, color, and
@@ -232,7 +227,7 @@ namespace System.Windows.Forms
                 bounds,
                 foreColor,
                 Color.Empty,
-                flags: GetTextFormatFlags(flags, blockModifyString: true));
+                BlockModifyString(flags));
 
         public static void DrawText(
             IDeviceContext dc,
@@ -242,7 +237,7 @@ namespace System.Windows.Forms
             Color foreColor,
             Color backColor,
             TextFormatFlags flags)
-            => DrawTextInternal(dc, text, font, bounds, foreColor, backColor, flags: GetTextFormatFlags(flags));
+            => DrawTextInternal(dc, text, font, bounds, foreColor, backColor, flags);
 
         /// <summary>
         ///  Draws the specified text within the specified bounds using the specified device context, font, color,
@@ -274,7 +269,7 @@ namespace System.Windows.Forms
                 bounds,
                 foreColor,
                 backColor,
-                flags: GetTextFormatFlags(flags, blockModifyString: true));
+                BlockModifyString(flags));
 
         private static void DrawTextInternal(
             IDeviceContext dc,
@@ -283,7 +278,7 @@ namespace System.Windows.Forms
             Point pt,
             Color foreColor,
             Color backColor,
-            User32.DT flags = User32.DT.DEFAULT)
+            TextFormatFlags flags = TextFormatFlags.Default)
             => DrawTextInternal(dc, text, font, new Rectangle(pt, MaxSize), foreColor, backColor, flags);
 
         internal static void DrawTextInternal(
@@ -293,7 +288,7 @@ namespace System.Windows.Forms
             Rectangle bounds,
             Color foreColor,
             Color backColor,
-            User32.DT flags = User32.DT.CENTER | User32.DT.VCENTER)
+            TextFormatFlags flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter)
         {
             if (dc is null)
                 throw new ArgumentNullException(nameof(dc));
@@ -317,7 +312,7 @@ namespace System.Windows.Forms
             Rectangle bounds,
             Color foreColor,
             TextFormatFlags flags)
-            => DrawTextInternal(e, text, font, bounds, foreColor, Color.Empty, flags: GetTextFormatFlags(flags));
+            => DrawTextInternal(e, text, font, bounds, foreColor, Color.Empty, flags);
 
         internal static void DrawTextInternal(
             PaintEventArgs e,
@@ -326,7 +321,7 @@ namespace System.Windows.Forms
             Rectangle bounds,
             Color foreColor,
             Color backColor,
-            User32.DT flags = User32.DT.CENTER | User32.DT.VCENTER)
+            TextFormatFlags flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter)
         {
             Gdi32.HDC hdc = e.HDC;
             if (hdc.IsNull)
@@ -339,7 +334,7 @@ namespace System.Windows.Forms
             }
             else
             {
-                DrawTextInternal(hdc, text, font, bounds, foreColor, s_defaultQuality, backColor, flags);
+                DrawTextInternal(hdc, text, font, bounds, foreColor, DefaultQuality, backColor, flags);
             }
         }
 
@@ -351,9 +346,9 @@ namespace System.Windows.Forms
             Color foreColor,
             Gdi32.QUALITY fontQuality,
             TextFormatFlags flags)
-            => DrawTextInternal(hdc, text, font, bounds, foreColor, fontQuality, Color.Empty, GetTextFormatFlags(flags));
+            => DrawTextInternal(hdc, text, font, bounds, foreColor, fontQuality, Color.Empty, flags);
 
-        internal static void DrawTextInternal(
+        private static void DrawTextInternal(
             Gdi32.HDC hdc,
             ReadOnlySpan<char> text,
             Font? font,
@@ -361,28 +356,20 @@ namespace System.Windows.Forms
             Color foreColor,
             Gdi32.QUALITY fontQuality,
             Color backColor,
-            User32.DT flags)
+            TextFormatFlags flags)
         {
             using var hfont = GdiCache.GetHFONT(font, fontQuality, hdc);
             hdc.DrawText(text, hfont, bounds, foreColor, flags, backColor);
         }
 
-        private static User32.DT GetTextFormatFlags(TextFormatFlags flags, bool blockModifyString = false)
+        private static TextFormatFlags BlockModifyString(TextFormatFlags flags)
         {
-            if (blockModifyString && flags.HasFlag(TextFormatFlags.ModifyString))
+            if (flags.HasFlag(TextFormatFlags.ModifyString))
             {
                 throw new ArgumentOutOfRangeException(nameof(flags), SR.TextFormatFlagsModifyStringNotAllowed);
             }
 
-            if (((uint)flags & GdiUnsupportedFlagMask) == 0)
-            {
-                return (User32.DT)flags;
-            }
-
-            // Clear TextRenderer custom flags.
-            User32.DT windowsGraphicsSupportedFlags = (User32.DT)((uint)flags & ~GdiUnsupportedFlagMask);
-
-            return windowsGraphicsSupportedFlags;
+            return flags;
         }
 
         public static Size MeasureText(string? text, Font? font)
@@ -444,7 +431,7 @@ namespace System.Windows.Forms
         ///  Thrown if <see cref="TextFormatFlags.ModifyString"/> is set.
         /// </exception>
         public static Size MeasureText(ReadOnlySpan<char> text, Font? font, Size proposedSize, TextFormatFlags flags)
-            => MeasureTextInternal(text, font, proposedSize, flags, blockModifyString: true);
+            => MeasureTextInternal(text, font, proposedSize, BlockModifyString(flags));
 
         public static Size MeasureText(IDeviceContext dc, string? text, Font? font)
             => MeasureTextInternal(dc, text, font, MaxSize);
@@ -513,24 +500,21 @@ namespace System.Windows.Forms
             Font? font,
             Size proposedSize,
             TextFormatFlags flags)
-            => MeasureTextInternal(dc, text, font, proposedSize, flags, blockModifyString: true);
+            => MeasureTextInternal(dc, text, font, proposedSize, BlockModifyString(flags));
 
         private static Size MeasureTextInternal(
             ReadOnlySpan<char> text,
             Font? font,
             Size proposedSize,
-            TextFormatFlags flags = TextFormatFlags.Bottom,
-            bool blockModifyString = false)
+            TextFormatFlags flags = TextFormatFlags.Bottom)
         {
-            User32.DT drawTextFlags = GetTextFormatFlags(flags, blockModifyString);
-
             if (text.IsEmpty)
                 return Size.Empty;
 
             using var screen = GdiCache.GetScreenHdc();
             using var hfont = GdiCache.GetHFONT(font, Gdi32.QUALITY.DEFAULT, screen);
 
-            return screen.HDC.MeasureText(text, hfont, proposedSize, drawTextFlags);
+            return screen.HDC.MeasureText(text, hfont, proposedSize, flags);
         }
 
         private static Size MeasureTextInternal(
@@ -538,13 +522,10 @@ namespace System.Windows.Forms
             ReadOnlySpan<char> text,
             Font? font,
             Size proposedSize,
-            TextFormatFlags flags = TextFormatFlags.Bottom,
-            bool blockModifyString = false)
+            TextFormatFlags flags = TextFormatFlags.Bottom)
         {
             if (dc is null)
                 throw new ArgumentNullException(nameof(dc));
-
-            User32.DT drawTextFlags = GetTextFormatFlags(flags, blockModifyString);
 
             if (text.IsEmpty)
                 return Size.Empty;
@@ -554,7 +535,7 @@ namespace System.Windows.Forms
 
             using var hdc = new DeviceContextHdcScope(dc);
             using var hfont = GdiCache.GetHFONT(font, quality, hdc);
-            return hdc.MeasureText(text, hfont, proposedSize, drawTextFlags);
+            return hdc.HDC.MeasureText(text, hfont, proposedSize, flags);
         }
 
         internal static Color DisabledTextColor(Color backColor)

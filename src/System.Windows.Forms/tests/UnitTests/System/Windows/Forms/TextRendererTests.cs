@@ -388,58 +388,6 @@ namespace System.Windows.Forms.Tests
             mockDeviceContext.Verify(c => c.ReleaseHdc(), Times.Exactly(16));
         }
 
-        public static IEnumerable<object[]> DrawText_InvalidHdc_TestData()
-        {
-            yield return new object[] { IntPtr.Zero };
-            yield return new object[] { (IntPtr)1 };
-        }
-
-        [WinFormsTheory]
-        [MemberData(nameof(DrawText_InvalidHdc_TestData))]
-        public void TextRenderer_DrawText_MockedInvalid_Success(IntPtr hdc)
-        {
-            var mockDeviceContext = new Mock<IDeviceContext>(MockBehavior.Strict);
-            mockDeviceContext
-                .Setup(c => c.GetHdc())
-                .Returns(() => hdc)
-                .Verifiable();
-            mockDeviceContext
-                .Setup(c => c.ReleaseHdc())
-                .Verifiable();
-
-            TextRenderer.DrawText(mockDeviceContext.Object, "text", SystemFonts.MenuFont, Point.Empty, Color.Red);
-            mockDeviceContext.Verify(c => c.GetHdc(), Times.Once());
-            mockDeviceContext.Verify(c => c.ReleaseHdc(), Times.Once());
-
-            TextRenderer.DrawText(mockDeviceContext.Object, "text", SystemFonts.MenuFont, Point.Empty, Color.Red, Color.Blue);
-            mockDeviceContext.Verify(c => c.GetHdc(), Times.Exactly(2));
-            mockDeviceContext.Verify(c => c.ReleaseHdc(), Times.Exactly(2));
-
-            TextRenderer.DrawText(mockDeviceContext.Object, "text", SystemFonts.MenuFont, Point.Empty, Color.Red, TextFormatFlags.Default);
-            mockDeviceContext.Verify(c => c.GetHdc(), Times.Exactly(3));
-            mockDeviceContext.Verify(c => c.ReleaseHdc(), Times.Exactly(3));
-
-            TextRenderer.DrawText(mockDeviceContext.Object, "text", SystemFonts.MenuFont, Point.Empty, Color.Red, Color.Blue, TextFormatFlags.Default);
-            mockDeviceContext.Verify(c => c.GetHdc(), Times.Exactly(4));
-            mockDeviceContext.Verify(c => c.ReleaseHdc(), Times.Exactly(4));
-
-            TextRenderer.DrawText(mockDeviceContext.Object, "text", SystemFonts.MenuFont, new Rectangle(1, 2, 300, 400), Color.Red);
-            mockDeviceContext.Verify(c => c.GetHdc(), Times.Exactly(5));
-            mockDeviceContext.Verify(c => c.ReleaseHdc(), Times.Exactly(5));
-
-            TextRenderer.DrawText(mockDeviceContext.Object, "text", SystemFonts.MenuFont, new Rectangle(1, 2, 300, 400), Color.Red, TextFormatFlags.Default);
-            mockDeviceContext.Verify(c => c.GetHdc(), Times.Exactly(6));
-            mockDeviceContext.Verify(c => c.ReleaseHdc(), Times.Exactly(6));
-
-            TextRenderer.DrawText(mockDeviceContext.Object, "text", SystemFonts.MenuFont, new Rectangle(1, 2, 300, 400), Color.Red, Color.Blue);
-            mockDeviceContext.Verify(c => c.GetHdc(), Times.Exactly(7));
-            mockDeviceContext.Verify(c => c.ReleaseHdc(), Times.Exactly(7));
-
-            TextRenderer.DrawText(mockDeviceContext.Object, "text", SystemFonts.MenuFont, new Rectangle(1, 2, 300, 400), Color.Red, Color.Blue, TextFormatFlags.Default);
-            mockDeviceContext.Verify(c => c.GetHdc(), Times.Exactly(8));
-            mockDeviceContext.Verify(c => c.ReleaseHdc(), Times.Exactly(8));
-        }
-
         [WinFormsFact]
         public void TextRenderer_DrawText_NullDc_ThrowsArgumentNullException()
         {
@@ -616,38 +564,6 @@ namespace System.Windows.Forms.Tests
             mockDeviceContext.Verify(c => c.ReleaseHdc(), Times.Exactly(3));
         }
 
-        public static IEnumerable<object[]> MeasureText_InvalidHdc_TestData()
-        {
-            yield return new object[] { IntPtr.Zero };
-            yield return new object[] { (IntPtr)1 };
-        }
-
-        [WinFormsTheory]
-        [MemberData(nameof(MeasureText_InvalidHdc_TestData))]
-        public void TextRenderer_MeasureText_MockedInvalid_Success(IntPtr hdc)
-        {
-            var mockDeviceContext = new Mock<IDeviceContext>(MockBehavior.Strict);
-            mockDeviceContext
-                .Setup(c => c.GetHdc())
-                .Returns(() => hdc)
-                .Verifiable();
-            mockDeviceContext
-                .Setup(c => c.ReleaseHdc())
-                .Verifiable();
-
-            TextRenderer.MeasureText(mockDeviceContext.Object, "text", SystemFonts.MenuFont);
-            mockDeviceContext.Verify(c => c.GetHdc(), Times.Once());
-            mockDeviceContext.Verify(c => c.ReleaseHdc(), Times.Once());
-
-            TextRenderer.MeasureText(mockDeviceContext.Object, "text", SystemFonts.MenuFont, new Size(300, 400));
-            mockDeviceContext.Verify(c => c.GetHdc(), Times.Exactly(2));
-            mockDeviceContext.Verify(c => c.ReleaseHdc(), Times.Exactly(2));
-
-            TextRenderer.MeasureText(mockDeviceContext.Object, "text", SystemFonts.MenuFont, new Size(300, 400), TextFormatFlags.Default);
-            mockDeviceContext.Verify(c => c.GetHdc(), Times.Exactly(3));
-            mockDeviceContext.Verify(c => c.ReleaseHdc(), Times.Exactly(3));
-        }
-
         [WinFormsFact]
         public void TextRenderer_MeasureText_NullDc_ThrowsArgumentNullException()
         {
@@ -668,8 +584,10 @@ namespace System.Windows.Forms.Tests
                 state,
                 Validate.TextOut(
                     "Acrylic",
-                    Color.Blue,
-                    fontFace: SystemFonts.DefaultFont.Name));
+                    bounds: null,                                   // Don't care about the bounds for this test
+                    State.FontFace(SystemFonts.DefaultFont.Name),
+                    State.TextColor(Color.Blue),
+                    State.BackgroundMode(Gdi32.BKMODE.TRANSPARENT)));
         }
 
         public static TheoryData<Func<IDeviceContext, Action>> TextRenderer_DrawText_DefaultBackground_RendersTransparent_TestData
@@ -751,5 +669,83 @@ namespace System.Windows.Forms.Tests
             public IntPtr GetHdc() => IntPtr.Zero;
             public void ReleaseHdc() { }
         }
+
+        [WinFormsTheory]
+        [MemberData(nameof(TextRenderer_DrawText_Padding_TestData))]
+        public unsafe void TextRenderer_DrawText_Padding_Point(TextFormatFlags flags, Rectangle expectedBounds)
+        {
+            using var emf = new EmfScope();
+            DeviceContextState state = new DeviceContextState(emf);
+            TextRenderer.DrawText(
+                new HdcDeviceContextAdapter(emf),
+                "Sparkling Cider",
+                SystemFonts.DefaultFont,
+                (Point) default,
+                Color.Red,
+                flags);
+
+            emf.Validate(
+                state,
+                Validate.TextOut(
+                    "Sparkling Cider",
+                    expectedBounds,
+                    State.FontFace(SystemFonts.DefaultFont.Name),
+                    State.TextColor(Color.Red)));
+        }
+
+        [WinFormsTheory]
+        [MemberData(nameof(TextRenderer_DrawText_Padding_TestData))]
+        public unsafe void TextRenderer_DrawText_Padding_Rectangle(TextFormatFlags flags, Rectangle expectedBounds)
+        {
+            using var emf = new EmfScope();
+            DeviceContextState state = new DeviceContextState(emf);
+            TextRenderer.DrawText(
+                new HdcDeviceContextAdapter(emf),
+                "Sparkling Cider",
+                SystemFonts.DefaultFont,
+                new Rectangle(0, 0, int.MaxValue, int.MaxValue),
+                Color.Red,
+                flags);
+
+            emf.Validate(
+                state,
+                Validate.TextOut(
+                    "Sparkling Cider",
+                    expectedBounds,
+                    State.FontFace(SystemFonts.DefaultFont.Name),
+                    State.TextColor(Color.Red)));
+        }
+
+        public static TheoryData<TextFormatFlags, Rectangle> TextRenderer_DrawText_Padding_TestData
+            => new TheoryData<TextFormatFlags, Rectangle>
+            {
+                { TextFormatFlags.GlyphOverhangPadding, new Rectangle(3, 0, 70, 12) },
+                { TextFormatFlags.LeftAndRightPadding, new Rectangle(5, 0, 70, 12) },
+                { TextFormatFlags.NoPadding, new Rectangle(0, 0, 70, 12) }
+            };
+
+        [WinFormsTheory]
+        [MemberData(nameof(TextRenderer_MeasureText_Padding_TestData))]
+        public void TextRenderer_MeasureText_Padding(TextFormatFlags flags, Size expectedSize)
+        {
+            using var image = new Bitmap(200, 50);
+            using Graphics graphics = Graphics.FromImage(image);
+            Size size = TextRenderer.MeasureText(
+                graphics,
+                "Sparkling Cider",
+                SystemFonts.DefaultFont,
+                new Size(int.MaxValue, int.MaxValue),
+                flags);
+
+            Assert.Equal(expectedSize, size);
+        }
+
+        public static TheoryData<TextFormatFlags, Size> TextRenderer_MeasureText_Padding_TestData
+            => new TheoryData<TextFormatFlags, Size>
+            {
+                { TextFormatFlags.GlyphOverhangPadding, new Size(78, 13) },
+                { TextFormatFlags.LeftAndRightPadding, new Size(82, 13) },
+                { TextFormatFlags.NoPadding, new Size(71, 13) }
+            };
     }
 }

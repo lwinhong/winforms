@@ -2212,6 +2212,16 @@
         <target state="translated">Właściwość ValueType komórki w siatce nie może być zerowa.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DataGridViewCheckBoxCellCheckedStateDescription">
+        <source>{0} check box checked</source>
+        <target state="translated">Pole wyboru {0} jest zaznaczone</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DataGridViewCheckBoxCellUncheckedStateDescription">
+        <source>{0} check box unchecked</source>
+        <target state="translated">Pole wyboru {0} jest niezaznaczone</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DataGridViewCheckBoxCell_ClipboardChecked">
         <source>Selected</source>
         <target state="translated">Wybrane</target>
@@ -3697,6 +3707,11 @@ Aby zamienić to domyślne okno dialogowe, obsłuż zdarzenie DataError.</target
       <trans-unit id="DataGridView_ReadOnlyDescr">
         <source>Indicates whether the user can edit the cells of the DataGridView control.</source>
         <target state="translated">Wskazuje, czy użytkownik może edytować komórki formantu DataGridView.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DataGridView_RowAddedNotification">
+        <source>Row {0} is added</source>
+        <target state="translated">Został dodany wiersz {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="DataGridView_RowAlreadyBelongsToDataGridView">
@@ -8301,6 +8316,11 @@ Stos śledzenia, w którym wystąpiła zabroniona operacja:
         <target state="translated">Kolor obramowania otaczającego obszar siatki.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PropertyGridViewDropDownControlHolderAccessibleName">
+        <source>Drop down control holder</source>
+        <target state="translated">Symbol zastępczy kontrolki listy rozwijanej</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PropertyGridViewEditorCreatedInvalidObject">
         <source>Editor created an object that is not valid.  The created object must be of type '{0}'.</source>
         <target state="translated">Edytor utworzył nieprawidłowy obiekt. Utworzony obiekt musi być typu „{0}”.</target>
@@ -10392,8 +10412,8 @@ Stos śledzenia, w którym wystąpiła zabroniona operacja:
         <note />
       </trans-unit>
       <trans-unit id="TrayIcon_TextTooLong">
-        <source>Text length must be less than 64 characters long.</source>
-        <target state="translated">Długość tekstu musi być mniejsza niż 64 znaki.</target>
+        <source>Text length must be less than 128 characters long.</source>
+        <target state="translated">Długość tekstu musi być mniejsza niż 128 znaki.</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeNodeBackColorDescr">
@@ -10404,6 +10424,11 @@ Stos śledzenia, w którym wystąpiła zabroniona operacja:
       <trans-unit id="TreeNodeBeginEditFailed">
         <source>BeginEdit did not succeed because LabelEdit property is false.</source>
         <target state="translated">Nie można wykonać elementu BeginEdit, ponieważ właściwość LabelEdit ma wartość false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TreeNodeBoundToAnotherTreeView">
+        <source>The TreeNode is already bound to another TreeView. You must first remove it from its current location or clone it.</source>
+        <target state="translated">Element TreeNode jest już powiązany z innym elementem TreeView. Należy go najpierw usunąć z jego bieżącej lokalizacji lub sklonować.</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeNodeCheckedDescr">
@@ -10784,6 +10809,11 @@ Stos śledzenia, w którym wystąpiła zabroniona operacja:
       <trans-unit id="UpDownBaseUpButtonAccName">
         <source>Up</source>
         <target state="translated">W górę</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpDownEditLocalizedControlTypeName">
+        <source>Edit</source>
+        <target state="translated">Edytuj</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCompatibleTextRenderingDescr">

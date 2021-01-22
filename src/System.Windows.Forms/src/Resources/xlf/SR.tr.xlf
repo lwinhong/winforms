@@ -2212,6 +2212,16 @@
         <target state="translated">Kılavuzdaki bir hücrenin ValueType özelliği null olamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DataGridViewCheckBoxCellCheckedStateDescription">
+        <source>{0} check box checked</source>
+        <target state="translated">{0} onay kutusu işaretli</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DataGridViewCheckBoxCellUncheckedStateDescription">
+        <source>{0} check box unchecked</source>
+        <target state="translated">{0} onay kutusu işaretlenmemiş</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DataGridViewCheckBoxCell_ClipboardChecked">
         <source>Selected</source>
         <target state="translated">Seçili</target>
@@ -3697,6 +3707,11 @@ Bu varsayılan iletişim kutusunu değiştirmek için, lütfen DataError olayın
       <trans-unit id="DataGridView_ReadOnlyDescr">
         <source>Indicates whether the user can edit the cells of the DataGridView control.</source>
         <target state="translated">Kullanıcının DataGridView denetiminin hücrelerini düzenleyip düzenleyemeyeceğini gösterir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DataGridView_RowAddedNotification">
+        <source>Row {0} is added</source>
+        <target state="translated">{0}. satır eklendi</target>
         <note />
       </trans-unit>
       <trans-unit id="DataGridView_RowAlreadyBelongsToDataGridView">
@@ -8301,6 +8316,11 @@ Geçersiz işlemin gerçekleştiği yığın izi:
         <target state="translated">Kılavuz alanını çevreleyen kenarlığın rengi.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PropertyGridViewDropDownControlHolderAccessibleName">
+        <source>Drop down control holder</source>
+        <target state="translated">Açılır denetim tutucusu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PropertyGridViewEditorCreatedInvalidObject">
         <source>Editor created an object that is not valid.  The created object must be of type '{0}'.</source>
         <target state="translated">Düzenleyici geçerli olmayan bir nesne oluşturdu. Oluşturulan nesnenin '{0}' türünde olması gerekir.</target>
@@ -10392,8 +10412,8 @@ Geçersiz işlemin gerçekleştiği yığın izi:
         <note />
       </trans-unit>
       <trans-unit id="TrayIcon_TextTooLong">
-        <source>Text length must be less than 64 characters long.</source>
-        <target state="translated">Metin uzunluğu 64 karakterden az olmalı.</target>
+        <source>Text length must be less than 128 characters long.</source>
+        <target state="translated">Metin uzunluğu 128 karakterden az olmalı.</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeNodeBackColorDescr">
@@ -10404,6 +10424,11 @@ Geçersiz işlemin gerçekleştiği yığın izi:
       <trans-unit id="TreeNodeBeginEditFailed">
         <source>BeginEdit did not succeed because LabelEdit property is false.</source>
         <target state="translated">LabelEdit özelliği False olduğundan BeginEdit özelliği başarılı olmadı.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TreeNodeBoundToAnotherTreeView">
+        <source>The TreeNode is already bound to another TreeView. You must first remove it from its current location or clone it.</source>
+        <target state="translated">TreeNode zaten başka bir TreeView'a bağlı. Önce onu geçerli konumundan kaldırmalı ya da kopyalamalısınız.</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeNodeCheckedDescr">
@@ -10784,6 +10809,11 @@ Geçersiz işlemin gerçekleştiği yığın izi:
       <trans-unit id="UpDownBaseUpButtonAccName">
         <source>Up</source>
         <target state="translated">Yukarı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpDownEditLocalizedControlTypeName">
+        <source>Edit</source>
+        <target state="translated">Düzenle</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCompatibleTextRenderingDescr">

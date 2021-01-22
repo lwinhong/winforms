@@ -9,7 +9,7 @@ using static Interop;
 
 namespace System.Windows.Forms.Tests
 {
-    public class ListViewItem_ListViewSubItem_ListViewSubItemAccessibleObjectTests
+    public class ListViewItem_ListViewSubItem_ListViewSubItemAccessibleObjectTests : IClassFixture<ThreadExceptionFixture>
     {
         [WinFormsFact]
         public void ListViewSubItemAccessibleObject_GetChild_ReturnCorrectValue()
@@ -33,18 +33,22 @@ namespace System.Windows.Forms.Tests
             list.View = View.Details;
 
             AccessibleObject accessibleObject = listViewItem1.AccessibilityObject.GetChild(0);
-            Assert.True(list.IsHandleCreated);
             Assert.NotNull(accessibleObject);
             Assert.IsType<ListViewSubItemAccessibleObject>(accessibleObject);
+            Assert.False(list.IsHandleCreated);
         }
 
-        [WinFormsFact]
-        public void ListViewSubItemAccessibleObject_GetPropertyValue_returns_correct_values()
+        [WinFormsTheory]
+        [InlineData(true, 0, (int)UiaCore.UIA.EditControlTypeId)]
+        [InlineData(false, 0, (int)UiaCore.UIA.TextControlTypeId)]
+        [InlineData(true, 1, (int)UiaCore.UIA.TextControlTypeId)]
+        [InlineData(false, 1, (int)UiaCore.UIA.TextControlTypeId)]
+        public void ListViewSubItemAccessibleObject_GetPropertyValue_returns_correct_values(bool labelEdit, int childId, int expectedControlType)
         {
             using ListView list = new ListView();
             ListViewItem listViewItem1 = new ListViewItem(new string[] {
             "Test 1",
-            "Item 1",
+            "Test 2",
             "Something 1"}, -1);
 
             ColumnHeader columnHeader1 = new ColumnHeader();
@@ -58,25 +62,26 @@ namespace System.Windows.Forms.Tests
             list.HideSelection = false;
             list.Items.Add(listViewItem1);
             list.View = View.Details;
+            list.LabelEdit = labelEdit;
 
-            AccessibleObject accessibleObject = listViewItem1.AccessibilityObject.GetChild(0);
-            Assert.True(list.IsHandleCreated);
+            AccessibleObject accessibleObject = listViewItem1.AccessibilityObject.GetChild(childId);
 
             object accessibleName = accessibleObject.GetPropertyValue(UiaCore.UIA.NamePropertyId);
-            Assert.Equal("Test 1", accessibleName);
+            Assert.Equal($"Test {childId + 1}", accessibleName);
 
             object automationId = accessibleObject.GetPropertyValue(UiaCore.UIA.AutomationIdPropertyId);
-            Assert.Equal("ListViewSubItem-0", automationId);
+            Assert.Equal($"ListViewSubItem-{childId}", automationId);
 
             object frameworkId = accessibleObject.GetPropertyValue(UiaCore.UIA.FrameworkIdPropertyId);
             Assert.Equal("WinForm", frameworkId);
 
             object controlType = accessibleObject.GetPropertyValue(UiaCore.UIA.ControlTypePropertyId);
-            UiaCore.UIA expected = UiaCore.UIA.TextControlTypeId;
+            UiaCore.UIA expected = (UiaCore.UIA)expectedControlType;
             Assert.Equal(expected, controlType);
 
             Assert.True((bool)accessibleObject.GetPropertyValue(UiaCore.UIA.IsGridItemPatternAvailablePropertyId));
             Assert.True((bool)accessibleObject.GetPropertyValue(UiaCore.UIA.IsTableItemPatternAvailablePropertyId));
+            Assert.False(list.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -103,7 +108,6 @@ namespace System.Windows.Forms.Tests
             AccessibleObject subItemAccObj1 = listViewItem1.AccessibilityObject.GetChild(0);
             AccessibleObject subItemAccObj2 = listViewItem1.AccessibilityObject.GetChild(1);
             AccessibleObject subItemAccObj3 = listViewItem1.AccessibilityObject.GetChild(2);
-            Assert.True(list.IsHandleCreated);
 
             Assert.Null(subItemAccObj1.FragmentNavigate(UiaCore.NavigateDirection.PreviousSibling));
             UiaCore.IRawElementProviderFragment subItem1NextSibling = subItemAccObj1.FragmentNavigate(UiaCore.NavigateDirection.NextSibling);
@@ -126,6 +130,8 @@ namespace System.Windows.Forms.Tests
             Assert.Equal(subItemAccObj1.FragmentNavigate(UiaCore.NavigateDirection.Parent), listViewItem1.AccessibilityObject);
             Assert.Equal(subItemAccObj2.FragmentNavigate(UiaCore.NavigateDirection.Parent), listViewItem1.AccessibilityObject);
             Assert.Equal(subItemAccObj3.FragmentNavigate(UiaCore.NavigateDirection.Parent), listViewItem1.AccessibilityObject);
+
+            Assert.False(list.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -151,7 +157,6 @@ namespace System.Windows.Forms.Tests
 
             ListViewItem.ListViewSubItem subItem = listViewItem1.SubItems[0];
             AccessibleObject accessibleObject = listViewItem1.AccessibilityObject.GetChild(0);
-            Assert.True(list.IsHandleCreated);
 
             int actualWidth = accessibleObject.Bounds.Width;
             int expectedWidth = listViewItem1.SubItems[1].Bounds.X - subItem.Bounds.X;
@@ -166,6 +171,7 @@ namespace System.Windows.Forms.Tests
             Rectangle expectedBounds = new Rectangle(subItem.Bounds.X, subItem.Bounds.Y, expectedWidth, expectedHeight);
             expectedBounds.Location = new Point(0, 0);
             Assert.Equal(expectedBounds, actualBounds);
+            Assert.False(list.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -192,7 +198,7 @@ namespace System.Windows.Forms.Tests
             AccessibleObject subItemAccObj1 = listViewItem1.AccessibilityObject.GetChild(0);
             AccessibleObject subItemAccObj2 = listViewItem1.AccessibilityObject.GetChild(1);
             AccessibleObject subItemAccObj3 = listViewItem1.AccessibilityObject.GetChild(2);
-            Assert.True(list.IsHandleCreated);
+            Assert.False(list.IsHandleCreated);
 
             Assert.Equal(0, subItemAccObj1.Column);
             Assert.Equal(1, subItemAccObj2.Column);
@@ -223,7 +229,7 @@ namespace System.Windows.Forms.Tests
             AccessibleObject subItemAccObj1 = listViewItem1.AccessibilityObject.GetChild(0);
             AccessibleObject subItemAccObj2 = listViewItem1.AccessibilityObject.GetChild(1);
             AccessibleObject subItemAccObj3 = listViewItem1.AccessibilityObject.GetChild(2);
-            Assert.True(list.IsHandleCreated);
+            Assert.False(list.IsHandleCreated);
 
             Assert.Equal(0, subItemAccObj1.Row);
             Assert.Equal(0, subItemAccObj2.Row);

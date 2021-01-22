@@ -231,10 +231,7 @@ namespace System.Windows.Forms
             get => borderStyle;
             set
             {
-                if (!ClientUtils.IsEnumValid(value, (int)value, (int)BorderStyle.None, (int)BorderStyle.Fixed3D))
-                {
-                    throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(BorderStyle));
-                }
+                SourceGenerated.EnumValidator.Validate(value);
 
                 if (value != borderStyle)
                 {
@@ -419,10 +416,7 @@ namespace System.Windows.Forms
             set
             {
                 //valid values are 0x0 to 0x2
-                if (!ClientUtils.IsEnumValid(value, (int)value, (int)DrawMode.Normal, (int)DrawMode.OwnerDrawVariable))
-                {
-                    throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(DrawMode));
-                }
+                SourceGenerated.EnumValidator.Validate(value);
                 if (drawMode != value)
                 {
                     if (MultiColumn && value == DrawMode.OwnerDrawVariable)
@@ -765,8 +759,8 @@ namespace System.Windows.Forms
                     {
                         if (itemsCollection != null)
                         {
-                            int cnt = itemsCollection.Count;
-                            for (int i = 0; i < cnt; i++)
+                            int count = itemsCollection.Count;
+                            for (int i = 0; i < count; i++)
                             {
                                 height += GetItemHeight(i);
                             }
@@ -775,9 +769,16 @@ namespace System.Windows.Forms
                 }
                 else
                 {
-                    //When the list is empty, we don't want to multiply by 0 here.
-                    int cnt = (itemsCollection is null || itemsCollection.Count == 0) ? 1 : itemsCollection.Count;
-                    height = GetItemHeight(0) * cnt;
+                    height = GetItemHeight(0);
+
+                    if (itemsCollection != null)
+                    {
+                        int count = itemsCollection.Count;
+                        if (count != 0)
+                        {
+                            height *= count;
+                        }
+                    }
                 }
 
                 if (borderStyle != BorderStyle.None)
@@ -807,6 +808,7 @@ namespace System.Windows.Forms
             {
                 return DefaultSize;
             }
+
             return new Size(width, height) + Padding.Size;
         }
 
@@ -1036,10 +1038,7 @@ namespace System.Windows.Forms
             }
             set
             {
-                if (!ClientUtils.IsEnumValid(value, (int)value, (int)SelectionMode.None, (int)SelectionMode.MultiExtended))
-                {
-                    throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(SelectionMode));
-                }
+                SourceGenerated.EnumValidator.Validate(value);
 
                 if (selectionMode != value)
                 {
@@ -1226,7 +1225,7 @@ namespace System.Windows.Forms
         /// <summary>
         ///  Performs the work of adding the specified items to the Listbox
         /// </summary>
-        [Obsolete("This method has been deprecated.  There is no replacement.  http://go.microsoft.com/fwlink/?linkid=14202")]
+        [Obsolete("This method has been deprecated.  There is no replacement.  https://go.microsoft.com/fwlink/?linkid=14202")]
         protected virtual void AddItemsCore(object[] value)
         {
             int count = value is null ? 0 : value.Length;
@@ -2056,7 +2055,7 @@ namespace System.Windows.Forms
 
             object[] newItems = null;
 
-            // if we have a dataSource and a DisplayMember, then use it
+            // If we have a DataSource and a DisplayMember, then use it
             // to populate the Items collection
             //
             if (DataManager != null && DataManager.Count != -1)
@@ -2086,7 +2085,7 @@ namespace System.Windows.Forms
             {
                 if (DataManager != null)
                 {
-                    // put the selectedIndex in sync w/ the position in the dataManager
+                    // Put the selectedIndex in sync with the position in the dataManager
                     SelectedIndex = DataManager.Position;
                 }
                 else

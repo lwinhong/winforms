@@ -57,7 +57,7 @@ namespace System.Windows.Forms.ComponentModel.Com2Interop
         ///  Converts the given object to another type.  The most common types to convert
         ///  are to and from a string object.  The default implementation will make a call
         ///  to ToString on the object if the object is valid and if the destination
-        ///  type is string.  If this cannot convert to the desitnation type, this will
+        ///  type is string.  If this cannot convert to the destination type, this will
         ///  throw a NotSupportedException.
         /// </summary>
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
@@ -69,7 +69,7 @@ namespace System.Windows.Forms.ComponentModel.Com2Interop
 
             if (destinationType == typeof(string))
             {
-                if (value != null)
+                if (value is not null)
                 {
                     string str = com2Enum.ToString(value);
                     return (str ?? "");
@@ -94,7 +94,7 @@ namespace System.Windows.Forms.ComponentModel.Com2Interop
             if (values is null)
             {
                 object[] objValues = com2Enum.Values;
-                if (objValues != null)
+                if (objValues is not null)
                 {
                     values = new StandardValuesCollection(objValues);
                 }
@@ -130,7 +130,7 @@ namespace System.Windows.Forms.ComponentModel.Com2Interop
         public override bool IsValid(ITypeDescriptorContext context, object value)
         {
             string strValue = com2Enum.ToString(value);
-            return strValue != null && strValue.Length > 0;
+            return strValue is not null && strValue.Length > 0;
         }
 
         public void RefreshValues()

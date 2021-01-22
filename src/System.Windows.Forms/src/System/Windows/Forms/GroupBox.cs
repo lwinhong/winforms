@@ -89,10 +89,7 @@ namespace System.Windows.Forms
             get => GetAutoSizeMode();
             set
             {
-                if (!ClientUtils.IsEnumValid(value, (int)value, (int)AutoSizeMode.GrowAndShrink, (int)AutoSizeMode.GrowOnly))
-                {
-                    throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(AutoSizeMode));
-                }
+                SourceGenerated.EnumValidator.Validate(value);
 
                 if (GetAutoSizeMode() != value)
                 {
@@ -191,10 +188,7 @@ namespace System.Windows.Forms
             set
             {
                 //valid values are 0x0 to 0x3
-                if (!ClientUtils.IsEnumValid(value, (int)value, (int)FlatStyle.Flat, (int)FlatStyle.System))
-                {
-                    throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(FlatStyle));
-                }
+                SourceGenerated.EnumValidator.Validate(value);
 
                 if (_flatStyle != value)
                 {
@@ -518,11 +512,11 @@ namespace System.Windows.Forms
                 }
 
                 using var hfont = GdiCache.GetHFONT(Font);
-                textSize = hdc.MeasureText(Text, hfont, new Size(textRectangle.Width, int.MaxValue), flags);
+                textSize = hdc.HDC.MeasureText(Text, hfont, new Size(textRectangle.Width, int.MaxValue), (TextFormatFlags)flags);
 
                 if (Enabled)
                 {
-                    hdc.DrawText(Text, hfont, textRectangle, ForeColor, flags);
+                    hdc.HDC.DrawText(Text, hfont, textRectangle, ForeColor, (TextFormatFlags)flags);
                 }
                 else
                 {

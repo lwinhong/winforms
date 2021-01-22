@@ -63,7 +63,7 @@ namespace System.Windows.Forms
             get
             {
                 object description = Properties.GetObject(s_propImageCellDescription);
-                if (description != null)
+                if (description is not null)
                 {
                     return (string)description;
                 }
@@ -142,10 +142,7 @@ namespace System.Windows.Forms
             set
             {
                 // Sequential enum.  Valid values are 0x0 to 0x3
-                if (!ClientUtils.IsEnumValid(value, (int)value, (int)DataGridViewImageCellLayout.NotSet, (int)DataGridViewImageCellLayout.Zoom))
-                {
-                    throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(DataGridViewImageCellLayout));
-                }
+                SourceGenerated.EnumValidator.Validate(value);
                 if (ImageLayout != value)
                 {
                     Properties.SetInteger(s_propImageCellLayout, (int)value);
@@ -178,7 +175,7 @@ namespace System.Windows.Forms
                 if (ValueIsIcon != value)
                 {
                     ValueIsIconInternal = value;
-                    if (DataGridView != null)
+                    if (DataGridView is not null)
                     {
                         if (RowIndex != -1)
                         {
@@ -207,7 +204,7 @@ namespace System.Windows.Forms
                     {
                         _flags = (byte)(_flags & ~CellValueIsIcon);
                     }
-                    if (DataGridView != null &&
+                    if (DataGridView is not null &&
                         RowIndex != -1 &&
                         DataGridView.NewRowIndex == RowIndex &&
                         !DataGridView.VirtualMode)
@@ -229,7 +226,7 @@ namespace System.Windows.Forms
             {
                 Type baseValueType = base.ValueType;
 
-                if (baseValueType != null)
+                if (baseValueType is not null)
                 {
                     return baseValueType;
                 }
@@ -246,7 +243,7 @@ namespace System.Windows.Forms
             set
             {
                 base.ValueType = value;
-                ValueIsIcon = (value != null && s_defaultTypeIcon.IsAssignableFrom(value));
+                ValueIsIcon = (value is not null && s_defaultTypeIcon.IsAssignableFrom(value));
             }
         }
 
@@ -451,9 +448,9 @@ namespace System.Windows.Forms
             if (freeDimension == DataGridViewFreeDimension.Height &&
                 ImageLayout == DataGridViewImageCellLayout.Zoom)
             {
-                if (img != null || ico != null)
+                if (img is not null || ico is not null)
                 {
-                    if (img != null)
+                    if (img is not null)
                     {
                         int imgWidthAllowed = constraintSize.Width - borderAndPaddingWidths;
                         if (imgWidthAllowed <= 0 || img.Width == 0)
@@ -486,9 +483,9 @@ namespace System.Windows.Forms
             else if (freeDimension == DataGridViewFreeDimension.Width &&
                      ImageLayout == DataGridViewImageCellLayout.Zoom)
             {
-                if (img != null || ico != null)
+                if (img is not null || ico is not null)
                 {
-                    if (img != null)
+                    if (img is not null)
                     {
                         int imgHeightAllowed = constraintSize.Height - borderAndPaddingHeights;
                         if (imgHeightAllowed <= 0 || img.Height == 0)
@@ -520,11 +517,11 @@ namespace System.Windows.Forms
             }
             else
             {
-                if (img != null)
+                if (img is not null)
                 {
                     preferredSize = new Size(img.Width, img.Height);
                 }
-                else if (ico != null)
+                else if (ico is not null)
                 {
                     preferredSize = new Size(ico.Width, ico.Height);
                 }
@@ -573,7 +570,7 @@ namespace System.Windows.Forms
                     if (s_defaultTypeImage.IsAssignableFrom(ValueType))
                     {
                         Image image = owningImageColumn.Image;
-                        if (image != null)
+                        if (image is not null)
                         {
                             return image;
                         }
@@ -581,7 +578,7 @@ namespace System.Windows.Forms
                     else if (s_defaultTypeIcon.IsAssignableFrom(ValueType))
                     {
                         Icon icon = owningImageColumn.Icon;
-                        if (icon != null)
+                        if (icon is not null)
                         {
                             return icon;
                         }
@@ -758,7 +755,7 @@ namespace System.Windows.Forms
             Debug.Assert(!paint || !computeContentBounds || !computeErrorIconBounds);
             Debug.Assert(!computeContentBounds || !computeErrorIconBounds || !paint);
             Debug.Assert(!computeErrorIconBounds || !paint || !computeContentBounds);
-            Debug.Assert(cellStyle != null);
+            Debug.Assert(cellStyle is not null);
 
             if (paint && PaintBorder(paintParts))
             {
@@ -850,7 +847,7 @@ namespace System.Windows.Forms
 
                     if (PaintContentForeground(paintParts))
                     {
-                        if (image != null)
+                        if (image is not null)
                         {
                             using ImageAttributes attr = new ImageAttributes();
                             attr.SetWrapMode(WrapMode.TileFlipXY);
@@ -893,7 +890,7 @@ namespace System.Windows.Forms
                                 Rectangle.Intersect(imageBounds2, imageBounds),
                                 Rectangle.Truncate(g.VisibleClipBounds)));
 
-                            if (image != null)
+                            if (image is not null)
                             {
                                 g.DrawImage(image, imageBounds2);
                             }

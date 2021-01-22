@@ -2212,6 +2212,16 @@
         <target state="translated">グリッドにあるセルの ValueType プロパティは null にできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="DataGridViewCheckBoxCellCheckedStateDescription">
+        <source>{0} check box checked</source>
+        <target state="translated">{0} のチェック ボックスがオンになっています</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DataGridViewCheckBoxCellUncheckedStateDescription">
+        <source>{0} check box unchecked</source>
+        <target state="translated">{0} チェック ボックスがオフになっています</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DataGridViewCheckBoxCell_ClipboardChecked">
         <source>Selected</source>
         <target state="translated">選択しました</target>
@@ -3697,6 +3707,11 @@ To replace this default dialog please handle the DataError event.</source>
       <trans-unit id="DataGridView_ReadOnlyDescr">
         <source>Indicates whether the user can edit the cells of the DataGridView control.</source>
         <target state="translated">ユーザーが DataGridView コントロールのセルを編集することができるかどうかを示します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DataGridView_RowAddedNotification">
+        <source>Row {0} is added</source>
+        <target state="translated">行 {0} が追加されました</target>
         <note />
       </trans-unit>
       <trans-unit id="DataGridView_RowAlreadyBelongsToDataGridView">
@@ -8301,6 +8316,11 @@ Stack trace where the illegal operation occurred was:
         <target state="translated">グリッド領域を囲む境界線の色。</target>
         <note />
       </trans-unit>
+      <trans-unit id="PropertyGridViewDropDownControlHolderAccessibleName">
+        <source>Drop down control holder</source>
+        <target state="translated">ドロップ ダウンのコントロール ホルダー</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PropertyGridViewEditorCreatedInvalidObject">
         <source>Editor created an object that is not valid.  The created object must be of type '{0}'.</source>
         <target state="translated">エディターで有効ではないオブジェクトが作成されました。  作成されるオブジェクトは型 '{0}' でなければなりません。</target>
@@ -10392,8 +10412,8 @@ Stack trace where the illegal operation occurred was:
         <note />
       </trans-unit>
       <trans-unit id="TrayIcon_TextTooLong">
-        <source>Text length must be less than 64 characters long.</source>
-        <target state="translated">文字列の長さは 64 文字未満でなければなりません。</target>
+        <source>Text length must be less than 128 characters long.</source>
+        <target state="translated">文字列の長さは 128 文字未満でなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeNodeBackColorDescr">
@@ -10404,6 +10424,11 @@ Stack trace where the illegal operation occurred was:
       <trans-unit id="TreeNodeBeginEditFailed">
         <source>BeginEdit did not succeed because LabelEdit property is false.</source>
         <target state="translated">LabelEdit のプロパティが false であるため、BeginEdit は成功しませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TreeNodeBoundToAnotherTreeView">
+        <source>The TreeNode is already bound to another TreeView. You must first remove it from its current location or clone it.</source>
+        <target state="new">The TreeNode is already bound to another TreeView. You must first remove it from its current location or clone it.</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeNodeCheckedDescr">
@@ -10784,6 +10809,11 @@ Stack trace where the illegal operation occurred was:
       <trans-unit id="UpDownBaseUpButtonAccName">
         <source>Up</source>
         <target state="translated">上</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpDownEditLocalizedControlTypeName">
+        <source>Edit</source>
+        <target state="translated">編集</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCompatibleTextRenderingDescr">

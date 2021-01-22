@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Reflection;
@@ -97,9 +98,10 @@ namespace System.Windows.Forms.Tests.AccessibleObjects
         }
 
         [WinFormsFact]
-        public void DataGridViewAccessibleObject_Bounds_ReturnsCorrectValue()
+        public void DataGridViewAccessibleObject_Bounds_ReturnsCorrectValue_IfHandleIsCreated()
         {
             using DataGridView dataGridView = new DataGridView();
+            dataGridView.CreateControl();
             dataGridView.Size = new Size(500, 300);
             AccessibleObject accessibleObject = dataGridView.AccessibilityObject;
 
@@ -115,10 +117,31 @@ namespace System.Windows.Forms.Tests.AccessibleObjects
             actualBounds.Location = new Point(0, 0);
             Rectangle expectedBounds = dataGridView.Bounds;
             Assert.Equal(expectedBounds, actualBounds);
+            Assert.True(dataGridView.IsHandleCreated);
         }
 
         [WinFormsFact]
-        public void DataGridViewAccessibleObject_ControlType_IsTable()
+        public void DataGridViewAccessibleObject_Bounds_ReturnsCorrectValue_IfHandleIsNotCreated()
+        {
+            using DataGridView dataGridView = new DataGridView();
+            dataGridView.Size = new Size(500, 300);
+            AccessibleObject accessibleObject = dataGridView.AccessibilityObject;
+
+            int actualWidth = accessibleObject.Bounds.Width;
+            Assert.Equal(0, actualWidth);
+
+            int actualHeight = accessibleObject.Bounds.Height;
+            Assert.Equal(0, actualHeight);
+
+            Rectangle actualBounds = accessibleObject.Bounds;
+            actualBounds.Location = new Point(0, 0);
+            Rectangle expectedBounds = dataGridView.Bounds;
+            Assert.Equal(Rectangle.Empty, actualBounds);
+            Assert.False(dataGridView.IsHandleCreated);
+        }
+
+        [WinFormsFact]
+        public void DataGridViewAccessibleObject_ControlType_IsTable_IfAccessibleRoleIsDefault()
         {
             using DataGridView dataGridView = new DataGridView();
             AccessibleObject accessibleObject = dataGridView.AccessibilityObject;
@@ -133,7 +156,6 @@ namespace System.Windows.Forms.Tests.AccessibleObjects
             using DataGridView dataGridView = new DataGridView();
             dataGridView.Columns.Add(new DataGridViewTextBoxColumn());
             dataGridView.Columns.Add(new DataGridViewTextBoxColumn());
-            dataGridView.CreateControl();
             User32.SetFocus(new HandleRef(dataGridView, dataGridView.Handle));
 
             DataGridViewCell cell = dataGridView.Rows[0].Cells[0];
@@ -182,12 +204,21 @@ namespace System.Windows.Forms.Tests.AccessibleObjects
             Assert.Equal(expectedStatus, actualStatus);
         }
 
-        [WinFormsFact]
-        public void DataGridViewAccessibleObject_State_IsFocusable()
+        [WinFormsTheory]
+        [InlineData(true, AccessibleStates.Focusable)]
+        [InlineData(false, AccessibleStates.None)]
+        public void DataGridViewAccessibleObject_State_IsFocusable(bool createControl, AccessibleStates expectedAccessibleStates)
         {
             using DataGridView dataGridView = new DataGridView();
+            if (createControl)
+            {
+                dataGridView.CreateControl();
+            }
+
+            Assert.Equal(createControl, dataGridView.IsHandleCreated);
             AccessibleObject accessibleObject = dataGridView.AccessibilityObject;
-            Assert.Equal(AccessibleStates.Focusable, accessibleObject.State & AccessibleStates.Focusable);
+            Assert.Equal(createControl, dataGridView.IsHandleCreated);
+            Assert.Equal(expectedAccessibleStates, accessibleObject.State & AccessibleStates.Focusable);
         }
 
         [WinFormsFact]
@@ -226,10 +257,18 @@ namespace System.Windows.Forms.Tests.AccessibleObjects
             Assert.True((bool)accessibilityObject.GetPropertyValue((UiaCore.UIA)propertyId));
         }
 
-        [WinFormsFact]
-        public void DataGridViewAccessibleObject_Cell_IsOffscreen_ReturnsCorrectValue()
+        [WinFormsTheory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void DataGridViewAccessibleObject_Cell_IsOffscreen_ReturnsCorrectValue(bool createControl)
         {
             using DataGridView dataGridView = new DataGridView();
+
+            if (createControl)
+            {
+                dataGridView.CreateControl();
+            }
+
             AccessibleObject accessibleObject = dataGridView.AccessibilityObject;
             dataGridView.Size = new Size(200, 100);
             dataGridView.Columns.Add(new DataGridViewTextBoxColumn());
@@ -242,7 +281,9 @@ namespace System.Windows.Forms.Tests.AccessibleObjects
             dataGridView.Rows.Add(); // 3
             dataGridView.Rows.Add(); // 4
             isOffscreen = dataGridView.Rows[4].Cells[0].AccessibilityObject.GetPropertyValue(UiaCore.UIA.IsOffscreenPropertyId);
-            Assert.True((bool)isOffscreen); // Out of the visible area
+
+            Assert.Equal(createControl, (bool)isOffscreen); // Out of the visible area
+            Assert.Equal(createControl, dataGridView.IsHandleCreated);
         }
 
         [WinFormsTheory]
@@ -333,11 +374,51 @@ namespace System.Windows.Forms.Tests.AccessibleObjects
         }
 
         [WinFormsFact]
-        public void DataGridViewAccessibleObject_Parent_IsNotNull()
+        public void DataGridViewAccessibleObject_Parent_IsNotNull_IfHandleIsCreated()
+        {
+            using DataGridView dataGridView = new DataGridView();
+            dataGridView.CreateControl();
+            AccessibleObject accessibleObject = dataGridView.AccessibilityObject;
+            Assert.NotNull(accessibleObject.Parent);
+            Assert.True(dataGridView.IsHandleCreated);
+        }
+
+        [WinFormsFact]
+        public void DataGridViewAccessibleObject_Parent_IsNotNull_IfHandleIsNotCreated()
         {
             using DataGridView dataGridView = new DataGridView();
             AccessibleObject accessibleObject = dataGridView.AccessibilityObject;
-            Assert.NotNull(accessibleObject.Parent);
+            Assert.Null(accessibleObject.Parent);
+            Assert.False(dataGridView.IsHandleCreated);
+        }
+
+        public static IEnumerable<object[]> DataGridViewAccessibleObject_GetPropertyValue_ControlType_IsExpected_ForCustomRole_TestData()
+        {
+            Array roles = Enum.GetValues(typeof(AccessibleRole));
+
+            foreach (AccessibleRole role in roles)
+            {
+                if (role == AccessibleRole.Default)
+                {
+                    continue; // The test checks custom roles
+                }
+
+                yield return new object[] { role };
+            }
+        }
+
+        [WinFormsTheory]
+        [MemberData(nameof(DataGridViewAccessibleObject_GetPropertyValue_ControlType_IsExpected_ForCustomRole_TestData))]
+        public void DataGridViewAccessibleObject_GetPropertyValue_ControlType_IsExpected_ForCustomRole(AccessibleRole role)
+        {
+            using DataGridView dataGridView = new DataGridView();
+            dataGridView.AccessibleRole = role;
+
+            object actual = dataGridView.AccessibilityObject.GetPropertyValue(UiaCore.UIA.ControlTypePropertyId);
+            UiaCore.UIA expected = AccessibleRoleControlTypeMap.GetControlType(role);
+
+            Assert.Equal(expected, actual);
+            Assert.False(dataGridView.IsHandleCreated);
         }
     }
 }

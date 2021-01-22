@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
+using static Interop;
 using static Interop.UiaCore;
 
 namespace System.Windows.Forms.Tests
@@ -21,32 +18,39 @@ namespace System.Windows.Forms.Tests
             Assert.Throws<ArgumentNullException>(() => new ScrollBar.ScrollBarAccessibleObject(null));
         }
 
-        [WinFormsFact]
-        public void ScrollBarAccessibleObject_Ctor_Default()
+        [WinFormsTheory]
+        [InlineData(true, AccessibleRole.ScrollBar)]
+        [InlineData(false, AccessibleRole.None)]
+        public void ScrollBarAccessibleObject_Ctor_Default(bool createControl, AccessibleRole accessibleRole)
         {
             using var scrollBar = new SubScrollBar();
+
+            if (createControl)
+            {
+                scrollBar.CreateControl();
+            }
+
             AccessibleObject accessibleObject = scrollBar.AccessibilityObject;
 
             Assert.NotNull(accessibleObject);
-            Assert.Equal(AccessibleRole.ScrollBar, accessibleObject.Role);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(scrollBar.IsHandleCreated);
+            Assert.Equal(accessibleRole, accessibleObject.Role);
+            Assert.Equal(createControl, scrollBar.IsHandleCreated);
         }
 
         [WinFormsFact]
         public void ScrollBarAccessibleObject_IsPatternSupported_Invoke_ReturnsExpected()
         {
             using var scrollBar = new SubScrollBar();
+            scrollBar.CreateControl();
             AccessibleObject accessibleObject = scrollBar.AccessibilityObject;
 
             Assert.True(accessibleObject.IsPatternSupported(UIA.ValuePatternId));
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
             Assert.True(scrollBar.IsHandleCreated);
         }
 
         [WinFormsTheory]
         [InlineData((int)UIA.NamePropertyId, "TestName")]
-        [InlineData((int)UIA.ControlTypePropertyId, UIA.ScrollBarControlTypeId)]
+        [InlineData((int)UIA.ControlTypePropertyId, UIA.ScrollBarControlTypeId)] // If AccessibleRole is Default
         [InlineData((int)UIA.IsKeyboardFocusablePropertyId, true)]
         [InlineData((int)UIA.IsValuePatternAvailablePropertyId, true)]
         [InlineData((int)UIA.AutomationIdPropertyId, "AutomId")]
@@ -63,8 +67,36 @@ namespace System.Windows.Forms.Tests
             object value = scrollBarAccessibleObject.GetPropertyValue((UIA)propertyID);
 
             Assert.Equal(expected, value);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(scrollBar.IsHandleCreated);
+            Assert.False(scrollBar.IsHandleCreated);
+        }
+
+        public static IEnumerable<object[]> ScrollBarAccessibleObject_GetPropertyValue_ControlType_IsExpected_ForCustomRole_TestData()
+        {
+            Array roles = Enum.GetValues(typeof(AccessibleRole));
+
+            foreach (AccessibleRole role in roles)
+            {
+                if (role == AccessibleRole.Default)
+                {
+                    continue; // The test checks custom roles
+                }
+
+                yield return new object[] { role };
+            }
+        }
+
+        [WinFormsTheory]
+        [MemberData(nameof(ScrollBarAccessibleObject_GetPropertyValue_ControlType_IsExpected_ForCustomRole_TestData))]
+        public void ScrollBarAccessibleObject_GetPropertyValue_ControlType_IsExpected_ForCustomRole(AccessibleRole role)
+        {
+            using ScrollBar scrollBar = new SubScrollBar();
+            scrollBar.AccessibleRole = role;
+
+            object actual = scrollBar.AccessibilityObject.GetPropertyValue(UiaCore.UIA.ControlTypePropertyId);
+            UiaCore.UIA expected = AccessibleRoleControlTypeMap.GetControlType(role);
+
+            Assert.Equal(expected, actual);
+            Assert.False(scrollBar.IsHandleCreated);
         }
 
         private class SubScrollBar : ScrollBar

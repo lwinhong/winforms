@@ -108,10 +108,7 @@ namespace System.Windows.Forms
                 if (appearance != value)
                 {
                     //valid values are 0x0 to 0x1
-                    if (!ClientUtils.IsEnumValid(value, (int)value, (int)Appearance.Normal, (int)Appearance.Button))
-                    {
-                        throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(Appearance));
-                    }
+                    SourceGenerated.EnumValidator.Validate(value);
 
                     using (LayoutTransaction.CreateTransactionIf(AutoSize, ParentInternal, this, PropertyNames.Appearance))
                     {
@@ -323,7 +320,7 @@ namespace System.Windows.Forms
                     }
                     else
                     {
-                        return Adapter.CommonLayout().Layout().checkBounds;
+                        return Adapter.CommonLayout().Layout().CheckBounds;
                     }
                 }
             }
@@ -339,7 +336,7 @@ namespace System.Windows.Forms
                 }
                 else
                 {
-                    return Adapter.CommonLayout().Layout().checkBounds;
+                    return Adapter.CommonLayout().Layout().CheckBounds;
                 }
             }
         }
@@ -468,7 +465,7 @@ namespace System.Windows.Forms
                 if (isChecked)
                 {
                     Control parent = ParentInternal;
-                    if (parent != null)
+                    if (parent is not null)
                     {
                         ControlCollection children = parent.Controls;
                         for (int i = 0; i < children.Count; i++)
@@ -495,7 +492,7 @@ namespace System.Windows.Forms
         private void WipeTabStops(bool tabbedInto)
         {
             Control parent = ParentInternal;
-            if (parent != null)
+            if (parent is not null)
             {
                 ControlCollection children = parent.Controls;
                 for (int i = 0; i < children.Count; i++)

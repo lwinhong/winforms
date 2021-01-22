@@ -64,15 +64,12 @@ namespace System.Windows.Forms
             }
             set
             {
-                if (!ClientUtils.IsEnumValid(value, (int)value, (int)AutoSizeMode.GrowAndShrink, (int)AutoSizeMode.GrowOnly))
-                {
-                    throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(AutoSizeMode));
-                }
+                SourceGenerated.EnumValidator.Validate(value);
 
                 if (GetAutoSizeMode() != value)
                 {
                     SetAutoSizeMode(value);
-                    if (ParentInternal != null)
+                    if (ParentInternal is not null)
                     {
                         // DefaultLayout does not keep anchor information until it needs to.  When
                         // AutoSize became a common property, we could no longer blindly call into
@@ -177,10 +174,8 @@ namespace System.Windows.Forms
 
             set
             {
-                if (!ClientUtils.IsEnumValid(value, (int)value, (int)DialogResult.None, (int)DialogResult.No))
-                {
-                    throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(DialogResult));
-                }
+                SourceGenerated.EnumValidator.Validate(value);
+
                 _dialogResult = value;
             }
         }
@@ -244,7 +239,7 @@ namespace System.Windows.Forms
         protected override void OnClick(EventArgs e)
         {
             Form form = FindForm();
-            if (form != null)
+            if (form is not null)
             {
                 form.DialogResult = _dialogResult;
             }

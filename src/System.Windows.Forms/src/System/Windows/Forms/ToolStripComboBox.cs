@@ -690,7 +690,7 @@ namespace System.Windows.Forms
                 public ToolStripComboBoxControlAccessibleObject(ToolStripComboBoxControl toolStripComboBoxControl)
                     : base(toolStripComboBoxControl)
                 {
-                    _childAccessibleObject = new ChildAccessibleObject(toolStripComboBoxControl, toolStripComboBoxControl.Handle);
+                    _childAccessibleObject = new ChildAccessibleObject(toolStripComboBoxControl, toolStripComboBoxControl.InternalHandle);
                 }
 
                 internal override UiaCore.IRawElementProviderFragment FragmentNavigate(UiaCore.NavigateDirection direction)
@@ -727,8 +727,6 @@ namespace System.Windows.Forms
                 {
                     switch (propertyID)
                     {
-                        case UiaCore.UIA.ControlTypePropertyId:
-                            return UiaCore.UIA.ComboBoxControlTypeId;
                         case UiaCore.UIA.IsOffscreenPropertyId:
                             return (State & AccessibleStates.Offscreen) == AccessibleStates.Offscreen;
                     }

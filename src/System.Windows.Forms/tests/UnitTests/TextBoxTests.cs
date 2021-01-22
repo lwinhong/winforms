@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using WinForms.Common.Tests;
 using Xunit;
 using static Interop;
@@ -14,7 +15,7 @@ namespace System.Windows.Forms.Tests
     using Point = System.Drawing.Point;
     using Size = System.Drawing.Size;
 
-    public class TextBoxTests : IClassFixture<ThreadExceptionFixture>
+    public partial class TextBoxTests : IClassFixture<ThreadExceptionFixture>
     {
         private static int s_preferredHeight = Control.DefaultFont.Height + SystemInformation.BorderSize.Height * 4 + 3;
 
@@ -333,51 +334,29 @@ namespace System.Windows.Forms.Tests
         public static IEnumerable<object[]> TextBox_ShouldRenderPlaceHolderText_TestData()
         {
             // Test PlaceholderText
-            var tb = new SubTextBox() { PlaceholderText = "", IsUserPaint = false, IsFocused = false, TextCount = 0 };
-            var msg = new Message() { Msg = (int)User32.WM.PAINT };
-            yield return new object[] { tb, msg, false };
-
-            // Test PlaceholderText
-            tb = new SubTextBox() { PlaceholderText = null, IsUserPaint = false, IsFocused = false, TextCount = 0 };
-            msg = new Message() { Msg = (int)User32.WM.PAINT };
-            yield return new object[] { tb, msg, false };
-
-            // Test Message
-            msg.Msg = (int)User32.WM.USER;
-            tb = new SubTextBox() { PlaceholderText = "Text", IsUserPaint = false, IsFocused = false, TextCount = 0 };
-            yield return new object[] { tb, msg, false };
+            yield return new object[] { null, /* isUserPaint */ false, /* isIsFocused */ false, /* textCount */ 0, /* expected */ false };
+            yield return new object[] { "", /* isUserPaint */ false, /* isIsFocused */ false, /* textCount */ 0, /* expected */ false };
 
             // Test UserPaint
-            msg.Msg = (int)User32.WM.PAINT;
-            tb = new SubTextBox() { PlaceholderText = "Text", IsUserPaint = true, IsFocused = false, TextCount = 0 };
-            yield return new object[] { tb, msg, false };
+            yield return new object[] { "Text", /* isUserPaint */ true, /* isIsFocused */ false, /* textCount */ 0, /* expected */ false };
 
             // Test Focused
-            msg.Msg = (int)User32.WM.PAINT;
-            tb = new SubTextBox() { PlaceholderText = "Text", IsUserPaint = false, IsFocused = true, TextCount = 0 };
-            yield return new object[] { tb, msg, false };
+            yield return new object[] { "Text", /* isUserPaint */ false, /* isIsFocused */ true, /* textCount */ 0, /* expected */ false };
 
             // Test TextLength
-            msg.Msg = (int)User32.WM.PAINT;
-            tb = new SubTextBox() { PlaceholderText = "Text", IsUserPaint = false, IsFocused = false, TextCount = 1 };
-            yield return new object[] { tb, msg, false };
+            yield return new object[] { "Text", /* isUserPaint */ false, /* isIsFocused */ false, /* textCount */ 1, /* expected */ false };
 
-            // Test WM_PAINT
-            tb = new SubTextBox() { PlaceholderText = "Text", IsUserPaint = false, IsFocused = false, TextCount = 0 };
-            msg.Msg = (int)User32.WM.PAINT;
-            yield return new object[] { tb, msg, true };
-
-            // Test WM_KILLFOCUS
-            tb = new SubTextBox() { PlaceholderText = "Text", IsUserPaint = false, IsFocused = false, TextCount = 0 };
-            msg.Msg = (int)User32.WM.KILLFOCUS;
-            yield return new object[] { tb, msg, true };
+            // Happy path
+            yield return new object[] { "Text", /* isUserPaint */ false, /* isIsFocused */ false, /* textCount */ 0, /* expected */ true };
         }
 
         [WinFormsTheory]
         [MemberData(nameof(TextBox_ShouldRenderPlaceHolderText_TestData))]
-        public void TextBox_ShouldRenderPlaceHolderText(TextBox textBox, Message m, bool expected)
+        public void TextBox_ShouldRenderPlaceHolderText(string text, bool isUserPaint, bool isIsFocused, int textCount, bool expected)
         {
-            bool result = textBox.TestAccessor().Dynamic.ShouldRenderPlaceHolderText(m);
+            using var textBox = new SubTextBox() { PlaceholderText = text, IsUserPaint = isUserPaint, IsFocused = isIsFocused, TextCount = textCount };
+
+            bool result = textBox.TestAccessor().Dynamic.ShouldRenderPlaceHolderText();
             Assert.Equal(expected, result);
         }
 
@@ -409,7 +388,7 @@ namespace System.Windows.Forms.Tests
                 PlaceholderText = "Enter your name"
             };
 
-            System.Runtime.InteropServices.HandleRef refHandle = new System.Runtime.InteropServices.HandleRef(tb, tb.Handle);
+            HandleRef refHandle = new HandleRef(tb, tb.Handle);
 
             //Cover the Placeholder draw code path
             User32.SendMessageW(refHandle, User32.WM.PAINT, PARAM.FromBool(false));
@@ -430,7 +409,7 @@ namespace System.Windows.Forms.Tests
                 RightToLeft = RightToLeft.Yes
             };
 
-            System.Runtime.InteropServices.HandleRef refHandle = new System.Runtime.InteropServices.HandleRef(tb, tb.Handle);
+            HandleRef refHandle = new HandleRef(tb, tb.Handle);
 
             //Cover the Placeholder draw code path in RightToLeft scenario
             User32.SendMessageW(refHandle, User32.WM.PAINT, PARAM.FromBool(false));
@@ -442,16 +421,26 @@ namespace System.Windows.Forms.Tests
             Assert.False(string.IsNullOrEmpty(tb.PlaceholderText));
         }
 
-        [WinFormsFact]
-        public void TextBox_CreateAccessibilityInstance_Invoke_ReturnsExpected()
+        [WinFormsTheory]
+        [InlineData(true, AccessibleRole.Text)]
+        [InlineData(false, AccessibleRole.None)]
+        public void TextBox_CreateAccessibilityInstance_Invoke_ReturnsExpected(bool createControl, AccessibleRole expectedAccessibleRole)
         {
             using var control = new SubTextBox();
-            Control.ControlAccessibleObject instance = Assert.IsType<Control.ControlAccessibleObject>(control.CreateAccessibilityInstance());
+            if (createControl)
+            {
+                control.CreateControl();
+            }
+
+            Assert.Equal(createControl, control.IsHandleCreated);
+            Control.ControlAccessibleObject instance = Assert.IsType<TextBoxBase.TextBoxBaseAccessibleObject>(control.CreateAccessibilityInstance());
+            Assert.Equal(createControl, control.IsHandleCreated);
             Assert.NotNull(instance);
             Assert.Same(control, instance.Owner);
-            Assert.Equal(AccessibleRole.Text, instance.Role);
+            Assert.Equal(expectedAccessibleRole, instance.Role);
             Assert.NotSame(control.CreateAccessibilityInstance(), instance);
             Assert.NotSame(control.AccessibilityObject, instance);
+            Assert.Equal(createControl, control.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -461,12 +450,13 @@ namespace System.Windows.Forms.Tests
             {
                 AccessibleRole = AccessibleRole.HelpBalloon
             };
-            Control.ControlAccessibleObject instance = Assert.IsType<Control.ControlAccessibleObject>(control.CreateAccessibilityInstance());
+            Control.ControlAccessibleObject instance = Assert.IsType<TextBoxBase.TextBoxBaseAccessibleObject>(control.CreateAccessibilityInstance());
             Assert.NotNull(instance);
             Assert.Same(control, instance.Owner);
             Assert.Equal(AccessibleRole.HelpBalloon, instance.Role);
             Assert.NotSame(control.CreateAccessibilityInstance(), instance);
             Assert.NotSame(control.AccessibilityObject, instance);
+            Assert.False(control.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -706,6 +696,8 @@ namespace System.Windows.Forms.Tests
                 set => base.ImeModeBase = value;
             }
 
+            public new bool IsHandleCreated => base.IsHandleCreated;
+
             public new bool ResizeRedraw
             {
                 get => base.ResizeRedraw;
@@ -744,6 +736,8 @@ namespace System.Windows.Forms.Tests
                 get => GetStyle(ControlStyles.UserPaint);
                 set => SetStyle(ControlStyles.UserPaint, value);
             }
+
+            public new void CreateControl() => base.CreateControl();
 
             public new void OnHandleCreated(EventArgs e) => base.OnHandleCreated(e);
 

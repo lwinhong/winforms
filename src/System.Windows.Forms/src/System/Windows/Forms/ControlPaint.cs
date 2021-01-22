@@ -745,7 +745,8 @@ namespace System.Windows.Forms
                             using var hpen = new Gdi32.CreatePenScope(topColor);
                             for (int i = 0; i < topWidth; i++)
                             {
-                                hdc.DrawLine(hpen, topLineLefts[i], bounds.Y + i, topLineRights[i], bounds.Y + i);
+                                // Need to add one to the destination point for GDI to render the same as GDI+
+                                hdc.DrawLine(hpen, topLineLefts[i], bounds.Y + i, topLineRights[i] + 1, bounds.Y + i);
                             }
                         }
                         else
@@ -778,7 +779,9 @@ namespace System.Windows.Forms
                             using var hpen = new Gdi32.CreatePenScope(topStyle == ButtonBorderStyle.Inset
                                 ? hlsColor.Darker(1.0f - i * inc)
                                 : hlsColor.Lighter(1.0f - i * inc));
-                            hdc.DrawLine(hpen, topLineLefts[i], bounds.Y + i, topLineRights[i], bounds.Y + i);
+
+                            // Need to add one to the destination point for GDI to render the same as GDI+
+                            hdc.DrawLine(hpen, topLineLefts[i], bounds.Y + i, topLineRights[i] + 1, bounds.Y + i);
                         }
                         break;
                     }
@@ -799,7 +802,8 @@ namespace System.Windows.Forms
                             using var hpen = new Gdi32.CreatePenScope(leftColor);
                             for (int i = 0; i < leftWidth; i++)
                             {
-                                hdc.DrawLine(hpen, bounds.X + i, leftLineTops[i], bounds.X + i, leftLineBottoms[i]);
+                                // Need to add one to the destination point for GDI to render the same as GDI+
+                                hdc.DrawLine(hpen, bounds.X + i, leftLineTops[i], bounds.X + i, leftLineBottoms[i] + 1);
                             }
                         }
                         else
@@ -831,7 +835,9 @@ namespace System.Windows.Forms
                             using var hpen = new Gdi32.CreatePenScope(leftStyle == ButtonBorderStyle.Inset
                                 ? hlsColor.Darker(1.0f - i * inc)
                                 : hlsColor.Lighter(1.0f - i * inc));
-                            hdc.DrawLine(hpen, bounds.X + i, leftLineTops[i], bounds.X + i, leftLineBottoms[i]);
+
+                            // Need to add one to the destination point for GDI to render the same as GDI+
+                            hdc.DrawLine(hpen, bounds.X + i, leftLineTops[i], bounds.X + i, leftLineBottoms[i] + 1);
                         }
                         break;
                     }
@@ -852,11 +858,12 @@ namespace System.Windows.Forms
                             using var hpen = new Gdi32.CreatePenScope(bottomColor);
                             for (int i = 0; i < bottomWidth; i++)
                             {
+                                // Need to add one to the destination point for GDI to render the same as GDI+
                                 hdc.DrawLine(
                                     hpen,
                                     bottomLineLefts[i],
                                     bounds.Y + bounds.Height - 1 - i,
-                                    bottomLineRights[i],
+                                    bottomLineRights[i] + 1,
                                     bounds.Y + bounds.Height - 1 - i);
                             }
                         }
@@ -894,11 +901,13 @@ namespace System.Windows.Forms
                             using var hpen = new Gdi32.CreatePenScope(bottomStyle != ButtonBorderStyle.Inset
                                 ? hlsColor.Darker(1.0f - i * inc)
                                 : hlsColor.Lighter(1.0f - i * inc));
+
+                            // Need to add one to the destination point for GDI to render the same as GDI+
                             hdc.DrawLine(
                                 hpen,
                                 bottomLineLefts[i],
                                 bounds.Y + bounds.Height - 1 - i,
-                                bottomLineRights[i],
+                                bottomLineRights[i] + 1,
                                 bounds.Y + bounds.Height - 1 - i);
                         }
                         break;
@@ -920,12 +929,13 @@ namespace System.Windows.Forms
                             using var hpen = new Gdi32.CreatePenScope(rightColor);
                             for (int i = 0; i < rightWidth; i++)
                             {
+                                // Need to add one to the destination point for GDI to render the same as GDI+
                                 hdc.DrawLine(
                                     hpen,
                                     bounds.X + bounds.Width - 1 - i,
                                     rightLineTops[i],
                                     bounds.X + bounds.Width - 1 - i,
-                                    rightLineBottoms[i]);
+                                    rightLineBottoms[i] + 1);
                             }
                         }
                         else
@@ -963,11 +973,12 @@ namespace System.Windows.Forms
                                 ? hlsColor.Darker(1.0f - i * inc)
                                 : hlsColor.Lighter(1.0f - i * inc));
 
+                            // Need to add one to the destination point for GDI to render the same as GDI+
                             hdc.DrawLine(hpen,
                                 bounds.X + bounds.Width - 1 - i,
                                 rightLineTops[i],
                                 bounds.X + bounds.Width - 1 - i,
-                                rightLineBottoms[i]);
+                                rightLineBottoms[i] + 1);
                         }
                         break;
                     }
@@ -1152,24 +1163,26 @@ namespace System.Windows.Forms
             if (context is null)
                 throw new ArgumentNullException(nameof(context));
 
-            bounds = new Rectangle(bounds.X, bounds.Y, bounds.Width - 1, bounds.Height - 1);
-
             if (color.HasTransparency() || style != ButtonBorderStyle.Solid)
             {
+                // GDI+ right and bottom DrawRectangle border are 1 greater than GDI
+                bounds = new Rectangle(bounds.X, bounds.Y, bounds.Width - 1, bounds.Height - 1);
+
                 Graphics graphics = context.TryGetGraphics(create: true);
-                if (graphics != null)
+                if (graphics is not null)
                 {
                     if (style == ButtonBorderStyle.Solid)
                     {
                         using var pen = color.GetCachedPenScope();
                         graphics.DrawRectangle(pen, bounds);
-                        return;
                     }
                     else
                     {
                         using var pen = color.CreateStaticPen(BorderStyleToDashStyle(style));
                         graphics.DrawRectangle(pen, bounds);
                     }
+
+                    return;
                 }
             }
 
@@ -1367,7 +1380,7 @@ namespace System.Windows.Forms
             {
                 if (t_checkImage is null || t_checkImage.Width != rectangle.Width || t_checkImage.Height != rectangle.Height)
                 {
-                    if (t_checkImage != null)
+                    if (t_checkImage is not null)
                     {
                         t_checkImage.Dispose();
                         t_checkImage = null;
@@ -1536,7 +1549,7 @@ namespace System.Windows.Forms
             if (t_gridBrush is null || s_gridSize.Width != pixelsBetweenDots.Width
                 || s_gridSize.Height != pixelsBetweenDots.Height || invert != s_gridInvert)
             {
-                if (t_gridBrush != null)
+                if (t_gridBrush is not null)
                 {
                     t_gridBrush.Dispose();
                     t_gridBrush = null;
@@ -1591,7 +1604,7 @@ namespace System.Windows.Forms
         }
 
         internal static bool IsImageTransparent(Image backgroundImage)
-            => backgroundImage != null && (backgroundImage.Flags & (int)ImageFlags.HasAlpha) > 0;
+            => backgroundImage is not null && (backgroundImage.Flags & (int)ImageFlags.HasAlpha) > 0;
 
         // takes an image and replaces all the pixels of oldColor with newColor, drawing the new image into the rectangle on
         // the supplied Graphics object.
@@ -1890,8 +1903,7 @@ namespace System.Windows.Forms
         }
 
         /// <summary>
-        ///  Draws a size grip at the given location. The color of the size grip is based
-        ///  on the given background color.
+        ///  Draws a size grip at the given location. The color of the size grip is based on the given background color.
         /// </summary>
         public static void DrawSizeGrip(Graphics graphics, Color backColor, Rectangle bounds)
             => DrawSizeGrip(graphics, backColor, bounds.X, bounds.Y, bounds.Width, bounds.Height);
@@ -1904,7 +1916,19 @@ namespace System.Windows.Forms
             if (graphics is null)
                 throw new ArgumentNullException(nameof(graphics));
 
-            DrawSizeGrip((IDeviceContext)graphics, backColor, x, y, width, height);
+            using var bright = GdiPlusCache.GetCachedPenScope(LightLight(backColor));
+            using var dark = GdiPlusCache.GetCachedPenScope(Dark(backColor));
+
+            int minDim = Math.Min(width, height);
+            int right = x + width - 1;
+            int bottom = y + height - 2;
+
+            for (int i = 0; i < minDim - 4; i += 4)
+            {
+                graphics.DrawLine(dark, right - (i + 1) - 2, bottom, right, bottom - (i + 1) - 2);
+                graphics.DrawLine(dark, right - (i + 2) - 2, bottom, right, bottom - (i + 2) - 2);
+                graphics.DrawLine(bright, right - (i + 3) - 2, bottom, right, bottom - (i + 3) - 2);
+            }
         }
 
         internal static void DrawSizeGrip(
@@ -1930,9 +1954,9 @@ namespace System.Windows.Forms
 
             for (int i = 0; i < size - 4; i += 4)
             {
-                hdc.DrawLine(hpenDark, right - (i + 1) - 2, bottom, right, bottom - (i + 1) - 2);
-                hdc.DrawLine(hpenDark, right - (i + 2) - 2, bottom, right, bottom - (i + 2) - 2);
-                hdc.DrawLine(hpenBright, right - (i + 3) - 2, bottom, right, bottom - (i + 3) - 2);
+                hdc.DrawLine(hpenDark, right - (i + 1) - 2, bottom, right + 1, bottom - (i + 1) - 3);
+                hdc.DrawLine(hpenDark, right - (i + 2) - 2, bottom, right + 1, bottom - (i + 2) - 3);
+                hdc.DrawLine(hpenBright, right - (i + 3) - 2, bottom, right + 1, bottom - (i + 3) - 3);
             }
         }
 
@@ -2164,7 +2188,7 @@ namespace System.Windows.Forms
 
             if (t_frameBrushActive is null || !s_frameColorActive.Equals(brushColor))
             {
-                if (t_frameBrushActive != null)
+                if (t_frameBrushActive is not null)
                 {
                     t_frameBrushActive.Dispose();
                     t_frameBrushActive = null;
@@ -2215,7 +2239,7 @@ namespace System.Windows.Forms
                 || (!highContrast && t_focusPenColor.GetBrightness() <= .5 && baseColor.GetBrightness() <= .5)
                 || t_focusPenColor.ToArgb() != baseColor.ToArgb())
             {
-                if (t_focusPen != null)
+                if (t_focusPen is not null)
                 {
                     t_focusPen.Dispose();
                     t_focusPen = null;
@@ -2290,7 +2314,7 @@ namespace System.Windows.Forms
 
             if (t_frameBrushSelected is null || !s_frameColorSelected.Equals(brushColor))
             {
-                if (t_frameBrushSelected != null)
+                if (t_frameBrushSelected is not null)
                 {
                     t_frameBrushSelected.Dispose();
                     t_frameBrushSelected = null;

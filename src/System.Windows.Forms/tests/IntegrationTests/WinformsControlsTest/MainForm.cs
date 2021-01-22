@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Windows.Forms.IntegrationTests.Common;
 using WindowsFormsApp1;
@@ -46,6 +47,8 @@ namespace WinformsControlsTest
             // Force the panel to show all buttons
             flowLayoutPanelUITypeEditors.PerformLayout();
             flowLayoutPanelUITypeEditors.Controls[(int)MainFormControlsTabOrder.ButtonsButton].Focus();
+
+            Text = RuntimeInformation.FrameworkDescription;
         }
 
         private IReadOnlyDictionary<MainFormControlsTabOrder, InitInfo> GetButtonsInitInfo() => new Dictionary<MainFormControlsTabOrder, InitInfo>
@@ -67,6 +70,10 @@ namespace WinformsControlsTest
                 new InitInfo("ComboBoxes", (obj, e) => new ComboBoxes().Show())
             },
             {
+                MainFormControlsTabOrder.ComboBoxesWithScrollBarsButton,
+                new InitInfo("ComboBoxes with ScrollBars", (obj, e) => new ComboBoxesWithScrollBars().Show())
+            },
+            {
                 MainFormControlsTabOrder.DateTimePickerButton,
                 new InitInfo("DateTimePicker", (obj, e) => new DateTimePicker().Show())
             },
@@ -84,7 +91,11 @@ namespace WinformsControlsTest
             },
             {
                 MainFormControlsTabOrder.DataGridViewButton,
-                new InitInfo("DataGridView", (obj, e) => new DataGridViewHeaders().Show())
+                new InitInfo("DataGridView", (obj, e) => new DataGridViewTest().Show())
+            },
+            {
+                MainFormControlsTabOrder.DataGridViewInVirtualModeButton,
+                new InitInfo("DataGridView in Virtual mode", (obj, e) => new DataGridViewInVirtualModeTest().Show())
             },
             {
                 MainFormControlsTabOrder.TreeViewButton,
@@ -108,7 +119,7 @@ namespace WinformsControlsTest
             },
             {
                 MainFormControlsTabOrder.MdiParentButton,
-                new InitInfo("MDI Parent", (obj, e) => new MDIParent().Show())
+                new InitInfo("MDI Parent", (obj, e) => new MdiParent().Show())
             },
             {
                 MainFormControlsTabOrder.PropertyGridButton,
@@ -145,6 +156,14 @@ namespace WinformsControlsTest
             {
                 MainFormControlsTabOrder.FileDialogButton,
                 new InitInfo("FileDialog", (obj, e) => new FileDialog().Show())
+            },
+            {
+                MainFormControlsTabOrder.ErrorProviderButton,
+                new InitInfo("ErrorProvider", (obj, e) => new ErrorProviderTest().Show())
+            },
+            {
+                MainFormControlsTabOrder.TaskDialogButton,
+                new InitInfo("Task Dialog", (obj, e) => new TaskDialogSamples().Show())
             }
         };
 

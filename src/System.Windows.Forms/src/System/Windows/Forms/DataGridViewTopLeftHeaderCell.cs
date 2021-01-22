@@ -243,7 +243,7 @@ namespace System.Windows.Forms
             Debug.Assert(!paint || !computeContentBounds || !computeErrorIconBounds);
             Debug.Assert(!computeContentBounds || !computeErrorIconBounds || !paint);
             Debug.Assert(!computeErrorIconBounds || !paint || !computeContentBounds);
-            Debug.Assert(cellStyle != null);
+            Debug.Assert(cellStyle is not null);
 
             // If computeContentBounds == TRUE then resultBounds will be the contentBounds.
             // If computeErrorIconBounds == TRUE then resultBounds will be the error icon bounds.
@@ -449,6 +449,11 @@ namespace System.Windows.Forms
             {
                 get
                 {
+                    if (!Owner.DataGridView.IsHandleCreated)
+                    {
+                        return Rectangle.Empty;
+                    }
+
                     Rectangle cellRect = Owner.DataGridView.GetCellDisplayRectangle(-1, -1, false /*cutOverflow*/);
                     return Owner.DataGridView.RectangleToScreen(cellRect);
                 }
@@ -474,7 +479,7 @@ namespace System.Windows.Forms
                 get
                 {
                     object value = Owner.Value;
-                    if (value != null && !(value is string))
+                    if (value is not null && !(value is string))
                     {
                         // The user set the Value on the DataGridViewTopLeftHeaderCell and it did not set it to a string.
                         // Then the name of the DataGridViewTopLeftHeaderAccessibleObject is String.Empty;
@@ -484,7 +489,7 @@ namespace System.Windows.Forms
                     string strValue = value as string;
                     if (string.IsNullOrEmpty(strValue))
                     {
-                        if (Owner.DataGridView != null)
+                        if (Owner.DataGridView is not null)
                         {
                             if (Owner.DataGridView.RightToLeft == RightToLeft.No)
                             {
@@ -542,7 +547,10 @@ namespace System.Windows.Forms
 
             public override void DoDefaultAction()
             {
-                Owner.DataGridView.SelectAll();
+                if (Owner?.DataGridView?.IsHandleCreated is true)
+                {
+                    Owner.DataGridView.SelectAll();
+                }
             }
 
             public override AccessibleObject Navigate(AccessibleNavigation navigationDirection)
@@ -593,6 +601,11 @@ namespace System.Windows.Forms
                 if (Owner is null)
                 {
                     throw new InvalidOperationException(SR.DataGridViewCellAccessibleObject_OwnerNotSet);
+                }
+
+                if (Owner.DataGridView?.IsHandleCreated != true)
+                {
+                    return;
                 }
 
                 // AccessibleSelection.TakeFocus should focus the grid and then focus the first data grid view data cell

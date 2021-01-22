@@ -123,13 +123,27 @@ namespace System.Windows.Forms.Tests.AccessibleObjects
         }
 
         [WinFormsFact]
-        public void PropertyGridViewAccessibleObject_ControlType_IsTable()
+        public void PropertyGridViewAccessibleObject_ControlType_IsTable_IfAccessibleRoleIsDefault()
         {
             using PropertyGrid propertyGrid = new PropertyGrid();
-            AccessibleObject accessibleObject = propertyGrid.GridViewAccessibleObject;
-            object actual = accessibleObject.GetPropertyValue(UiaCore.UIA.ControlTypePropertyId);
-            UiaCore.UIA expected = UiaCore.UIA.TableControlTypeId;
-            Assert.Equal(expected, actual);
+            // AccessibleRole is not set = Default
+
+            object actual = propertyGrid.GridViewAccessibleObject.GetPropertyValue(UiaCore.UIA.ControlTypePropertyId);
+
+            Assert.Equal(UiaCore.UIA.TableControlTypeId, actual);
+            Assert.False(propertyGrid.IsHandleCreated);
+        }
+
+        [WinFormsFact]
+        public void PropertyGridViewAccessibleObject_Role_IsTable_ByDefault()
+        {
+            using PropertyGrid propertyGrid = new PropertyGrid();
+            // AccessibleRole is not set = Default
+
+            AccessibleRole actual = propertyGrid.GridViewAccessibleObject.Role;
+
+            Assert.Equal(AccessibleRole.Table, actual);
+            Assert.False(propertyGrid.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -257,11 +271,20 @@ namespace System.Windows.Forms.Tests.AccessibleObjects
         }
 
         [WinFormsFact]
-        public void PropertyGridViewAccessibleObject_Parent_IsNotNull()
+        public void PropertyGridViewAccessibleObject_Parent_IsNotNull_IfHandleIsCreated()
+        {
+            using PropertyGrid propertyGrid = new PropertyGrid();
+            propertyGrid.CreateControl();
+            ControlAccessibleObject accessibleObject = (ControlAccessibleObject)propertyGrid.GridViewAccessibleObject;
+            Assert.NotNull(accessibleObject.Parent);
+        }
+
+        [WinFormsFact]
+        public void PropertyGridViewAccessibleObject_Parent_IsNull_IfHandleIsNotCreated()
         {
             using PropertyGrid propertyGrid = new PropertyGrid();
             ControlAccessibleObject accessibleObject = (ControlAccessibleObject)propertyGrid.GridViewAccessibleObject;
-            Assert.NotNull(accessibleObject.Parent);
+            Assert.Null(accessibleObject.Parent);
         }
 
         [WinFormsTheory]

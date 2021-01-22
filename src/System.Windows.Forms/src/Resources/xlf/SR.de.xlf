@@ -2212,6 +2212,16 @@
         <target state="translated">Die ValueType-Eigenschaft einer Zelle in einem Raster kann nicht NULL sein.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DataGridViewCheckBoxCellCheckedStateDescription">
+        <source>{0} check box checked</source>
+        <target state="translated">Das Kontrollkästchen "{0}" ist aktiviert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DataGridViewCheckBoxCellUncheckedStateDescription">
+        <source>{0} check box unchecked</source>
+        <target state="translated">Das Kontrollkästchen "{0}" ist deaktiviert.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DataGridViewCheckBoxCell_ClipboardChecked">
         <source>Selected</source>
         <target state="translated">Ausgewählt</target>
@@ -3697,6 +3707,11 @@ Behandeln Sie das DataError-Ereignis, um dieses Standarddialogfeld zu ersetzen.<
       <trans-unit id="DataGridView_ReadOnlyDescr">
         <source>Indicates whether the user can edit the cells of the DataGridView control.</source>
         <target state="translated">Gibt an, ob der Benutzer die Zellen des DataGridView-Steuerelements bearbeiten kann.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DataGridView_RowAddedNotification">
+        <source>Row {0} is added</source>
+        <target state="translated">Zeile "{0}" hinzugefügt</target>
         <note />
       </trans-unit>
       <trans-unit id="DataGridView_RowAlreadyBelongsToDataGridView">
@@ -8301,6 +8316,11 @@ Stapelüberwachung, in der der unzulässige Vorgang auftrat:
         <target state="translated">Die Farbe des Rahmens, der den Rasterbereich umgibt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PropertyGridViewDropDownControlHolderAccessibleName">
+        <source>Drop down control holder</source>
+        <target state="translated">Container des Dropdown-Steuerelements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PropertyGridViewEditorCreatedInvalidObject">
         <source>Editor created an object that is not valid.  The created object must be of type '{0}'.</source>
         <target state="translated">Der Editor hat ein ungültiges Objekt erstellt. Der erstellte Objekt muss den Typ {0} haben.</target>
@@ -10392,8 +10412,8 @@ Stapelüberwachung, in der der unzulässige Vorgang auftrat:
         <note />
       </trans-unit>
       <trans-unit id="TrayIcon_TextTooLong">
-        <source>Text length must be less than 64 characters long.</source>
-        <target state="translated">Der Text muss kürzer als 64 Zeichen sein.</target>
+        <source>Text length must be less than 128 characters long.</source>
+        <target state="translated">Der Text muss kürzer als 128 Zeichen sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeNodeBackColorDescr">
@@ -10404,6 +10424,11 @@ Stapelüberwachung, in der der unzulässige Vorgang auftrat:
       <trans-unit id="TreeNodeBeginEditFailed">
         <source>BeginEdit did not succeed because LabelEdit property is false.</source>
         <target state="translated">Fehler bei BeginEdit, da die LabelEdit-Eigenschaft auf "false" festgelegt ist.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TreeNodeBoundToAnotherTreeView">
+        <source>The TreeNode is already bound to another TreeView. You must first remove it from its current location or clone it.</source>
+        <target state="translated">Der TreeNode ist bereits an eine andere TreeView gebunden. Sie müssen den Knoten zuerst aus dem aktuellen Speicherort entfernen oder klonen.</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeNodeCheckedDescr">
@@ -10784,6 +10809,11 @@ Stapelüberwachung, in der der unzulässige Vorgang auftrat:
       <trans-unit id="UpDownBaseUpButtonAccName">
         <source>Up</source>
         <target state="translated">Nach oben</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpDownEditLocalizedControlTypeName">
+        <source>Edit</source>
+        <target state="translated">Bearbeiten</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCompatibleTextRenderingDescr">

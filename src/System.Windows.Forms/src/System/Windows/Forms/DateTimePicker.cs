@@ -10,6 +10,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Windows.Forms.Layout;
+using SourceGenerated;
 using Microsoft.Win32;
 using static Interop;
 using static Interop.ComCtl32;
@@ -24,7 +25,7 @@ namespace System.Windows.Forms
     [DefaultBindingProperty(nameof(Value))]
     [Designer("System.Windows.Forms.Design.DateTimePickerDesigner, " + AssemblyRef.SystemDesign)]
     [SRDescription(nameof(SR.DescriptionDateTimePicker))]
-    public class DateTimePicker : Control
+    public partial class DateTimePicker : Control
     {
         /// <summary>
         ///  Specifies the default title back color. This field is read-only.
@@ -236,7 +237,7 @@ namespace System.Windows.Forms
 
             set
             {
-                if ((value is null && calendarFont != null) || (value != null && !value.Equals(calendarFont)))
+                if ((value is null && calendarFont is not null) || (value is not null && !value.Equals(calendarFont)))
                 {
                     calendarFont = value;
                     calendarFontHandleWrapper = null;
@@ -485,8 +486,8 @@ namespace System.Windows.Forms
 
             set
             {
-                if ((value != null && !value.Equals(customFormat)) ||
-                    (value is null && customFormat != null))
+                if ((value is not null && !value.Equals(customFormat)) ||
+                    (value is null && customFormat is not null))
                 {
                     customFormat = value;
 
@@ -552,10 +553,7 @@ namespace System.Windows.Forms
             set
             {
                 //valid values are 0x0 to 0x1
-                if (!ClientUtils.IsEnumValid(value, (int)value, (int)LeftRightAlignment.Left, (int)LeftRightAlignment.Right))
-                {
-                    throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(LeftRightAlignment));
-                }
+                SourceGenerated.EnumValidator.Validate(value);
 
                 SetStyleBit(value == LeftRightAlignment.Right, DTS.RIGHTALIGN);
             }
@@ -603,11 +601,7 @@ namespace System.Windows.Forms
 
             set
             {
-                //valid values are 0x1, 0x2,0x4,0x8. max number of bits on at a time is 1
-                if (!ClientUtils.IsEnumValid(value, (int)value, (int)DateTimePickerFormat.Long, (int)DateTimePickerFormat.Custom, /*maxNumberOfBitsOn*/1))
-                {
-                    throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(DateTimePickerFormat));
-                }
+                EnumValidator.Validate(value);
 
                 if (format != value)
                 {
@@ -1412,7 +1406,7 @@ namespace System.Windows.Forms
         /// </summary>
         private bool ShouldSerializeCalendarFont()
         {
-            return calendarFont != null;
+            return calendarFont is not null;
         }
 
         /// <summary>
@@ -1672,144 +1666,6 @@ namespace System.Windows.Forms
             }
 
             return new DateTime(s.wYear, s.wMonth, s.wDay, s.wHour, s.wMinute, s.wSecond);
-        }
-
-        private sealed class EnumChildren
-        {
-            public IntPtr hwndFound = IntPtr.Zero;
-
-            public BOOL enumChildren(IntPtr hwnd)
-            {
-                hwndFound = hwnd;
-                return BOOL.TRUE;
-            }
-        }
-
-        public class DateTimePickerAccessibleObject : ControlAccessibleObject
-        {
-            public DateTimePickerAccessibleObject(DateTimePicker owner) : base(owner)
-            {
-            }
-
-            public override string KeyboardShortcut
-            {
-                get
-                {
-                    // APP COMPAT. When computing DateTimePickerAccessibleObject::get_KeyboardShorcut the previous label
-                    // takes precedence over DTP::Text.
-                    // This code was copied from the Everett sources.
-                    Label previousLabel = PreviousLabel;
-
-                    if (previousLabel != null)
-                    {
-                        char previousLabelMnemonic = WindowsFormsUtils.GetMnemonic(previousLabel.Text, false /*convertToUpperCase*/);
-                        if (previousLabelMnemonic != (char)0)
-                        {
-                            return "Alt+" + previousLabelMnemonic;
-                        }
-                    }
-
-                    string baseShortcut = base.KeyboardShortcut;
-
-                    if ((baseShortcut is null || baseShortcut.Length == 0))
-                    {
-                        char ownerTextMnemonic = WindowsFormsUtils.GetMnemonic(Owner.Text, false /*convertToUpperCase*/);
-                        if (ownerTextMnemonic != (char)0)
-                        {
-                            return "Alt+" + ownerTextMnemonic;
-                        }
-                    }
-
-                    return baseShortcut;
-                }
-            }
-
-            public override string Value
-            {
-                get
-                {
-                    string baseValue = base.Value;
-                    if (baseValue is null || baseValue.Length == 0)
-                    {
-                        return Owner.Text;
-                    }
-                    return baseValue;
-                }
-            }
-
-            public override AccessibleStates State
-            {
-                get
-                {
-                    AccessibleStates state = base.State;
-
-                    if (((DateTimePicker)Owner).ShowCheckBox &&
-                       ((DateTimePicker)Owner).Checked)
-                    {
-                        state |= AccessibleStates.Checked;
-                    }
-
-                    return state;
-                }
-            }
-
-            public override AccessibleRole Role
-            {
-                get
-                {
-                    AccessibleRole role = Owner.AccessibleRole;
-                    if (role != AccessibleRole.Default)
-                    {
-                        return role;
-                    }
-
-                    return AccessibleRole.ComboBox;
-                }
-            }
-
-            internal override bool IsIAccessibleExSupported() => true;
-
-            internal override object GetPropertyValue(UiaCore.UIA propertyID)
-            {
-                switch (propertyID)
-                {
-                    case UiaCore.UIA.IsTogglePatternAvailablePropertyId:
-                        return IsPatternSupported(UiaCore.UIA.TogglePatternId);
-                    case UiaCore.UIA.LocalizedControlTypePropertyId:
-                        return s_dateTimePickerLocalizedControlTypeString;
-                    default:
-                        return base.GetPropertyValue(propertyID);
-                }
-            }
-
-            internal override bool IsPatternSupported(UiaCore.UIA patternId)
-            {
-                if (patternId == UiaCore.UIA.TogglePatternId && ((DateTimePicker)Owner).ShowCheckBox)
-                {
-                    return true;
-                }
-
-                return base.IsPatternSupported(patternId);
-            }
-
-            #region Toggle Pattern
-
-            internal override UiaCore.ToggleState ToggleState
-            {
-                get
-                {
-                    return ((DateTimePicker)Owner).Checked ?
-                        UiaCore.ToggleState.On :
-                        UiaCore.ToggleState.Off;
-                }
-            }
-
-            internal override void Toggle()
-            {
-                ((DateTimePicker)Owner).Checked = !((DateTimePicker)Owner).Checked;
-            }
-
-            #endregion
         }
     }
 }

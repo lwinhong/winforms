@@ -14,7 +14,7 @@ using static Interop;
 namespace System.Windows.Forms
 {
     [SRDescription(nameof(SR.DescriptionStatusStrip))]
-    public class StatusStrip : ToolStrip
+    public partial class StatusStrip : ToolStrip
     {
         private const AnchorStyles AllAnchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom | AnchorStyles.Top;
         private const AnchorStyles HorizontalAnchor = AnchorStyles.Left | AnchorStyles.Right;
@@ -256,7 +256,7 @@ namespace System.Windows.Forms
         {
             if (disposing)
             {
-                if (rtlLayoutGrip != null)
+                if (rtlLayoutGrip is not null)
                 {
                     rtlLayoutGrip.Dispose();
                     rtlLayoutGrip = null;
@@ -279,7 +279,7 @@ namespace System.Windows.Forms
                     }
                 }
             }
-            else if (rtlLayoutGrip != null)
+            else if (rtlLayoutGrip is not null)
             {
                 if (Controls.Contains(rtlLayoutGrip))
                 {
@@ -333,7 +333,7 @@ namespace System.Windows.Forms
             bool inDisplayedItemCollecton = false;
             ToolStripItem item = levent.AffectedComponent as ToolStripItem;
             int itemCount = DisplayedItems.Count;
-            if (item != null)
+            if (item is not null)
             {
                 inDisplayedItemCollecton = DisplayedItems.Contains(item);
             }
@@ -344,7 +344,7 @@ namespace System.Windows.Forms
             }
             base.OnLayout(levent);
 
-            if (itemCount != DisplayedItems.Count || (item != null && (inDisplayedItemCollecton != DisplayedItems.Contains(item))))
+            if (itemCount != DisplayedItems.Count || (item is not null && (inDisplayedItemCollecton != DisplayedItems.Contains(item))))
             {
                 // calling OnLayout has changed the displayed items collection
                 // the SpringTableLayoutCore requires the count of displayed items to
@@ -392,7 +392,7 @@ namespace System.Windows.Forms
                             item.SetPlacement(ToolStripItemPlacement.None);
                         }
                     }
-                    else if (lastItem != null && (lastItemBounds.IntersectsWith(item.Bounds)))
+                    else if (lastItem is not null && (lastItemBounds.IntersectsWith(item.Bounds)))
                     {
                         // if it overlaps the previous element, set the location to nomansland.
                         SetItemLocation(item, noMansLand);
@@ -643,83 +643,6 @@ namespace System.Windows.Forms
                     }
                 }
                 base.WndProc(ref m);
-            }
-        }
-
-        internal class StatusStripAccessibleObject : ToolStripAccessibleObject
-        {
-            public StatusStripAccessibleObject(StatusStrip owner) : base(owner)
-            {
-            }
-
-            public override AccessibleRole Role
-            {
-                get
-                {
-                    AccessibleRole role = Owner.AccessibleRole;
-                    if (role != AccessibleRole.Default)
-                    {
-                        return role;
-                    }
-                    return AccessibleRole.StatusBar;
-                }
-            }
-
-            internal override object GetPropertyValue(UiaCore.UIA propertyID)
-            {
-                if (propertyID == UiaCore.UIA.ControlTypePropertyId)
-                {
-                    return UiaCore.UIA.StatusBarControlTypeId;
-                }
-
-                return base.GetPropertyValue(propertyID);
-            }
-
-            internal override UiaCore.IRawElementProviderFragment FragmentNavigate(UiaCore.NavigateDirection direction)
-            {
-                if (!(Owner is StatusStrip statusStrip) || statusStrip.Items.Count == 0)
-                {
-                    return null;
-                }
-
-                switch (direction)
-                {
-                    case UiaCore.NavigateDirection.FirstChild:
-                        AccessibleObject firstChild = null;
-                        for (int i = 0; i < GetChildCount(); i++)
-                        {
-                            firstChild = GetChild(i);
-                            if (firstChild != null && !(firstChild is ControlAccessibleObject))
-                            {
-                                return firstChild;
-                            }
-                        }
-                        return null;
-
-                    case UiaCore.NavigateDirection.LastChild:
-                        AccessibleObject lastChild = null;
-                        for (int i = GetChildCount() - 1; i >= 0; i--)
-                        {
-                            lastChild = GetChild(i);
-                            if (lastChild != null && !(lastChild is ControlAccessibleObject))
-                            {
-                                return lastChild;
-                            }
-                        }
-                        return null;
-                }
-
-                return base.FragmentNavigate(direction);
-            }
-
-            internal override UiaCore.IRawElementProviderFragment ElementProviderFromPoint(double x, double y)
-            {
-                return HitTest((int)x, (int)y);
-            }
-
-            internal override UiaCore.IRawElementProviderFragment GetFocus()
-            {
-                return GetFocused();
             }
         }
     }

@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Xunit;
+using static Interop;
 using static Interop.UiaCore;
 
 namespace System.Windows.Forms.Tests
@@ -23,8 +25,7 @@ namespace System.Windows.Forms.Tests
             var pictureBoxAccessibleObject = new PictureBox.PictureBoxAccessibleObject(pictureBox);
 
             Assert.NotNull(pictureBoxAccessibleObject.Owner);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(pictureBox.IsHandleCreated);
+            Assert.False(pictureBox.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -39,8 +40,7 @@ namespace System.Windows.Forms.Tests
             var pictureBoxAccessibleObject = new PictureBox.PictureBoxAccessibleObject(pictureBox);
 
             Assert.Equal("TestDescription", pictureBoxAccessibleObject.Description);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(pictureBox.IsHandleCreated);
+            Assert.False(pictureBox.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -55,8 +55,7 @@ namespace System.Windows.Forms.Tests
             var pictureBoxAccessibleObject = new PictureBox.PictureBoxAccessibleObject(pictureBox);
 
             Assert.Equal("TestName", pictureBoxAccessibleObject.Name);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(pictureBox.IsHandleCreated);
+            Assert.False(pictureBox.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -71,25 +70,29 @@ namespace System.Windows.Forms.Tests
             var pictureBoxAccessibleObject = new PictureBox.PictureBoxAccessibleObject(pictureBox);
 
             Assert.Equal(AccessibleRole.PushButton, pictureBoxAccessibleObject.Role);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(pictureBox.IsHandleCreated);
+            Assert.False(pictureBox.IsHandleCreated);
         }
 
-        [WinFormsFact]
-        public void PictureBoxAccessibleObject_DefaultRole_ReturnsExpected()
+        [WinFormsTheory]
+        [InlineData(true, AccessibleRole.Client)]
+        [InlineData(false, AccessibleRole.None)]
+        public void PictureBoxAccessibleObject_DefaultRole_ReturnsExpected(bool createControl, AccessibleRole accessibleRole)
         {
             using var pictureBox = new PictureBox();
-            Assert.False(pictureBox.IsHandleCreated);
-            var pictureBoxAccessibleObject = new PictureBox.PictureBoxAccessibleObject(pictureBox);
-            Assert.Equal(AccessibleRole.Client, pictureBoxAccessibleObject.Role);
 
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(pictureBox.IsHandleCreated);
+            if (createControl)
+            {
+                pictureBox.CreateControl();
+            }
+
+            var pictureBoxAccessibleObject = new PictureBox.PictureBoxAccessibleObject(pictureBox);
+            Assert.Equal(accessibleRole, pictureBoxAccessibleObject.Role);
+            Assert.Equal(createControl, pictureBox.IsHandleCreated);
         }
 
         [WinFormsTheory]
         [InlineData((int)UIA.NamePropertyId, "TestName")]
-        [InlineData((int)UIA.ControlTypePropertyId, UIA.PaneControlTypeId)]
+        [InlineData((int)UIA.ControlTypePropertyId, UIA.PaneControlTypeId)] // If AccessibleRole is Default
         [InlineData((int)UIA.IsKeyboardFocusablePropertyId, true)]
         [InlineData((int)UIA.AutomationIdPropertyId, "PictureBox1")]
         public void PictureBoxAccessibleObject_GetPropertyValue_Invoke_ReturnsExpected(int propertyID, object expected)
@@ -105,8 +108,7 @@ namespace System.Windows.Forms.Tests
             object value = pictureBoxAccessibleObject.GetPropertyValue((UIA)propertyID);
 
             Assert.Equal(expected, value);
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(pictureBox.IsHandleCreated);
+            Assert.False(pictureBox.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -117,8 +119,36 @@ namespace System.Windows.Forms.Tests
             var pictureBoxAccessibleObject = new PictureBox.PictureBoxAccessibleObject(pictureBox);
 
             Assert.True(pictureBoxAccessibleObject.IsPatternSupported(UIA.LegacyIAccessiblePatternId));
-            // TODO: ControlAccessibleObject shouldn't force handle creation, tracked in https://github.com/dotnet/winforms/issues/3062
-            Assert.True(pictureBox.IsHandleCreated);
+            Assert.False(pictureBox.IsHandleCreated);
+        }
+
+        public static IEnumerable<object[]> PictureBoxAccessibleObject_GetPropertyValue_ControlType_IsExpected_ForCustomRole_TestData()
+        {
+            Array roles = Enum.GetValues(typeof(AccessibleRole));
+
+            foreach (AccessibleRole role in roles)
+            {
+                if (role == AccessibleRole.Default)
+                {
+                    continue; // The test checks custom roles
+                }
+
+                yield return new object[] { role };
+            }
+        }
+
+        [WinFormsTheory]
+        [MemberData(nameof(PictureBoxAccessibleObject_GetPropertyValue_ControlType_IsExpected_ForCustomRole_TestData))]
+        public void PictureBoxAccessibleObject_GetPropertyValue_ControlType_IsExpected_ForCustomRole(AccessibleRole role)
+        {
+            using PictureBox pictureBox = new PictureBox();
+            pictureBox.AccessibleRole = role;
+
+            object actual = pictureBox.AccessibilityObject.GetPropertyValue(UiaCore.UIA.ControlTypePropertyId);
+            UiaCore.UIA expected = AccessibleRoleControlTypeMap.GetControlType(role);
+
+            Assert.Equal(expected, actual);
+            Assert.False(pictureBox.IsHandleCreated);
         }
     }
 }

@@ -1,11 +1,10 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Xunit;
 using static Interop;
@@ -20,6 +19,11 @@ namespace System.Windows.Forms.Tests.Interop.Oleaut32
         [ConditionalFact(typeof(ArchitectureDetection), nameof(ArchitectureDetection.Is32bit))]
         public void VARIANT_Sizeof_InvokeX86_ReturnsExpected()
         {
+            if (Environment.Is64BitProcess)
+            {
+                return;
+            }
+
             Assert.Equal(16, Marshal.SizeOf<VARIANT>());
             Assert.Equal(16, sizeof(VARIANT));
         }
@@ -27,6 +31,11 @@ namespace System.Windows.Forms.Tests.Interop.Oleaut32
         [ConditionalFact(typeof(ArchitectureDetection), nameof(ArchitectureDetection.Is64bit))]
         public void VARIANT_Sizeof_InvokeX64_ReturnsExpected()
         {
+            if (!Environment.Is64BitProcess)
+            {
+                return;
+            }
+
             Assert.Equal(24, Marshal.SizeOf<VARIANT>());
             Assert.Equal(24, sizeof(VARIANT));
         }
@@ -875,13 +884,13 @@ namespace System.Windows.Forms.Tests.Interop.Oleaut32
         public void VARIANT_ToObject_DateFromFILETIME_Success()
         {
             using var variant = new VARIANT();
-            var dt = new DateTime(2020, 05, 13, 13, 3, 12);
+            var dt = new DateTime(2020, 05, 13, 13, 3, 12, DateTimeKind.Utc).ToLocalTime();
             var ft = new FILETIME(dt);
             HRESULT hr = InitVariantFromFileTime(&ft, &variant);
             Assert.Equal(HRESULT.S_OK, hr);
             Assert.Equal(VARENUM.DATE, variant.Type);
 
-            AssertToObjectEqual(new DateTime(2020, 05, 13, 13, 3, 12), variant);
+            AssertToObjectEqual(new DateTime(2020, 05, 13, 13, 3, 12, DateTimeKind.Utc).ToUniversalTime(), variant);
         }
 
         [StaFact]
@@ -5914,7 +5923,12 @@ namespace System.Windows.Forms.Tests.Interop.Oleaut32
                         parray = psa
                     }
                 };
-                AssertToObjectThrows<DivideByZeroException>(variant);
+
+                VARIANT copy = variant;
+                IntPtr pv = (IntPtr)(&copy);
+                Assert.Throws<ArgumentException>(() => Marshal.GetObjectForNativeVariant(pv));
+
+                Assert.Throws<DivideByZeroException>(() => variant.ToObject());
             }
             finally
             {

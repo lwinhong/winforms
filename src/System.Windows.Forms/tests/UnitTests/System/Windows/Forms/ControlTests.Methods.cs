@@ -393,16 +393,25 @@ namespace System.Windows.Forms.Tests
             Assert.Equal(0, createdCallCount);
         }
 
-        [WinFormsFact]
-        public void Control_CreateAccessibilityInstance_Invoke_ReturnsExpected()
+        [WinFormsTheory]
+        [InlineData(true, AccessibleRole.Client)]
+        [InlineData(false, AccessibleRole.None)]
+        public void Control_CreateAccessibilityInstance_Invoke_ReturnsExpected(bool createHandle, AccessibleRole expectedAccessibleRole)
         {
             using var control = new SubControl();
+            if (createHandle)
+            {
+                control.CreateHandle();
+            }
+
+            Assert.Equal(createHandle, control.IsHandleCreated);
             Control.ControlAccessibleObject instance = Assert.IsAssignableFrom<Control.ControlAccessibleObject>(control.CreateAccessibilityInstance());
             Assert.NotNull(instance);
             Assert.Same(control, instance.Owner);
-            Assert.Equal(AccessibleRole.Client, instance.Role);
+            Assert.Equal(expectedAccessibleRole, instance.Role);
             Assert.NotSame(control.CreateAccessibilityInstance(), instance);
             Assert.NotSame(control.AccessibilityObject, instance);
+            Assert.Equal(createHandle, control.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -2090,38 +2099,26 @@ namespace System.Windows.Forms.Tests
             Assert.Equal(AutoSizeMode.GrowOnly, control.GetAutoSizeMode());
         }
 
-        /// <summary>
-        ///  Data for the GetChildAtPointNull test
-        /// </summary>
-        public static TheoryData<GetChildAtPointSkip> GetChildAtPointNullData =>
-            CommonTestHelper.GetEnumTheoryData<GetChildAtPointSkip>();
-
         [WinFormsTheory]
-        [MemberData(nameof(GetChildAtPointNullData))]
-        public void Control_GetChildAtPointNull(GetChildAtPointSkip skip)
+        [CommonMemberData(nameof(CommonTestHelper.GetEnumTypeTheoryData), typeof(GetChildAtPointSkip))]
+        public void Control_GetChildAtPoint_Invoke_ReturnsExpected(GetChildAtPointSkip skipValue)
         {
-            using var cont = new Control();
+            using var control = new Control();
+            Assert.Null(control.GetChildAtPoint(new Point(5, 5), skipValue));
+            Assert.True(control.IsHandleCreated);
 
-            Control ret = cont.GetChildAtPoint(new Point(5, 5), skip);
-
-            Assert.Null(ret);
+            // Call again.
+            Assert.Null(control.GetChildAtPoint(new Point(5, 5), skipValue));
+            Assert.True(control.IsHandleCreated);
         }
 
-        /// <summary>
-        ///  Data for the GetChildAtPointInvalid test
-        /// </summary>
-        public static TheoryData<GetChildAtPointSkip> GetChildAtPointInvalidData =>
-            CommonTestHelper.GetEnumTheoryDataInvalid<GetChildAtPointSkip>();
-
         [WinFormsTheory]
-        [MemberData(nameof(GetChildAtPointInvalidData))]
-        public void Control_GetChildAtPointInvalid(GetChildAtPointSkip skip)
+        [InlineData((GetChildAtPointSkip)(-1))]
+        [InlineData((GetChildAtPointSkip)8)]
+        public void Control_GetChildAtPoint_InvokeInvalidSkipValue_ThrowsInvalidEnumArgumentException(GetChildAtPointSkip skipValue)
         {
-            using var cont = new Control();
-
-            // act & assert
-            InvalidEnumArgumentException ex = Assert.Throws<InvalidEnumArgumentException>(() => cont.GetChildAtPoint(new Point(5, 5), skip));
-            Assert.Equal("skipValue", ex.ParamName);
+            using var control = new Control();
+            Assert.Throws<InvalidEnumArgumentException>("skipValue", () => control.GetChildAtPoint(new Point(5, 5), skipValue));
         }
 
         [WinFormsFact]

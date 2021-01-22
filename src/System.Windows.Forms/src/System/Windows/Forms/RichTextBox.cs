@@ -321,8 +321,8 @@ namespace System.Windows.Forms
                     string path = pathBuilder.ToString();
                     FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(path);
 
-                    Debug.Assert(versionInfo != null && !string.IsNullOrEmpty(versionInfo.ProductVersion), "Couldn't get the version info for the richedit dll");
-                    if (versionInfo != null && !string.IsNullOrEmpty(versionInfo.ProductVersion))
+                    Debug.Assert(versionInfo is not null && !string.IsNullOrEmpty(versionInfo.ProductVersion), "Couldn't get the version info for the richedit dll");
+                    if (versionInfo is not null && !string.IsNullOrEmpty(versionInfo.ProductVersion))
                     {
                         //Note: this only allows for one digit version
                         if (int.TryParse(versionInfo.ProductVersion[0].ToString(), out int parsedValue))
@@ -578,6 +578,11 @@ namespace System.Windows.Forms
             set { richTextBoxFlags[protectedErrorSection] = value ? 1 : 0; }
         }
 
+        private protected override void RaiseAccessibilityTextChangedEvent()
+        {
+            // Do not do anything because Win32 provides unmanaged Text pattern for RichTextBox
+        }
+
         /// <summary>
         ///  Returns the name of the action that will be performed if the user
         ///  Redo's their last Undone operation. If no operation can be redone,
@@ -674,7 +679,7 @@ namespace System.Windows.Forms
                 {
                     return StreamOut(SF.RTF);
                 }
-                else if (textPlain != null)
+                else if (textPlain is not null)
                 {
                     ForceHandleCreate();
                     return StreamOut(SF.RTF);
@@ -722,20 +727,7 @@ namespace System.Windows.Forms
             }
             set
             {
-                // we could be more clever here, but it doesnt seem like this would get set enough
-                // to warrant a clever bitmask.
-                if (!ClientUtils.IsEnumValid_NotSequential(value,
-                    (int)value,
-                    (int)RichTextBoxScrollBars.Both,
-                    (int)RichTextBoxScrollBars.None,
-                    (int)RichTextBoxScrollBars.Horizontal,
-                    (int)RichTextBoxScrollBars.Vertical,
-                    (int)RichTextBoxScrollBars.ForcedHorizontal,
-                    (int)RichTextBoxScrollBars.ForcedVertical,
-                    (int)RichTextBoxScrollBars.ForcedBoth))
-                {
-                    throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(RichTextBoxScrollBars));
-                }
+                SourceGenerated.EnumValidator.Validate(value);
 
                 if (value != ScrollBars)
                 {
@@ -794,10 +786,7 @@ namespace System.Windows.Forms
             set
             {
                 //valid values are 0x0 to 0x2
-                if (!ClientUtils.IsEnumValid(value, (int)value, (int)HorizontalAlignment.Left, (int)HorizontalAlignment.Center))
-                {
-                    throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(HorizontalAlignment));
-                }
+                SourceGenerated.EnumValidator.Validate(value);
 
                 ForceHandleCreate();
                 var pf = new PARAFORMAT
@@ -1304,7 +1293,7 @@ namespace System.Windows.Forms
             set
             {
                 // Verify the argument, and throw an error if is bad
-                if (value != null && value.Length > MAX_TAB_STOPS)
+                if (value is not null && value.Length > MAX_TAB_STOPS)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value), SR.SelTabCountRange);
                 }
@@ -1424,7 +1413,7 @@ namespace System.Windows.Forms
 
                 if (!IsHandleCreated && textRtf is null)
                 {
-                    if (textPlain != null)
+                    if (textPlain is not null)
                     {
                         return textPlain;
                     }
@@ -1823,7 +1812,7 @@ namespace System.Windows.Forms
                             // However, the user said that his app is not using LoadFile method.
                             // The only possibility left open is that the native Edit control sends random calls into EditStreamProc.
                             // We have to guard against this.
-                            if (editStream != null)
+                            if (editStream is not null)
                             {
                                 transferred = editStream.Read(bytes, 0, cb);
 
@@ -2257,7 +2246,7 @@ namespace System.Windows.Forms
             return charFormat;
         }
 
-        Font GetCharFormatFont(bool selectionOnly)
+        private Font GetCharFormatFont(bool selectionOnly)
         {
             ForceHandleCreate();
 
@@ -2400,10 +2389,7 @@ namespace System.Windows.Forms
         public void LoadFile(string path, RichTextBoxStreamType fileType)
         {
             //valid values are 0x0 to 0x4
-            if (!ClientUtils.IsEnumValid(fileType, (int)fileType, (int)RichTextBoxStreamType.RichText, (int)RichTextBoxStreamType.UnicodePlainText))
-            {
-                throw new InvalidEnumArgumentException(nameof(fileType), (int)fileType, typeof(RichTextBoxStreamType));
-            }
+            SourceGenerated.EnumValidator.Validate(fileType, nameof(fileType));
 
             Stream file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
             try
@@ -2425,10 +2411,7 @@ namespace System.Windows.Forms
             {
                 throw new ArgumentNullException(nameof(data));
             }
-            if (!ClientUtils.IsEnumValid(fileType, (int)fileType, (int)RichTextBoxStreamType.RichText, (int)RichTextBoxStreamType.UnicodePlainText))
-            {
-                throw new InvalidEnumArgumentException(nameof(fileType), (int)fileType, typeof(RichTextBoxStreamType));
-            }
+            SourceGenerated.EnumValidator.Validate(fileType, nameof(fileType));
 
             SF flags;
             switch (fileType)
@@ -2557,14 +2540,14 @@ namespace System.Windows.Forms
             try
             {
                 SuppressTextChangedEvent = true;
-                if (textRtf != null)
+                if (textRtf is not null)
                 {
                     // setting RTF calls back on Text, which relies on textRTF being null
                     string text = textRtf;
                     textRtf = null;
                     Rtf = text;
                 }
-                else if (textPlain != null)
+                else if (textPlain is not null)
                 {
                     string text = textPlain;
                     textPlain = null;
@@ -2718,10 +2701,7 @@ namespace System.Windows.Forms
         public void SaveFile(string path, RichTextBoxStreamType fileType)
         {
             //valid values are 0x0 to 0x4
-            if (!ClientUtils.IsEnumValid(fileType, (int)fileType, (int)RichTextBoxStreamType.RichText, (int)RichTextBoxStreamType.UnicodePlainText))
-            {
-                throw new InvalidEnumArgumentException(nameof(fileType), (int)fileType, typeof(RichTextBoxStreamType));
-            }
+            SourceGenerated.EnumValidator.Validate(fileType, nameof(fileType));
 
             Stream file = File.Create(path);
             try
@@ -2962,7 +2942,7 @@ namespace System.Windows.Forms
             try
             {
                 editStream = data;
-                Debug.Assert(data != null, "StreamIn passed a null stream");
+                Debug.Assert(data is not null, "StreamIn passed a null stream");
 
                 // If SF_RTF is requested then check for the RTF tag at the start
                 // of the file.  We don't load if the tag is not there.
@@ -3150,6 +3130,11 @@ namespace System.Windows.Forms
                 flags = GTL.DEFAULT
             };
 
+            if (flags.HasFlag(GT.USECRLF))
+            {
+                gtl.flags |= GTL.USECRLF;
+            }
+
             GETTEXTLENGTHEX* pGtl = &gtl;
             int expectedLength = PARAM.ToInt(User32.SendMessageW(Handle, (User32.WM)User32.EM.GETTEXTLENGTHEX, (IntPtr)pGtl));
             if (expectedLength == (int)HRESULT.E_INVALIDARG)
@@ -3173,6 +3158,24 @@ namespace System.Windows.Forms
             fixed (char* pText = text)
             {
                 int actualLength = PARAM.ToInt(User32.SendMessageW(Handle, (User32.WM)User32.EM.GETTEXTEX, (IntPtr)pGt, (IntPtr)pText));
+
+                // The default behaviour of EM_GETTEXTEX is to normalise line endings to '\r'
+                // (see: GT_DEFAULT, https://docs.microsoft.com/windows/win32/api/richedit/ns-richedit-gettextex#members),
+                // whereas previously we would normalise to '\n'. Unfortunately we can only ask for '\r\n' line endings via GT.USECRLF,
+                // but unable to ask for '\n'. Unless GT.USECRLF was set, convert '\r' with '\n' to retain the original behaviour.
+                if (!flags.HasFlag(GT.USECRLF))
+                {
+                    int index = 0;
+                    while (index < actualLength)
+                    {
+                        if (pText[index] == '\r')
+                        {
+                            pText[index] = '\n';
+                        }
+                        index++;
+                    }
+                }
+
                 result = new string(pText, 0, actualLength);
             }
 
@@ -3236,6 +3239,8 @@ namespace System.Windows.Forms
                 }
             }
         }
+
+        protected override AccessibleObject CreateAccessibilityInstance() => new ControlAccessibleObject(this);
 
         /// <summary>
         ///  Creates the IRichEditOleCallback compatible object for handling RichEdit callbacks. For more
@@ -3726,13 +3731,13 @@ namespace System.Windows.Forms
                 }
 
                 Ole32.ILockBytes pLockBytes = Ole32.CreateILockBytesOnHGlobal(IntPtr.Zero, BOOL.TRUE);
-                Debug.Assert(pLockBytes != null, "pLockBytes is NULL!");
+                Debug.Assert(pLockBytes is not null, "pLockBytes is NULL!");
 
                 storage = Ole32.StgCreateDocfileOnILockBytes(
                     pLockBytes,
                     Ole32.STGM.SHARE_EXCLUSIVE | Ole32.STGM.CREATE | Ole32.STGM.READWRITE,
                     0);
-                Debug.Assert(storage != null, "storage is NULL!");
+                Debug.Assert(storage is not null, "storage is NULL!");
 
                 return HRESULT.S_OK;
             }
@@ -3918,7 +3923,7 @@ namespace System.Windows.Forms
                         // We only care about the drag.
                         //
                         // When we drop, lastEffect will have the right state
-                        if (fDrag.IsFalse() && lastDataObject != null && grfKeyState != (User32.MK)0)
+                        if (fDrag.IsFalse() && lastDataObject is not null && grfKeyState != (User32.MK)0)
                         {
                             DragEventArgs e = new DragEventArgs(lastDataObject,
                                                                 (int)grfKeyState,

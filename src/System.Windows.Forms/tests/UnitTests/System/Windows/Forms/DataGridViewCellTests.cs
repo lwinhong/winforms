@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
+using System.Windows.Forms.Automation;
+using Moq;
 using WinForms.Common.Tests;
 using Xunit;
 
@@ -4824,6 +4826,34 @@ namespace System.Windows.Forms.Tests
             Assert.Throws<ArgumentOutOfRangeException>("rowIndex", () => cell.GetInheritedStyle(new DataGridViewCellStyle(), rowIndex, true));
         }
 
+        [WinFormsFact]
+        public void DataGridViewCell_InitializeEditingControl_Set_Parent()
+        {
+            using DataGridView dataGridView = new DataGridView();
+            dataGridView.CreateControl();
+            using DataGridViewTextBoxColumn column1 = new DataGridViewTextBoxColumn();
+            dataGridView.Columns.Add(column1);
+            dataGridView.Rows.Add();
+            var cell = dataGridView.Rows[0].Cells[0];
+            cell.Selected = true;
+
+            // Attach EditingControl.AccessibilityObject to cell
+            dataGridView.BeginEdit(false);
+            Assert.NotNull(dataGridView.EditingControl.AccessibilityObject.Parent);
+            Assert.Same(cell.AccessibilityObject, dataGridView.EditingControl.AccessibilityObject.Parent);
+
+            // Detach EditingControl.AccessibilityObject
+            dataGridView.EndEdit();
+            Assert.Null(dataGridView.EditingControlAccessibleObject);
+
+            // Reattach EditingControl.AccessibilityObject to cell
+            dataGridView.BeginEdit(false);
+            Assert.NotNull(dataGridView.EditingControl.AccessibilityObject.Parent);
+            Assert.Same(cell.AccessibilityObject, dataGridView.EditingControl.AccessibilityObject.Parent);
+
+            dataGridView.EndEdit();
+        }
+
         [StaFact]
         public void DataGridViewCell_GetNeighboringToolsRectangles_ReturnsCorrectRectangles()
         {
@@ -6470,6 +6500,88 @@ namespace System.Windows.Forms.Tests
             control.Columns.Add(column);
             DataGridViewCell cell = control.Rows[0].Cells[0];
             Assert.Equal("DataGridViewCell { ColumnIndex=0, RowIndex=0 }", cell.ToString());
+        }
+
+        [WinFormsFact]
+        public void DataGridViewCell_OnContentClick_InvokeInternalRaiseAutomationNotification()
+        {
+            using var cellTemplate = new SubDataGridViewCheckBoxCell();
+            using var column = new DataGridViewColumn
+            {
+                CellTemplate = cellTemplate
+            };
+
+            using var dataGridView = new DataGridView();
+            dataGridView.Columns.Add(column);
+            SubDataGridViewCheckBoxCell cell = (SubDataGridViewCheckBoxCell)dataGridView.Rows[0].Cells[0];
+            var mockAccessibleObject = new Mock<AccessibleObject>(MockBehavior.Strict);
+            mockAccessibleObject
+                .Setup(a => a.InternalRaiseAutomationNotification(
+                    It.IsAny<AutomationNotificationKind>(),
+                    It.IsAny<AutomationNotificationProcessing>(),
+                    It.IsAny<string>()))
+                .Returns(true)
+                .Verifiable();
+
+            var cellName = "TestCellName";
+
+            mockAccessibleObject
+                .Setup(a => a.Name)
+                .Returns(cellName);
+
+            mockAccessibleObject
+                .Setup(a => a.DoDefaultAction()).CallBase();
+
+            cell.MockAccessibleObject = mockAccessibleObject.Object;
+            cell.Value = false;
+            dataGridView.CurrentCell = cell;
+
+            // Checkbox is checked
+            dataGridView.BeginEdit(false);
+            cell.MouseClick(new DataGridViewCellMouseEventArgs(0, 0, 10, 10, new MouseEventArgs(MouseButtons.Left, 1, 10, 10, 0)));
+            mockAccessibleObject.Verify(a => a.InternalRaiseAutomationNotification(AutomationNotificationKind.Other,
+                AutomationNotificationProcessing.MostRecent,
+                string.Format(SR.DataGridViewCheckBoxCellCheckedStateDescription, cellName)),
+                Times.Once());
+
+            // Checkbox is unchecked
+            dataGridView.BeginEdit(false);
+            cell.MouseClick(new DataGridViewCellMouseEventArgs(0, 0, 10, 10, new MouseEventArgs(MouseButtons.Left, 1, 10, 10, 0)));
+            mockAccessibleObject.Verify(a => a.InternalRaiseAutomationNotification(AutomationNotificationKind.Other,
+                AutomationNotificationProcessing.MostRecent,
+                string.Format(SR.DataGridViewCheckBoxCellUncheckedStateDescription, cellName)),
+                Times.Once());
+
+            // Checkbox is checked
+            dataGridView.BeginEdit(false);
+            cell.OnKeyClick(new KeyEventArgs(Keys.Space), 0);
+            mockAccessibleObject.Verify(a => a.InternalRaiseAutomationNotification(AutomationNotificationKind.Other,
+                AutomationNotificationProcessing.MostRecent,
+                string.Format(SR.DataGridViewCheckBoxCellCheckedStateDescription, cellName)),
+                Times.Exactly(2));
+
+            // Checkbox is unchecked
+            dataGridView.BeginEdit(false);
+            cell.OnKeyClick(new KeyEventArgs(Keys.Space), 0);
+            mockAccessibleObject.Verify(a => a.InternalRaiseAutomationNotification(AutomationNotificationKind.Other,
+                AutomationNotificationProcessing.MostRecent,
+                string.Format(SR.DataGridViewCheckBoxCellUncheckedStateDescription, cellName)),
+                Times.Exactly(2));
+        }
+
+        private class SubDataGridViewCheckBoxCell: DataGridViewCheckBoxCell
+        {
+            public SubDataGridViewCheckBoxCell()
+            {
+            }
+
+            public AccessibleObject MockAccessibleObject;
+
+            protected override AccessibleObject CreateAccessibilityInstance() => MockAccessibleObject;
+
+            public void MouseClick(DataGridViewCellMouseEventArgs e) => base.OnMouseUpInternal(e);
+
+            public void OnKeyClick(KeyEventArgs e, int rowIndex) => base.OnKeyUp(e, rowIndex);
         }
 
         private class SubDataGridViewColumnHeaderCell : DataGridViewColumnHeaderCell

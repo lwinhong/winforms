@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
@@ -19,27 +17,29 @@ namespace System.Windows.Forms
             internal const int MAX_DAYS = 7;
             internal const int MAX_WEEKS = 6;
 
-            private readonly MonthCalendar _owner;
+            private readonly MonthCalendar _ownerMonthCalendar;
 #pragma warning disable CA1805 // Do not initialize unnecessarily
             private int _calendarIndex = 0;
 #pragma warning restore CA1805 // Do not initialize unnecessarily
-            private AccessibleObject _focused;
+            private AccessibleObject? _focused;
 
             public MonthCalendarAccessibleObject(Control owner)
                 : base(owner)
             {
-                _owner = (MonthCalendar)owner;
+                _ownerMonthCalendar = (MonthCalendar)owner;
             }
 
-            public UiaCore.UIA ControlType =>
-                string.IsNullOrEmpty(base.Name) ? UiaCore.UIA.CalendarControlTypeId : UiaCore.UIA.TableControlTypeId;
-
-            public bool Enabled => _owner.Enabled;
+            public bool Enabled => _ownerMonthCalendar.Enabled;
 
             public bool HasHeaderRow
             {
                 get
                 {
+                    if (!_ownerMonthCalendar.IsHandleCreated)
+                    {
+                        return false;
+                    }
+
                     bool result = GetCalendarGridInfoText(MCGIP.CALENDARCELL, _calendarIndex, -1, 0, out string text);
                     if (!result || string.IsNullOrEmpty(text))
                     {
@@ -51,7 +51,9 @@ namespace System.Windows.Forms
             }
 
             public override AccessibleRole Role =>
-                (_owner?.AccessibleRole != AccessibleRole.Default) ? _owner.AccessibleRole : AccessibleRole.Table;
+                (_ownerMonthCalendar is null || _ownerMonthCalendar.AccessibleRole == AccessibleRole.Default)
+                    ? AccessibleRole.Table
+                    : _ownerMonthCalendar.AccessibleRole;
 
             public override string Help
             {
@@ -64,20 +66,21 @@ namespace System.Windows.Forms
                     }
                     else
                     {
-                        if (_owner != null)
+                        var baseType = _ownerMonthCalendar.GetType().BaseType;
+                        if (_ownerMonthCalendar != null && baseType != null)
                         {
-                            return _owner.GetType().Name + "(" + _owner.GetType().BaseType.Name + ")";
+                            return _ownerMonthCalendar.GetType().Name + "(" + baseType.Name + ")";
                         }
                     }
                     return string.Empty;
                 }
             }
 
-            public override string Name
+            public override string? Name
             {
                 get
                 {
-                    string name = base.Name;
+                    string? name = base.Name;
                     if (name != null)
                     {
                         return name;
@@ -85,75 +88,75 @@ namespace System.Windows.Forms
 
                     name = string.Empty;
 
-                    if (_owner._mcCurView == MCMV.MONTH)
+                    if (_ownerMonthCalendar._mcCurView == MCMV.MONTH)
                     {
-                        if (DateTime.Equals(_owner.SelectionStart.Date, _owner.SelectionEnd.Date))
+                        if (DateTime.Equals(_ownerMonthCalendar.SelectionStart.Date, _ownerMonthCalendar.SelectionEnd.Date))
                         {
-                            return string.Format(SR.MonthCalendarSingleDateSelected, _owner.SelectionStart.ToLongDateString());
+                            return string.Format(SR.MonthCalendarSingleDateSelected, _ownerMonthCalendar.SelectionStart.ToLongDateString());
                         }
                         else
                         {
-                            return string.Format(SR.MonthCalendarRangeSelected, _owner.SelectionStart.ToLongDateString(), _owner.SelectionEnd.ToLongDateString());
+                            return string.Format(SR.MonthCalendarRangeSelected, _ownerMonthCalendar.SelectionStart.ToLongDateString(), _ownerMonthCalendar.SelectionEnd.ToLongDateString());
                         }
                     }
-                    else if (_owner._mcCurView == MCMV.YEAR)
+                    else if (_ownerMonthCalendar._mcCurView == MCMV.YEAR)
                     {
-                        if (DateTime.Equals(_owner.SelectionStart.Month, _owner.SelectionEnd.Month))
+                        if (DateTime.Equals(_ownerMonthCalendar.SelectionStart.Month, _ownerMonthCalendar.SelectionEnd.Month))
                         {
-                            return string.Format(SR.MonthCalendarSingleDateSelected, _owner.SelectionStart.ToString("y"));
+                            return string.Format(SR.MonthCalendarSingleDateSelected, _ownerMonthCalendar.SelectionStart.ToString("y"));
                         }
                         else
                         {
-                            return string.Format(SR.MonthCalendarRangeSelected, _owner.SelectionStart.ToString("y"), _owner.SelectionEnd.ToString("y"));
+                            return string.Format(SR.MonthCalendarRangeSelected, _ownerMonthCalendar.SelectionStart.ToString("y"), _ownerMonthCalendar.SelectionEnd.ToString("y"));
                         }
                     }
-                    else if (_owner._mcCurView == MCMV.DECADE)
+                    else if (_ownerMonthCalendar._mcCurView == MCMV.DECADE)
                     {
-                        if (DateTime.Equals(_owner.SelectionStart.Year, _owner.SelectionEnd.Year))
+                        if (DateTime.Equals(_ownerMonthCalendar.SelectionStart.Year, _ownerMonthCalendar.SelectionEnd.Year))
                         {
-                            return string.Format(SR.MonthCalendarSingleYearSelected, _owner.SelectionStart.ToString("yyyy"));
+                            return string.Format(SR.MonthCalendarSingleYearSelected, _ownerMonthCalendar.SelectionStart.ToString("yyyy"));
                         }
                         else
                         {
-                            return string.Format(SR.MonthCalendarYearRangeSelected, _owner.SelectionStart.ToString("yyyy"), _owner.SelectionEnd.ToString("yyyy"));
+                            return string.Format(SR.MonthCalendarYearRangeSelected, _ownerMonthCalendar.SelectionStart.ToString("yyyy"), _ownerMonthCalendar.SelectionEnd.ToString("yyyy"));
                         }
                     }
-                    else if (_owner._mcCurView == MCMV.CENTURY)
+                    else if (_ownerMonthCalendar._mcCurView == MCMV.CENTURY)
                     {
-                        return string.Format(SR.MonthCalendarSingleDecadeSelected, _owner.SelectionStart.ToString("yyyy"));
+                        return string.Format(SR.MonthCalendarSingleDecadeSelected, _ownerMonthCalendar.SelectionStart.ToString("yyyy"));
                     }
 
                     return name;
                 }
             }
 
-            public override string Value
+            public override string? Value
             {
                 get
                 {
                     try
                     {
-                        if (_owner._mcCurView == MCMV.MONTH)
+                        if (_ownerMonthCalendar._mcCurView == MCMV.MONTH)
                         {
-                            if (System.DateTime.Equals(_owner.SelectionStart.Date, _owner.SelectionEnd.Date))
+                            if (System.DateTime.Equals(_ownerMonthCalendar.SelectionStart.Date, _ownerMonthCalendar.SelectionEnd.Date))
                             {
-                                return _owner.SelectionStart.ToLongDateString();
+                                return _ownerMonthCalendar.SelectionStart.ToLongDateString();
                             }
 
-                            return string.Format("{0} - {1}", _owner.SelectionStart.ToLongDateString(), _owner.SelectionEnd.ToLongDateString());
+                            return string.Format("{0} - {1}", _ownerMonthCalendar.SelectionStart.ToLongDateString(), _ownerMonthCalendar.SelectionEnd.ToLongDateString());
                         }
 
-                        if (_owner._mcCurView == MCMV.YEAR)
+                        if (_ownerMonthCalendar._mcCurView == MCMV.YEAR)
                         {
-                            if (System.DateTime.Equals(_owner.SelectionStart.Month, _owner.SelectionEnd.Month))
+                            if (System.DateTime.Equals(_ownerMonthCalendar.SelectionStart.Month, _ownerMonthCalendar.SelectionEnd.Month))
                             {
-                                return _owner.SelectionStart.ToString("y");
+                                return _ownerMonthCalendar.SelectionStart.ToString("y");
                             }
 
-                            return string.Format("{0} - {1}", _owner.SelectionStart.ToString("y"), _owner.SelectionEnd.ToString("y"));
+                            return string.Format("{0} - {1}", _ownerMonthCalendar.SelectionStart.ToString("y"), _ownerMonthCalendar.SelectionEnd.ToString("y"));
                         }
 
-                        return string.Format("{0} - {1}", _owner.SelectionRange.Start.ToString(), _owner.SelectionRange.End.ToString());
+                        return string.Format("{0} - {1}", _ownerMonthCalendar.SelectionRange.Start.ToString(), _ownerMonthCalendar.SelectionRange.End.ToString());
                     }
                     catch
                     {
@@ -167,6 +170,11 @@ namespace System.Windows.Forms
             {
                 get
                 {
+                    if (!_ownerMonthCalendar.IsHandleCreated)
+                    {
+                        return 0;
+                    }
+
                     GetCalendarGridInfo(
                         MCGIF.RECT,
                         MCGIP.CALENDARBODY,
@@ -209,6 +217,11 @@ namespace System.Windows.Forms
             {
                 get
                 {
+                    if (!_ownerMonthCalendar.IsHandleCreated)
+                    {
+                        return 0;
+                    }
+
                     GetCalendarGridInfo(
                         MCGIF.RECT,
                         MCGIP.CALENDARBODY,
@@ -249,12 +262,17 @@ namespace System.Windows.Forms
 
             internal override UiaCore.RowOrColumnMajor RowOrColumnMajor => UiaCore.RowOrColumnMajor.RowMajor;
 
-            internal override UiaCore.IRawElementProviderSimple[] GetRowHeaderItems() => null;
+            internal override UiaCore.IRawElementProviderSimple[]? GetRowHeaderItems() => null;
 
-            internal override UiaCore.IRawElementProviderFragment ElementProviderFromPoint(double x, double y)
+            internal override UiaCore.IRawElementProviderFragment? ElementProviderFromPoint(double x, double y)
             {
                 int innerX = (int)x;
                 int innerY = (int)y;
+
+                if (!_ownerMonthCalendar.IsHandleCreated)
+                {
+                    return base.ElementProviderFromPoint(x, y);
+                }
 
                 MCHITTESTINFO hitTestInfo = GetHitTestInfo(innerX, innerY);
 
@@ -275,7 +293,7 @@ namespace System.Windows.Forms
                     case MCHT.CALENDARWEEKNUM:
                     case MCHT.CALENDARDATE:
                         // Get calendar body's child.
-                        CalendarBodyAccessibleObject calendarBodyAccessibleObject = (CalendarBodyAccessibleObject)GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarBody);
+                        CalendarBodyAccessibleObject? calendarBodyAccessibleObject = GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarBody) as CalendarBodyAccessibleObject;
                         return calendarBodyAccessibleObject?.GetFromPoint(hitTestInfo);
 
                     case MCHT.TODAYLINK:
@@ -285,14 +303,14 @@ namespace System.Windows.Forms
                 return base.ElementProviderFromPoint(x, y);
             }
 
-            internal override UiaCore.IRawElementProviderFragment FragmentNavigate(UiaCore.NavigateDirection direction)
+            internal override UiaCore.IRawElementProviderFragment? FragmentNavigate(UiaCore.NavigateDirection direction)
             {
                 switch (direction)
                 {
                     case UiaCore.NavigateDirection.FirstChild:
                         return GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.PreviousButton);
                     case UiaCore.NavigateDirection.LastChild:
-                        return _owner.ShowTodayCircle
+                        return _ownerMonthCalendar.ShowTodayCircle
                             ? GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.TodayLink)
                             : GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarBody);
                 }
@@ -300,14 +318,19 @@ namespace System.Windows.Forms
                 return base.FragmentNavigate(direction);
             }
 
-            internal override UiaCore.IRawElementProviderFragment GetFocus() => _focused;
+            internal override UiaCore.IRawElementProviderFragment? GetFocus() => _focused;
 
-            public override AccessibleObject GetFocused() => _focused;
+            public override AccessibleObject? GetFocused() => _focused;
 
             public unsafe MCHITTESTINFO GetHitTestInfo(int xScreen, int yScreen)
             {
+                if (!_ownerMonthCalendar.IsHandleCreated || HandleInternal == IntPtr.Zero)
+                {
+                    return new MCHITTESTINFO();
+                }
+
                 Point point = new Point(xScreen, yScreen);
-                User32.MapWindowPoints(IntPtr.Zero, Handle, ref point, 1);
+                User32.MapWindowPoints(IntPtr.Zero, HandleInternal, ref point, 1);
                 var hitTestInfo = new MCHITTESTINFO
                 {
                     cbSize = (uint)sizeof(MCHITTESTINFO),
@@ -315,11 +338,11 @@ namespace System.Windows.Forms
                     st = new Kernel32.SYSTEMTIME()
                 };
 
-                User32.SendMessageW(_owner, (User32.WM)MCM.HITTEST, IntPtr.Zero, ref hitTestInfo);
+                User32.SendMessageW(_ownerMonthCalendar, (User32.WM)MCM.HITTEST, IntPtr.Zero, ref hitTestInfo);
                 return hitTestInfo;
             }
 
-            public CalendarChildAccessibleObject GetCalendarChildAccessibleObject(int calendarIndex, CalendarChildType calendarChildType, AccessibleObject parentAccessibleObject = null, int index = -1) =>
+            public CalendarChildAccessibleObject? GetCalendarChildAccessibleObject(int calendarIndex, CalendarChildType calendarChildType, AccessibleObject? parentAccessibleObject = null, int index = -1) =>
                  calendarChildType switch
                  {
                      CalendarChildType.PreviousButton => new CalendarPreviousButtonAccessibleObject(this, _calendarIndex),
@@ -332,7 +355,7 @@ namespace System.Windows.Forms
                      _ => null
                  };
 
-            public string GetCalendarChildName(int calendarIndex, CalendarChildType calendarChildType, AccessibleObject parentAccessibleObject = null, int index = -1)
+            public string GetCalendarChildName(int calendarIndex, CalendarChildType calendarChildType, AccessibleObject? parentAccessibleObject = null, int index = -1)
             {
                 switch (calendarChildType)
                 {
@@ -340,15 +363,16 @@ namespace System.Windows.Forms
                         GetCalendarGridInfoText(MCGIP.CALENDARHEADER, calendarIndex, 0, 0, out string text);
                         return text;
                     case CalendarChildType.TodayLink:
-                        return string.Format(SR.MonthCalendarTodayButtonAccessibleName, _owner.TodayDate.ToShortDateString());
+                        return string.Format(SR.MonthCalendarTodayButtonAccessibleName, _ownerMonthCalendar.TodayDate.ToShortDateString());
                 };
 
                 return string.Empty;
             }
 
-            private CalendarCellAccessibleObject GetCalendarCell(int calendarIndex, AccessibleObject parentAccessibleObject, int columnIndex)
+            private CalendarCellAccessibleObject? GetCalendarCell(int calendarIndex, AccessibleObject? parentAccessibleObject, int columnIndex)
             {
                 if (parentAccessibleObject is null ||
+                    !_ownerMonthCalendar.IsHandleCreated ||
                     columnIndex < 0 ||
                     columnIndex >= MAX_DAYS ||
                     columnIndex >= ColumnCount)
@@ -387,7 +411,7 @@ namespace System.Windows.Forms
 
             private string GetCalendarCellName(DateTime endDate, DateTime startDate, string defaultName, bool headerCell)
             {
-                if (_owner._mcCurView == MCMV.MONTH)
+                if (_ownerMonthCalendar._mcCurView == MCMV.MONTH)
                 {
                     if (headerCell)
                     {
@@ -396,7 +420,7 @@ namespace System.Windows.Forms
 
                     return startDate.ToString("dddd, MMMM dd, yyyy");
                 }
-                else if (_owner._mcCurView == MCMV.YEAR)
+                else if (_ownerMonthCalendar._mcCurView == MCMV.YEAR)
                 {
                     return startDate.ToString("MMMM yyyy");
                 }
@@ -404,9 +428,10 @@ namespace System.Windows.Forms
                 return defaultName;
             }
 
-            private CalendarRowAccessibleObject GetCalendarRow(int calendarIndex, AccessibleObject parentAccessibleObject, int rowIndex)
+            private CalendarRowAccessibleObject? GetCalendarRow(int calendarIndex, AccessibleObject? parentAccessibleObject, int rowIndex)
             {
                 if (parentAccessibleObject is null ||
+                    !_ownerMonthCalendar.IsHandleCreated ||
                     (HasHeaderRow ? rowIndex < -1 : rowIndex < 0) ||
                     rowIndex >= RowCount)
                 {
@@ -430,7 +455,7 @@ namespace System.Windows.Forms
                     return null;
                 }
 
-                SelectionRange cellsRange = _owner.GetDisplayRange(false);
+                SelectionRange cellsRange = _ownerMonthCalendar.GetDisplayRange(false);
 
                 if (cellsRange is null || cellsRange.Start > DateTimePicker.SysTimeToDateTime(endDate) || cellsRange.End < DateTimePicker.SysTimeToDateTime(startDate))
                 {
@@ -455,6 +480,14 @@ namespace System.Windows.Forms
                     (dwFlags & ~(MCGIF.DATE | MCGIF.RECT)) == 0,
                     "GetCalendarGridInfo() should be used only to obtain Date and Rect,"
                     + "dwFlags has flag bits other that MCGIF_DATE and MCGIF_RECT");
+
+                if (!_ownerMonthCalendar.IsHandleCreated)
+                {
+                    rectangle = default;
+                    endDate = default;
+                    startDate = default;
+                    return false;
+                }
 
                 var gridInfo = new MCGRIDINFO
                 {
@@ -485,6 +518,11 @@ namespace System.Windows.Forms
 
             private bool GetCalendarGridInfo(ref MCGRIDINFO gridInfo)
             {
+                if (!_ownerMonthCalendar.IsHandleCreated)
+                {
+                    return false;
+                }
+
                 // Do not use this if gridInfo.dwFlags contains MCGIF_NAME;
                 // use GetCalendarGridInfoText() instead.
                 Debug.Assert(
@@ -493,11 +531,17 @@ namespace System.Windows.Forms
 
                 gridInfo.dwFlags &= ~MCGIF.NAME;
 
-                return User32.SendMessageW(_owner, (User32.WM)MCM.GETCALENDARGRIDINFO, IntPtr.Zero, ref gridInfo) != IntPtr.Zero;
+                return User32.SendMessageW(_ownerMonthCalendar, (User32.WM)MCM.GETCALENDARGRIDINFO, IntPtr.Zero, ref gridInfo) != IntPtr.Zero;
             }
 
             private unsafe bool GetCalendarGridInfoText(MCGIP dwPart, int calendarIndex, int row, int column, out string text)
             {
+                if (!_ownerMonthCalendar.IsHandleCreated)
+                {
+                    text = string.Empty;
+                    return false;
+                }
+
                 const int nameLength = 128;
                 Span<char> name = stackalloc char[nameLength + 2];
 
@@ -516,7 +560,7 @@ namespace System.Windows.Forms
                         cchName = (UIntPtr)name.Length - 1
                     };
 
-                    result = User32.SendMessageW(_owner, (User32.WM)MCM.GETCALENDARGRIDINFO, IntPtr.Zero, ref gridInfo) != IntPtr.Zero;
+                    result = User32.SendMessageW(_ownerMonthCalendar, (User32.WM)MCM.GETCALENDARGRIDINFO, IntPtr.Zero, ref gridInfo) != IntPtr.Zero;
                 }
 
                 text = name.SliceAtFirstNull().ToString();
@@ -525,6 +569,12 @@ namespace System.Windows.Forms
 
             public bool GetCalendarPartRectangle(int calendarIndex, MCGIP dwPart, int row, int column, out RECT calendarPartRectangle)
             {
+                if (!_ownerMonthCalendar.IsHandleCreated)
+                {
+                    calendarPartRectangle = default;
+                    return false;
+                }
+
                 bool success = GetCalendarGridInfo(
                     MCGIF.RECT,
                     dwPart,
@@ -547,10 +597,16 @@ namespace System.Windows.Forms
                 return success;
             }
 
-            internal override object GetPropertyValue(UiaCore.UIA propertyID) =>
+            internal override object? GetPropertyValue(UiaCore.UIA propertyID) =>
                 propertyID switch
                 {
-                    UiaCore.UIA.ControlTypePropertyId => ControlType,
+                    // Unlike other controls, here the default "ControlType" also depends on AccessibleObject.Name value.
+                    // In other cases "ControlType" will reflect changes to MonthCalendar.AccessibleRole (i.e. if it is set to a custom role).
+                    UiaCore.UIA.ControlTypePropertyId => _ownerMonthCalendar.AccessibleRole == AccessibleRole.Default
+                                                         ? string.IsNullOrEmpty(base.Name)
+                                                               ? UiaCore.UIA.CalendarControlTypeId
+                                                               : UiaCore.UIA.TableControlTypeId
+                                                         : base.GetPropertyValue(propertyID),
                     UiaCore.UIA.NamePropertyId => Name,
                     UiaCore.UIA.IsGridPatternAvailablePropertyId => true,
                     UiaCore.UIA.IsTablePatternAvailablePropertyId => true,
@@ -639,7 +695,12 @@ namespace System.Windows.Forms
 
             public void RaiseAutomationEventForChild(UiaCore.UIA automationEventId, DateTime selectionStart, DateTime selectionEnd)
             {
-                AccessibleObject calendarChildAccessibleObject = GetCalendarChildAccessibleObject(selectionStart, selectionEnd);
+                if (!_ownerMonthCalendar.IsHandleCreated)
+                {
+                    return;
+                }
+
+                AccessibleObject? calendarChildAccessibleObject = GetCalendarChildAccessibleObject(selectionStart, selectionEnd);
 
                 if (calendarChildAccessibleObject != null)
                 {
@@ -652,9 +713,14 @@ namespace System.Windows.Forms
                 }
             }
 
-            private AccessibleObject GetCalendarChildAccessibleObject(DateTime selectionStart, DateTime selectionEnd)
+            private AccessibleObject? GetCalendarChildAccessibleObject(DateTime selectionStart, DateTime selectionEnd)
             {
-                AccessibleObject bodyAccessibleObject = GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarBody);
+                if (!_ownerMonthCalendar.IsHandleCreated)
+                {
+                    return null;
+                }
+
+                AccessibleObject? bodyAccessibleObject = GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarBody);
 
                 if (bodyAccessibleObject is null)
                 {
@@ -663,7 +729,7 @@ namespace System.Windows.Forms
 
                 for (int row = 0; row < RowCount; row++)
                 {
-                    AccessibleObject rowAccessibleObject = GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarRow, bodyAccessibleObject, row);
+                    AccessibleObject? rowAccessibleObject = GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarRow, bodyAccessibleObject, row);
 
                     if (rowAccessibleObject is null)
                     {
@@ -687,7 +753,7 @@ namespace System.Windows.Forms
                             continue;
                         }
 
-                        AccessibleObject cellAccessibleObject = GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarCell, rowAccessibleObject, column);
+                        AccessibleObject? cellAccessibleObject = GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarCell, rowAccessibleObject, column);
 
                         if (cellAccessibleObject is null)
                         {
@@ -708,20 +774,25 @@ namespace System.Windows.Forms
                 return null;
             }
 
-            internal override UiaCore.IRawElementProviderSimple[] GetRowHeaders() => null;
+            internal override UiaCore.IRawElementProviderSimple[]? GetRowHeaders() => null;
 
-            internal override UiaCore.IRawElementProviderSimple[] GetColumnHeaderItems()
+            internal override UiaCore.IRawElementProviderSimple[]? GetColumnHeaderItems()
             {
-                if (!HasHeaderRow)
+                if (!_ownerMonthCalendar.IsHandleCreated || !HasHeaderRow)
                 {
                     return null;
                 }
 
-                UiaCore.IRawElementProviderSimple[] headers =
+                UiaCore.IRawElementProviderSimple[]? headers =
                     new UiaCore.IRawElementProviderSimple[MonthCalendarAccessibleObject.MAX_DAYS];
 
-                AccessibleObject bodyAccessibleObject = GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarBody, this, -1);
-                AccessibleObject headerRowAccessibleObject = GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarRow, bodyAccessibleObject, -1);
+                AccessibleObject? bodyAccessibleObject = GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarBody, this, -1);
+                if (bodyAccessibleObject is null)
+                {
+                    return null;
+                }
+
+                AccessibleObject? headerRowAccessibleObject = GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarRow, bodyAccessibleObject, -1);
 
                 if (headerRowAccessibleObject is null)
                 {
@@ -730,15 +801,17 @@ namespace System.Windows.Forms
 
                 for (int columnIndex = 0; columnIndex < MonthCalendarAccessibleObject.MAX_DAYS; columnIndex++)
                 {
-                    headers[columnIndex] = GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarCell, headerRowAccessibleObject, columnIndex);
+                    // GetCalendarChildAccessibleObject can't return null under normal operating conditions.
+                    // If it happens then it means that the control is broken...
+                    headers[columnIndex] = GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarCell, headerRowAccessibleObject, columnIndex)!;
                 }
 
                 return headers;
             }
 
-            internal override UiaCore.IRawElementProviderSimple GetItem(int row, int column)
+            internal override UiaCore.IRawElementProviderSimple? GetItem(int row, int column)
             {
-                AccessibleObject rowAccessibleObject = GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarRow, this, row);
+                AccessibleObject? rowAccessibleObject = GetCalendarChildAccessibleObject(_calendarIndex, CalendarChildType.CalendarRow, this, row);
 
                 if (rowAccessibleObject is null)
                 {

@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Xunit;
+using static Interop;
 
 namespace System.Windows.Forms.Tests.AccessibleObjects
 {
@@ -18,9 +20,7 @@ namespace System.Windows.Forms.Tests.AccessibleObjects
             groupBox.AccessibleName = testAccName;
             AccessibleObject groupBoxAccessibleObject = groupBox.AccessibilityObject;
 
-            // Will fail when https://github.com/dotnet/winforms/pull/3432 is merged.
-            // Assert.False is expected here
-            Assert.True(groupBox.IsHandleCreated);
+            Assert.False(groupBox.IsHandleCreated);
 
             var accessibleName = groupBoxAccessibleObject.GetPropertyValue(Interop.UiaCore.UIA.NamePropertyId);
             Assert.Equal(testAccName, accessibleName);
@@ -34,9 +34,7 @@ namespace System.Windows.Forms.Tests.AccessibleObjects
             groupBox.Text = "Some test groupBox text";
             var groupBoxAccessibleObject = new GroupBox.GroupBoxAccessibleObject(groupBox);
 
-            // Will fail when https://github.com/dotnet/winforms/pull/3432 is merged.
-            // Assert.False is expected here
-            Assert.True(groupBox.IsHandleCreated);
+            Assert.False(groupBox.IsHandleCreated);
 
             bool supportsLegacyIAccessiblePatternId = groupBoxAccessibleObject.IsPatternSupported(Interop.UiaCore.UIA.LegacyIAccessiblePatternId);
             Assert.True(supportsLegacyIAccessiblePatternId);
@@ -51,11 +49,20 @@ namespace System.Windows.Forms.Tests.AccessibleObjects
             groupBox.AccessibleRole = AccessibleRole.Link;
             var groupBoxAccessibleObject = new GroupBox.GroupBoxAccessibleObject(groupBox);
 
-            // Will fail when https://github.com/dotnet/winforms/pull/3432 is merged.
-            // Assert.False is expected here
-            Assert.True(groupBox.IsHandleCreated);
-
+            Assert.False(groupBox.IsHandleCreated);
             Assert.Equal(AccessibleRole.Link, groupBoxAccessibleObject.Role);
+        }
+
+        [WinFormsFact]
+        public void GroupBoxAccessibleObject_Role_IsGrouping_ByDefault()
+        {
+            using GroupBox groupBox = new GroupBox();
+            // AccessibleRole is not set = Default
+
+            AccessibleRole actual = groupBox.AccessibilityObject.Role;
+
+            Assert.Equal(AccessibleRole.Grouping, actual);
+            Assert.False(groupBox.IsHandleCreated);
         }
 
         [WinFormsFact]
@@ -68,11 +75,47 @@ namespace System.Windows.Forms.Tests.AccessibleObjects
             groupBox.AccessibleDescription = testAccDescription;
             var groupBoxAccessibleObject = new GroupBox.GroupBoxAccessibleObject(groupBox);
 
-            // Will fail when https://github.com/dotnet/winforms/pull/3432 is merged.
-            // Assert.False is expected here
-            Assert.True(groupBox.IsHandleCreated);
-
+            Assert.False(groupBox.IsHandleCreated);
             Assert.Equal(testAccDescription, groupBoxAccessibleObject.Description);
+        }
+
+        [WinFormsFact]
+        public void GroupBoxAccessibleObject_ControlType_IsGroup_IfAccessibleRoleIsDefault()
+        {
+            using GroupBox groupBox = new GroupBox();
+            // AccessibleRole is not set = Default
+            object actual = groupBox.AccessibilityObject.GetPropertyValue(UiaCore.UIA.ControlTypePropertyId);
+            Assert.Equal(UiaCore.UIA.GroupControlTypeId, actual);
+            Assert.False(groupBox.IsHandleCreated);
+        }
+
+        public static IEnumerable<object[]> GroupBoxAccessibleObject_GetPropertyValue_ControlType_IsExpected_ForCustomRole_TestData()
+        {
+            Array roles = Enum.GetValues(typeof(AccessibleRole));
+
+            foreach (AccessibleRole role in roles)
+            {
+                if (role == AccessibleRole.Default)
+                {
+                    continue; // The test checks custom roles
+                }
+
+                yield return new object[] { role };
+            }
+        }
+
+        [WinFormsTheory]
+        [MemberData(nameof(GroupBoxAccessibleObject_GetPropertyValue_ControlType_IsExpected_ForCustomRole_TestData))]
+        public void GroupBoxAccessibleObject_GetPropertyValue_ControlType_IsExpected_ForCustomRole(AccessibleRole role)
+        {
+            using GroupBox groupBox = new GroupBox();
+            groupBox.AccessibleRole = role;
+
+            object actual = groupBox.AccessibilityObject.GetPropertyValue(UiaCore.UIA.ControlTypePropertyId);
+            UiaCore.UIA expected = AccessibleRoleControlTypeMap.GetControlType(role);
+
+            Assert.Equal(expected, actual);
+            Assert.False(groupBox.IsHandleCreated);
         }
     }
 }
